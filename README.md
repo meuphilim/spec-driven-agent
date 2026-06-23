@@ -133,7 +133,6 @@ Aprendizado acumulado em 3 categorias:
 spec-driven-agent/
 ├── CLAUDE.md              # Orquestrador do framework
 ├── package.json           # Configuração npm
-├── install-framework.bat  # Script de instalação (Windows)
 ├── README.md              # Este arquivo
 ├── CONTRIBUTING.md        # Guia de contribuição
 ├── CHANGELOG.md           # Histórico de versões
@@ -211,14 +210,7 @@ node cli/bin/cli.js init /caminho/para/projeto
 npm run init
 ```
 
-### Opção 3: Script de Instalação (Windows)
-
-```batch
-cd D:\Backup 0526\Documents\GitHub\meu-projeto
-C:\Users\Meuphilim\Downloads\spec-driven-agent-otimizado.tar\spec-driven-agent\install-framework.bat
-```
-
-### Opção 4: Clone do Repositório
+### Opção 3: Clone do Repositório
 
 ```bash
 git clone https://github.com/meuphilim/spec-driven-agent.git

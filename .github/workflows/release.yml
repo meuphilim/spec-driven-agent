@@ -45,6 +45,14 @@ jobs:
           fi
           echo "✅ Skills directory valid ($SKILL_COUNT skills)"
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Run CLI tests
+        run: node cli/test.js
+
   release:
     name: Create Release
     needs: validate

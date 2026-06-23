@@ -70,6 +70,14 @@ jobs:
             echo "✅ No secrets detected"
           fi
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Run CLI tests
+        run: node cli/test.js
+
       - name: Count framework metrics
         run: |
           SKILLS=$(ls -1 skills/*.md | wc -l)

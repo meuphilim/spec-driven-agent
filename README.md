@@ -1,10 +1,11 @@
 # Spec-Driven Agent Framework
 
-> **Versão:** 4.0.0 | **Status:** Production Ready | **Última atualização:** 2026-06-22
+> **Versão:** 4.0.0 | **Status:** Production Ready | **Última atualização:** 2026-06-23
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Version](https://img.shields.io/badge/version-4.0.0-blue.svg)](https://github.com/meuphilim/spec-driven-agent)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code- Compatible-green.svg)](https://docs.anthropic.com/en/docs/claude-code)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D14.0.0-green.svg)](https://nodejs.org/)
 
 ---
 
@@ -129,8 +130,25 @@ Aprendizado acumulado em 3 categorias:
 ## Estrutura de Diretórios
 
 ```
-projeto/
+spec-driven-agent/
 ├── CLAUDE.md              # Orquestrador do framework
+├── package.json           # Configuração npm
+├── install-framework.bat  # Script de instalação (Windows)
+├── README.md              # Este arquivo
+├── CONTRIBUTING.md        # Guia de contribuição
+├── CHANGELOG.md           # Histórico de versões
+├── LICENSE                # Licença MIT
+├── .gitignore             # Arquivos ignorados pelo Git
+├── .npmignore             # Arquivos ignorados pelo npm
+├── cli/                   # CLI npm
+│   ├── bin/cli.js         # Comando principal
+│   ├── index.js           # Entry point
+│   ├── package.json       # Metadados do pacote
+│   ├── test.js            # Testes automatizados
+│   └── templates/         # Templates do framework
+│       ├── CLAUDE.md
+│       ├── skills/ (13)
+│       └── .knowledge/ (4)
 ├── skills/                # 13 skills modulares
 │   ├── context.md         # Mapeamento + memória
 │   ├── spec.md            # Template de especificação
@@ -152,8 +170,12 @@ projeto/
 │   └── changelog.md       # Versionamento do knowledge
 ├── .specs/                # Especificações de tarefas
 ├── .sessions/             # Histórico de sessões
-├── install-framework.bat  # Script de instalação
-└── README.md              # Este arquivo
+└── .github/               # Configuração GitHub
+    ├── workflows/
+    │   ├── ci.yml         # Pipeline CI
+    │   └── release.yml    # Pipeline de release
+    ├── ISSUE_TEMPLATE/
+    └── PULL_REQUEST_TEMPLATE/
 ```
 
 ---
@@ -165,7 +187,7 @@ projeto/
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) instalado e configurado
 - Node.js >= 14.0.0 (para instalação via npm)
 
-### Opção 1: npm (Recomendado)
+### Opção 1: npm (Recomendado — Cross-Platform)
 
 ```bash
 # Instalação global
@@ -178,18 +200,22 @@ npx spec-driven-agent init
 npx sda init
 ```
 
-### Opção 2: Script de Instalação (Windows)
+### Opção 2: CLI Local
+
+```bash
+# No diretório do repositório
+npm install
+node cli/bin/cli.js init /caminho/para/projeto
+
+# Ou via script npm
+npm run init
+```
+
+### Opção 3: Script de Instalação (Windows)
 
 ```batch
 cd D:\Backup 0526\Documents\GitHub\meu-projeto
 C:\Users\Meuphilim\Downloads\spec-driven-agent-otimizado.tar\spec-driven-agent\install-framework.bat
-```
-
-### Opção 3: Cópia Manual
-
-```bash
-# Copiar framework para o projeto
-cp -r /caminho/para/spec-driven-agent/* meu-projeto/
 ```
 
 ### Opção 4: Clone do Repositório
@@ -255,6 +281,19 @@ Ao abrir um projeto com o framework instalado:
 ```
 
 ### Comandos Disponíveis
+
+#### CLI (npm)
+
+| Comando | Função |
+|---------|--------|
+| `sda init` | Inicializar framework no diretório atual |
+| `sda init <dir>` | Inicializar framework em diretório específico |
+| `sda update` | Atualizar framework para última versão |
+| `sda status` | Ver status da instalação |
+| `sda --version` | Ver versão |
+| `sda --help` | Ver ajuda |
+
+#### Framework (Claude Code)
 
 | Comando | Função |
 |---------|--------|
@@ -338,25 +377,36 @@ Tipo: REFACTOR · Effort: high
 2. **Hooks são conceituais** — não implementados como código real
 3. **Knowledge base jovem** — precisa de mais uso para maturar
 4. **Turn limits são sugestões** — agentes podem exceder se necessário
-5. **Windows-only** — script de instalação é .bat (não funciona em Linux/Mac)
 
 ---
 
 ## Roadmap
 
+### v4.0 (Atual) ✅
+
+- [x] CLI npm cross-platform (init, update, status)
+- [x] GATEs obrigatórios (SPEC, PLAN, REFLECT)
+- [x] Effort levels adaptativos
+- [x] Monitoramento de turns
+- [x] Hooks de validação
+- [x] Socrates Gate
+- [x] Subagents para contexto leve
+- [x] GitHub Actions CI/CD
+- [x] Testes automatizados (9/9)
+
 ### v4.1 (Planejado)
 
 - [ ] Hooks implementados como código real
-- [ ] Integração com GitHub Actions para validação
 - [ ] Dashboard de métricas de uso
-- [ ] Suporte a Linux/Mac no install script
+- [ ] Integração com npm publish automático
+- [ ] Suporte a múltiplos modelos de LLM
 
 ### v5.0 (Futuro)
 
 - [ ] Automação completa do ciclo SPEC → PLAN → EXECUTE
-- [ ] Integração com CI/CD para validação automática
 - [ ] Plugin system para skills customizadas
 - [ ] Multi-language support
+- [ ] Interface web para gerenciamento
 
 ---
 

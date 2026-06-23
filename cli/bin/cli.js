@@ -13,10 +13,15 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 
 // Version
 const VERSION = '4.0.0';
+
+// Sanitize path input
+function sanitizePath(input) {
+  if (!input) return input;
+  return path.normalize(input).replace(/^(\.\.[\/\\])+/, '');
+}
 
 // Colors for output
 const colors = {
@@ -79,7 +84,7 @@ function copyDirSync(src, dest) {
 // Initialize framework
 function init(targetDir) {
   const templateDir = getTemplateDir();
-  const destDir = path.resolve(targetDir || '.');
+  const destDir = path.resolve(sanitizePath(targetDir) || '.');
 
   log('\n🚀 Spec-Driven Agent Framework v' + VERSION, 'bright');
   log('━'.repeat(50), 'cyan');

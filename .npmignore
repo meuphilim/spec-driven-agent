@@ -1,0 +1,27 @@
+# Git
+.git
+.gitignore
+
+# GitHub
+.github
+
+# Development files
+.specs
+.sessions
+.install-framework.bat
+AUDIT-REPORT.md
+
+# Node
+node_modules
+npm-debug.log*
+
+# IDE
+.vscode
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test files
+cli/.test-temp

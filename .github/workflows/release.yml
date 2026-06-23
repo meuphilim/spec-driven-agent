@@ -1,0 +1,119 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    name: Validate Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate SemVer tag
+        run: |
+          TAG="${GITHUB_REF#refs/tags/v}"
+          if ! [[ "$TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ Invalid SemVer tag: $TAG"
+            exit 1
+          fi
+          echo "✅ Valid SemVer tag: $TAG"
+
+      - name: Check required files
+        run: |
+          REQUIRED_FILES=("README.md" "CHANGELOG.md" "LICENSE" "CLAUDE.md")
+          for file in "${REQUIRED_FILES[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "❌ Missing required file: $file"
+              exit 1
+            fi
+          done
+          echo "✅ All required files present"
+
+      - name: Check skills directory
+        run: |
+          SKILL_COUNT=$(ls -1 skills/*.md 2>/dev/null | wc -l)
+          if [ "$SKILL_COUNT" -lt 10 ]; then
+            echo "❌ Expected at least 10 skills, found $SKILL_COUNT"
+            exit 1
+          fi
+          echo "✅ Skills directory valid ($SKILL_COUNT skills)"
+
+  release:
+    name: Create Release
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          
+          # Get commits since last tag
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          
+          if [ -z "$PREV_TAG" ]; then
+            COMMITS=$(git log --oneline --no-decorate)
+          else
+            COMMITS=$(git log --oneline --no-decorate "$PREV_TAG"..HEAD)
+          fi
+          
+          # Build changelog
+          FEATURES=$(echo "$COMMITS" | grep -i "^feat" | sed 's/^/- /' || true)
+          FIXES=$(echo "$COMMITS" | grep -i "^fix" | sed 's/^/- /' || true)
+          OTHER=$(echo "$COMMITS" | grep -v -i "^feat\|^fix\|^chore\|^docs\|^style\|^refactor\|^test" | sed 's/^/- /' || true)
+          
+          cat > /tmp/changelog.md << 'EOF'
+          ## What's Changed
+          EOF
+          
+          if [ -n "$FEATURES" ]; then
+            echo "### 🚀 Features" >> /tmp/changelog.md
+            echo "$FEATURES" >> /tmp/changelog.md
+            echo "" >> /tmp/changelog.md
+          fi
+          
+          if [ -n "$FIXES" ]; then
+            echo "### 🐛 Bug Fixes" >> /tmp/changelog.md
+            echo "$FIXES" >> /tmp/changelog.md
+            echo "" >> /tmp/changelog.md
+          fi
+          
+          if [ -n "$OTHER" ]; then
+            echo "### 📦 Other Changes" >> /tmp/changelog.md
+            echo "$OTHER" >> /tmp/changelog.md
+            echo "" >> /tmp/changelog.md
+          fi
+          
+          echo "### 📦 Components" >> /tmp/changelog.md
+          echo "- 13 modular skills" >> /tmp/changelog.md
+          echo "- Knowledge base (patterns, heuristics, antipatterns)" >> /tmp/changelog.md
+          echo "- Spec-driven workflow with GATEs" >> /tmp/changelog.md
+          echo "- Effort levels and turn monitoring" >> /tmp/changelog.md
+          echo "- Socrates Gate for context discovery" >> /tmp/changelog.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          body_path: /tmp/changelog.md
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

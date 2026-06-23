@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    name: Validate Framework
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check required files
+        run: |
+          REQUIRED_FILES=("README.md" "CHANGELOG.md" "LICENSE" "CLAUDE.md" "CONTRIBUTING.md" ".gitignore")
+          for file in "${REQUIRED_FILES[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "❌ Missing required file: $file"
+              exit 1
+            fi
+          done
+          echo "✅ All required files present"
+
+      - name: Validate skills structure
+        run: |
+          REQUIRED_SKILLS=("context.md" "spec.md" "estimate.md" "plan.md" "implement.md" "fix.md" "debug.md" "refactor.md" "review.md" "status.md" "reflect.md" "learn.md" "socrates.md")
+          
+          for skill in "${REQUIRED_SKILLS[@]}"; do
+            if [ ! -f "skills/$skill" ]; then
+              echo "❌ Missing required skill: skills/$skill"
+              exit 1
+            fi
+          done
+          echo "✅ All 13 required skills present"
+
+      - name: Validate knowledge base
+        run: |
+          KB_FILES=("patterns.md" "heuristics.md" "antipatterns.md" "changelog.md")
+          
+          for file in "${KB_FILES[@]}"; do
+            if [ ! -f ".knowledge/$file" ]; then
+              echo "❌ Missing knowledge base file: .knowledge/$file"
+              exit 1
+            fi
+          done
+          echo "✅ Knowledge base complete"
+
+      - name: Check CLAUDE.md structure
+        run: |
+          # Check for required sections
+          SECTIONS=("IDENTIDADE" "FLUXO OBRIGATÓRIO" "HOOKS" "SKILLS" "SUBAGENTS")
+          
+          for section in "${SECTIONS[@]}"; do
+            if ! grep -q "$section" CLAUDE.md; then
+              echo "❌ Missing section in CLAUDE.md: $section"
+              exit 1
+            fi
+          done
+          echo "✅ CLAUDE.md structure valid"
+
+      - name: Check no secrets in code
+        run: |
+          if grep -r "password\|secret\|api_key\|token" --include="*.md" --include="*.yml" --include="*.yaml" . | grep -v "CHANGELOG\|README\|CONTRIBUTING\|.github/workflows" | grep -v "GITHUB_TOKEN\|secrets\." | head -5; then
+            echo "⚠️ Potential secrets found in code"
+          else
+            echo "✅ No secrets detected"
+          fi
+
+      - name: Count framework metrics
+        run: |
+          SKILLS=$(ls -1 skills/*.md | wc -l)
+          LINES=$(wc -l < CLAUDE.md)
+          echo "📊 Framework Metrics:"
+          echo "   Skills: $SKILLS"
+          echo "   CLAUDE.md lines: $LINES"
+          echo "   Status: ✅ Valid"

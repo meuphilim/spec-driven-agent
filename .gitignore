@@ -1,0 +1,59 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Temp files
+*.tmp
+*.temp
+*.bak
+*.orig
+
+# Build output
+dist/
+build/
+out/
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Claude Code
+.claude/
+
+# Session files (keep README only)
+.sessions/*.md
+!.sessions/README.md
+
+# Spec analysis files (keep implementation specs only)
+.specs/analise-*.md
+.specs/fluxo-*.md
+.specs/gaps-*.md
+.specs/priorizacao-*.md
+.specs/automacoes-*.md
+.specs/plan-audit-*.md
+.specs/plan-otimizacao-*.md
+.specs/relatorio-*.md

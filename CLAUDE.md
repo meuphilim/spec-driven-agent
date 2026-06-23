@@ -136,23 +136,45 @@ Toda sessão segue este padrão de output estruturado:
 
 ---
 
-## HOOKS DE VALIDAÇÃO (M2)
+## HOOKS DE VALIDAÇÃO (implementados)
 
-Executar automaticamente em cada ponto do ciclo:
+### Estado Compartilhado
+Hooks usam `hooks/state.json` como fonte de verdade.
+- Para ler: `cat hooks/state.json | jq`
+- Para atualizar: usar `jq` com `mktemp` + `mv` (atômico)
 
-| Hook | Quando | Ação |
-|---|---|---|
-| `pre-tool` | Antes de qualquer tool call | Verificar GATE ativo · Confirmar escopo · Log do turn |
-| `post-tool` | Após tool call | Verificar resultado · Atualizar turn counter · Reportar erro se houver |
-| `pre-execute` | Antes de escrever código | Confirmar PLAN GATE aprovado · Verificar spec não mudou |
-| `post-task` | Ao concluir tarefa | Disparar REFLECT GATE · Salvar estado em `.sessions/` |
-| `stop` | Ao atingir limite de turns | Salvar estado · Reportar progresso · Aguardar instrução |
-
+### Inicialização (obrigatório no início da sessão)
 ```
-[pre-tool]  → GATE ok? → escopo ok? → log turn N
-[post-tool] → resultado ok? → turn N/max → erro? → alertar
-[stop]      → salvar sessão → REFLECT GATE → aguardar
+Se hooks/state.json não existe:
+  bash hooks/init-session.sh [PROJECT_NAME]
+Se hooks/state.json existe e phase ≠ "done":
+  Perguntar: "Retomar sessão anterior ou iniciar nova?"
 ```
+
+### pre-tool (antes de QUALQUER tool call)
+1. Script valida automaticamente via Claude Code PreToolUse
+2. Se bloqueado: `⛔ VIOLAÇÃO — [motivo]`
+3. Script incrementa turn counter automaticamente
+
+### post-tool (após QUALQUER tool call)
+1. Script registra resultado automaticamente via Claude Code PostToolUse
+2. Se erro: `🚨 TOOL ERRO: [tool] — [erro]`
+
+### pre-execute (antes de Edit/Write)
+1. **OBRIGATÓRIO:** `gates.plan` = "approved"
+2. Verificar `active_spec` existe
+3. Declarar: `🔄 EXECUÇÃO · Turn: [N]/[max] · Effort: [level]`
+
+### post-task (ao concluir tarefa)
+1. Atualizar phase para "reflect": `TMP=$(mktemp) && jq '.phase = "reflect"' state.json > "$TMP" && mv "$TMP" state.json`
+2. Executar `bash hooks/save-session.sh`
+3. Disparar REFLECT GATE
+4. NÃO encerrar sem /reflect
+
+### stop (ao atingir limite ou interromper)
+1. Script salva estado automaticamente via Claude Code Stop
+2. Se `intentional_stop = false` E phase ≠ done: alertar pendências
+3. Para parada intencional: `TMP=$(mktemp) && jq '.intentional_stop = true' state.json > "$TMP" && mv "$TMP" state.json`
 
 ---
 

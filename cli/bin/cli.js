@@ -306,6 +306,9 @@ function showHelp() {
   log('  init [directory]    Initialize framework in directory', 'white');
   log('  update              Update framework to latest version', 'white');
   log('  status              Show framework status', 'white');
+  log('  hooks init          Initialize hooks session', 'white');
+  log('  hooks status        Show hooks status', 'white');
+  log('  hooks validate      Validate hooks gates', 'white');
   log('  help                Show this help message', 'white');
   log('');
   log('Options:', 'cyan');
@@ -321,6 +324,109 @@ function showHelp() {
   log('Documentation:', 'cyan');
   log('  https://github.com/meuphilim/spec-driven-agent', 'white');
   log('');
+}
+
+// Hooks functions
+function sanitizeInput(input) {
+  if (!input) return input;
+  return path.normalize(input).replace(/^(\.\.[\/\\])+/, '');
+}
+
+function hooksInit(project) {
+  const sanitized = sanitizeInput(project);
+  const hooksDir = path.join(__dirname, '..', '..', 'hooks');
+  
+  log('\n🔧 Initializing hooks...', 'bright');
+  
+  if (!fs.existsSync(hooksDir)) {
+    logError('hooks/ directory not found');
+    logInfo('Run `spec-driven-agent init` first');
+    process.exit(1);
+  }
+  
+  try {
+    const { execSync } = require('child_process');
+    execSync(`bash "${path.join(hooksDir, 'init-session.sh')}" ${sanitized}`, { stdio: 'inherit' });
+  } catch (error) {
+    logError(`Failed to init hooks: ${error.message}`);
+    process.exit(1);
+  }
+}
+
+function hooksStatus() {
+  const hooksDir = path.join(__dirname, '..', '..', 'hooks');
+  const stateFile = path.join(hooksDir, 'state.json');
+  
+  if (!fs.existsSync(stateFile)) {
+    logError('hooks/state.json not found');
+    logInfo('Run `sda hooks init` first');
+    process.exit(1);
+  }
+  
+  try {
+    const state = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
+    
+    log('\n📊 Hooks Status', 'bright');
+    log('━'.repeat(40), 'cyan');
+    log(`  Sessão: ${state.session_id || 'not initialized'}`, 'white');
+    log(`  Projeto: ${state.project || 'unknown'}`, 'white');
+    log(`  Fase: ${state.phase}`, 'white');
+    log(`  Turns: ${state.turns.current}/${state.turns.max}`, 'white');
+    log(`  GATEs: spec=${state.gates.spec}, plan=${state.gates.plan}, reflect=${state.gates.reflect}`, 'white');
+    log(`  Spec ativa: ${state.active_spec || 'none'}`, 'white');
+    log(`  Parada intencional: ${state.intentional_stop}`, 'white');
+    log('');
+  } catch (error) {
+    logError(`Failed to read state: ${error.message}`);
+    process.exit(1);
+  }
+}
+
+function hooksValidate() {
+  const hooksDir = path.join(__dirname, '..', '..', 'hooks');
+  const stateFile = path.join(hooksDir, 'state.json');
+  
+  if (!fs.existsSync(stateFile)) {
+    logError('hooks/state.json not found');
+    logInfo('Run `sda hooks init` first');
+    process.exit(1);
+  }
+  
+  try {
+    const state = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
+    const errors = [];
+    
+    // Validar GATEs baseado na fase
+    if (['plan', 'execute', 'report', 'reflect', 'learn'].includes(state.phase)) {
+      if (state.gates.spec !== 'approved') {
+        errors.push(`SPEC GATE não aprovado (fase: ${state.phase}, status: ${state.gates.spec})`);
+      }
+    }
+    
+    if (['execute', 'report', 'reflect', 'learn'].includes(state.phase)) {
+      if (state.gates.plan !== 'approved') {
+        errors.push(`PLAN GATE não aprovado (fase: ${state.phase}, status: ${state.gates.plan})`);
+      }
+    }
+    
+    // Validar turn limits
+    if (state.turns.current > state.turns.max) {
+      errors.push(`Turns excedido: ${state.turns.current}/${state.turns.max}`);
+    }
+    
+    if (errors.length > 0) {
+      log('\n❌ Erros de validação:', 'red');
+      errors.forEach(e => log(`  - ${e}`, 'red'));
+      log('');
+      process.exit(1);
+    } else {
+      log('\n✅ Todos os GATEs válidos', 'green');
+      log('');
+    }
+  } catch (error) {
+    logError(`Failed to validate: ${error.message}`);
+    process.exit(1);
+  }
 }
 
 // Main CLI
@@ -355,6 +461,16 @@ function main() {
       break;
     case 'status':
       status();
+      break;
+    case 'hooks':
+      const subcommand = args[1];
+      if (subcommand === 'init') hooksInit(args[2]);
+      else if (subcommand === 'status') hooksStatus();
+      else if (subcommand === 'validate') hooksValidate();
+      else {
+        logError('Subcomandos: init, status, validate');
+        logInfo('Usage: sda hooks <init|status|validate>');
+      }
       break;
     case 'help':
       showHelp();

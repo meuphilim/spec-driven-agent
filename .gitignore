@@ -32,6 +32,10 @@ logs/
 *.bak
 *.orig
 
+# Framework hooks (dynamic state)
+hooks/state.json
+hooks/state.history.log
+
 # Build output
 dist/
 build/

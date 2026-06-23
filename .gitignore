@@ -57,3 +57,7 @@ coverage/
 .specs/plan-audit-*.md
 .specs/plan-otimizacao-*.md
 .specs/relatorio-*.md
+
+# Audit reports (development only)
+AUDIT-REPORT.md
+audit-*

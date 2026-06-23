@@ -10,6 +10,7 @@
 .sessions
 .install-framework.bat
 AUDIT-REPORT.md
+audit-*
 
 # Node
 node_modules

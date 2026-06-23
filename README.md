@@ -163,23 +163,36 @@ projeto/
 ### Pré-requisitos
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) instalado e configurado
-- Windows (para script de instalação) ou capacidade de copiar arquivos manualmente
+- Node.js >= 14.0.0 (para instalação via npm)
 
-### Opção 1: Script de Instalação (Windows)
+### Opção 1: npm (Recomendado)
+
+```bash
+# Instalação global
+npm install -g spec-driven-agent
+
+# Ou uso direto via npx
+npx spec-driven-agent init
+
+# Ou com alias mais curto
+npx sda init
+```
+
+### Opção 2: Script de Instalação (Windows)
 
 ```batch
 cd D:\Backup 0526\Documents\GitHub\meu-projeto
 C:\Users\Meuphilim\Downloads\spec-driven-agent-otimizado.tar\spec-driven-agent\install-framework.bat
 ```
 
-### Opção 2: Cópia Manual
+### Opção 3: Cópia Manual
 
 ```bash
 # Copiar framework para o projeto
 cp -r /caminho/para/spec-driven-agent/* meu-projeto/
 ```
 
-### Opção 3: Clone do Repositório
+### Opção 4: Clone do Repositório
 
 ```bash
 git clone https://github.com/meuphilim/spec-driven-agent.git

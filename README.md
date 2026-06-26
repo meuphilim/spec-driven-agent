@@ -341,6 +341,9 @@ Guias de boas práticas carregados sob demanda:
 | `documentation-templates.md` | README, ADRs, CHANGELOG, PR templates |
 | `git-workflows.md` | Conventional Commits, branch strategy |
 | `project-structure.md` | Monorepo layouts, convenções de pastas |
+| `testing-patterns.md` | Testes unitários, integração, E2E, TDD |
+| `security-best-practices.md` | OWASP, autenticação, validação, secrets |
+| `performance-optimization.md` | Caching, bundle, database, Core Web Vitals |
 
 ---
 

@@ -7,6 +7,24 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [4.3.0] - 2026-06-26
+
+### Added
+
+- **npm publish automático** — Release workflow publica no npm ao criar tag
+- **3 novos Reference Guides:**
+  - `testing-patterns.md` — Pirâmide de testes, TDD, mocking, cobertura
+  - `security-best-practices.md` — OWASP, autenticação, validação, secrets
+  - `performance-optimization.md` — Caching, bundle, database, Core Web Vitals
+- **publishConfig** — Configuração de acesso público no npm
+
+### Changed
+
+- **cli/package.json** — Versão 4.3.0, publishConfig adicionado
+- **README.md** — 8 reference guides documentados
+
+---
+
 ## [4.2.0] - 2026-06-25
 
 ### Added

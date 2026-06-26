@@ -161,8 +161,8 @@ function runTests() {
     
     // Verify references copied
     const refs = fs.readdirSync(path.join(sdaDir, 'skills', 'references'));
-    if (refs.length !== 5) {
-      throw new Error(`Expected 5 references, got ${refs.length}`);
+    if (refs.length !== 8) {
+      throw new Error(`Expected 8 references, got ${refs.length}`);
     }
     
     // Verify agent copied

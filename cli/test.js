@@ -66,13 +66,15 @@ function runTests() {
     const templateDir = path.join(__dirname, 'templates');
     if (!fs.existsSync(templateDir)) throw new Error('templates/ not found');
     if (!fs.existsSync(path.join(templateDir, 'CLAUDE.md'))) throw new Error('CLAUDE.md not found');
-    if (!fs.existsSync(path.join(templateDir, 'skills'))) throw new Error('skills/ not found');
-    if (!fs.existsSync(path.join(templateDir, '.knowledge'))) throw new Error('.knowledge/ not found');
+    const sdaDir = path.join(templateDir, '.claude', 'sda');
+    if (!fs.existsSync(sdaDir)) throw new Error('.claude/sda/ not found');
+    if (!fs.existsSync(path.join(sdaDir, 'skills'))) throw new Error('skills/ not found');
+    if (!fs.existsSync(path.join(sdaDir, 'knowledge'))) throw new Error('knowledge/ not found');
   })) passed++; else failed++;
 
   // Test 4: All 13 skills present
   if (test('All 13 skills present', () => {
-    const skillsDir = path.join(__dirname, 'templates', 'skills');
+    const skillsDir = path.join(__dirname, 'templates', '.claude', 'sda', 'skills');
     const requiredSkills = [
       'context.md', 'spec.md', 'estimate.md', 'plan.md',
       'implement.md', 'fix.md', 'debug.md', 'refactor.md',
@@ -90,7 +92,7 @@ function runTests() {
 
   // Test 5: Knowledge base files present
   if (test('Knowledge base files present', () => {
-    const kbDir = path.join(__dirname, 'templates', '.knowledge');
+    const kbDir = path.join(__dirname, 'templates', '.claude', 'sda', 'knowledge');
     const requiredFiles = ['patterns.md', 'heuristics.md', 'antipatterns.md', 'changelog.md'];
     
     for (const file of requiredFiles) {
@@ -127,45 +129,63 @@ function runTests() {
     // Create test directory
     fs.mkdirSync(TEST_DIR, { recursive: true });
     
-    // Run init
-    execSync(`node cli/bin/cli.js init ${TEST_DIR}`, { encoding: 'utf8' });
+    // Run init (quote path for spaces on Windows)
+    execSync(`node cli/bin/cli.js init "${TEST_DIR}"`, { encoding: 'utf8' });
     
     // Verify files created
     if (!fs.existsSync(path.join(TEST_DIR, 'CLAUDE.md'))) {
       throw new Error('CLAUDE.md not created');
     }
-    if (!fs.existsSync(path.join(TEST_DIR, 'skills'))) {
-      throw new Error('skills/ not created');
+    const sdaDir = path.join(TEST_DIR, '.claude', 'sda');
+    if (!fs.existsSync(path.join(sdaDir, 'skills'))) {
+      throw new Error('.claude/sda/skills/ not created');
     }
-    if (!fs.existsSync(path.join(TEST_DIR, '.knowledge'))) {
-      throw new Error('.knowledge/ not created');
+    if (!fs.existsSync(path.join(sdaDir, 'knowledge'))) {
+      throw new Error('.claude/sda/knowledge/ not created');
     }
-    if (!fs.existsSync(path.join(TEST_DIR, '.specs'))) {
-      throw new Error('.specs/ not created');
+    if (!fs.existsSync(path.join(sdaDir, 'specs'))) {
+      throw new Error('.claude/sda/specs/ not created');
     }
-    if (!fs.existsSync(path.join(TEST_DIR, '.sessions'))) {
-      throw new Error('.sessions/ not created');
+    if (!fs.existsSync(path.join(sdaDir, 'sessions'))) {
+      throw new Error('.claude/sda/sessions/ not created');
+    }
+    if (!fs.existsSync(path.join(sdaDir, 'agents'))) {
+      throw new Error('.claude/sda/agents/ not created');
     }
     
     // Verify skills copied
-    const skills = fs.readdirSync(path.join(TEST_DIR, 'skills')).filter(f => f.endsWith('.md'));
+    const skills = fs.readdirSync(path.join(sdaDir, 'skills')).filter(f => f.endsWith('.md'));
     if (skills.length !== 13) {
       throw new Error(`Expected 13 skills, got ${skills.length}`);
+    }
+    
+    // Verify references copied
+    const refs = fs.readdirSync(path.join(sdaDir, 'skills', 'references'));
+    if (refs.length !== 5) {
+      throw new Error(`Expected 5 references, got ${refs.length}`);
+    }
+    
+    // Verify agent copied
+    if (!fs.existsSync(path.join(sdaDir, 'agents', 'Samantha.md'))) {
+      throw new Error('Samantha.md not copied');
     }
   })) passed++; else failed++;
 
   // Test 9: Status shows correct info
   if (test('Status shows correct info', () => {
     const cliPath = path.join(__dirname, 'bin', 'cli.js');
-    const output = execSync(`node ${cliPath} status`, { 
+    const output = execSync(`node "${cliPath}" status`, { 
       encoding: 'utf8',
       cwd: TEST_DIR
     });
     if (!output.includes('CLAUDE.md: Present')) {
       throw new Error('Status missing CLAUDE.md info');
     }
-    if (!output.includes('Skills: 13 files')) {
-      throw new Error('Status missing skills count');
+    if (!output.includes('.claude/sda/skills/')) {
+      throw new Error('Status missing skills path');
+    }
+    if (!output.includes('.claude/sda/agents/')) {
+      throw new Error('Status missing agents path');
     }
   })) passed++; else failed++;
 

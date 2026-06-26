@@ -8,9 +8,16 @@ Obrigado por considerar contribuir! Este documento descreve como participar do d
 
 ### Código de Conduta
 
+Consulte [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) para detalhes.
+
+Em resumo:
 - Seja respeitoso e profissional
 - Foque no que é melhor para a comunidade
 - Aceite construtivamente críticas
+
+### Segurança
+
+Consulte [SECURITY.md](SECURITY.md) para reportar vulnerabilidades.
 
 ### Princípios de Contribuição
 

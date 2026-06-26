@@ -240,7 +240,7 @@ function init(targetDir) {
       logWarning(`.claude/sda/skills/references/ backed up → ${bak}`);
     }
     copyDirSync(path.join(templateDir, '.claude', 'sda', 'skills', 'references'), refsDest);
-    logSuccess('.claude/sda/skills/references/ (5 guides)');
+    logSuccess('.claude/sda/skills/references/ (8 guides)');
 
     // ── .gitignore — append SDA entries, never overwrite ───────────────────
     const giPath      = path.join(destDir, '.gitignore');

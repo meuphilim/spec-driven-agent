@@ -3,25 +3,11 @@
 # Chamado pelo agente no início da sessão
 # Uso: bash hooks/init-session.sh [PROJECT_NAME] [SESSION_ID]
 
+source "$(dirname "$0")/_utils.sh"
+
 STATE_FILE="$(dirname "$0")/state.json"
 PROJECT="${1:-unknown}"
 SESSION_ID="${2:-$(date +%Y-%m-%d)-$PROJECT}"
-
-# Encontrar jq
-if command -v jq &> /dev/null; then
-  JQ="jq"
-elif [ -f "$HOME/AppData/Local/Microsoft/WinGet/Links/jq" ]; then
-  JQ="$HOME/AppData/Local/Microsoft/WinGet/Links/jq"
-elif [ -f "$HOME/AppData/Local/Microsoft/WinGet/Links/jq.exe" ]; then
-  JQ="$HOME/AppData/Local/Microsoft/WinGet/Links/jq.exe"
-elif [ -f "/usr/bin/jq" ]; then
-  JQ="/usr/bin/jq"
-elif [ -f "/usr/local/bin/jq" ]; then
-  JQ="/usr/local/bin/jq"
-else
-  echo "⚠️ jq não encontrado. Usando fallback inseguro."
-  JQ=""
-fi
 
 if [ -n "$JQ" ]; then
   # Seguro: jq constrói JSON com escaped values
@@ -41,8 +27,7 @@ if [ -n "$JQ" ]; then
       active_spec: null,
       scope_keywords: [],
       session_file: null,
-      intentional_stop: false,
-      history: ["init:session_started"]
+      intentional_stop: false
     }' > "$TMP" && mv "$TMP" "$STATE_FILE"
 else
   # Fallback: sanitizar variáveis manualmente
@@ -60,8 +45,7 @@ else
   "active_spec": null,
   "scope_keywords": [],
   "session_file": null,
-  "intentional_stop": false,
-  "history": ["init:session_started"]
+  "intentional_stop": false
 }
 EOF
 fi

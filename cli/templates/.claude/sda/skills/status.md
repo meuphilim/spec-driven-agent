@@ -7,7 +7,16 @@
 
 ### 1. Specs
 ```bash
-ls .claude/sda/specs/ && cat .claude/sda/specs/*.md  # ler status de cada uma
+# Só carrega specs ativas (não concluídas/canceladas)
+for f in .claude/sda/specs/*.md; do
+  [ -f "$f" ] || continue
+  status=$(grep -m1 "Status:" "$f" 2>/dev/null || echo "")
+  if [[ "$status" =~ (RASCUNHO|APROVADA|EM.EXECUÇÃO) ]]; then
+    echo "=== $(basename "$f") ==="
+    echo "$status"
+    echo ""
+  fi
+done
 ```
 Status: RASCUNHO · APROVADA · EM EXECUÇÃO · CONCLUÍDA · CANCELADA
 

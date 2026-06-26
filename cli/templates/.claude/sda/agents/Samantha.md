@@ -2,7 +2,7 @@
 name: Samantha
 description: "Samantha - Especialista em produtividade, workflows, automação, docs"
 mode: primary
-model: openrouter/deepseek-v4-flash-free
+model: claude-haiku-4-5-20251001
 color: "#3b82f6"
 steps: 30
 permission:

@@ -3,20 +3,7 @@
 # Chamado pelo Claude Code: PostToolUse
 # Uso: bash hooks/post-tool.sh [TOOL_NAME] [RESULT]
 
-# Encontrar jq
-if command -v jq &> /dev/null; then
-  JQ="jq"
-elif [ -f "$HOME/AppData/Local/Microsoft/WinGet/Links/jq" ]; then
-  JQ="$HOME/AppData/Local/Microsoft/WinGet/Links/jq"
-elif [ -f "$HOME/AppData/Local/Microsoft/WinGet/Links/jq.exe" ]; then
-  JQ="$HOME/AppData/Local/Microsoft/WinGet/Links/jq.exe"
-elif [ -f "/usr/bin/jq" ]; then
-  JQ="/usr/bin/jq"
-elif [ -f "/usr/local/bin/jq" ]; then
-  JQ="/usr/local/bin/jq"
-else
-  exit 0
-fi
+source "$(dirname "$0")/_utils.sh"
 
 STATE_FILE="$(dirname "$0")/state.json"
 TOOL_NAME="${1:-unknown}"
@@ -26,8 +13,17 @@ TOOL_RESULT="${2:-ok}"
 [ ! -f "$STATE_FILE" ] && exit 0
 
 # Registrar no history
+LOG_FILE="$(dirname "$0")/state.history.log"
 TIMESTAMP=$(date -u +"%H:%M:%S")
-echo "$TIMESTAMP:$TOOL_NAME:$TOOL_RESULT" >> "$(dirname "$0")/state.history.log"
+echo "$TIMESTAMP:$TOOL_NAME:$TOOL_RESULT" >> "$LOG_FILE"
+
+# Rotação: manter só últimas 500 linhas
+if [ -f "$LOG_FILE" ]; then
+  LINE_COUNT=$(wc -l < "$LOG_FILE" 2>/dev/null || echo 0)
+  if [ "$LINE_COUNT" -gt 500 ]; then
+    tail -500 "$LOG_FILE" > "$LOG_FILE.tmp" && mv "$LOG_FILE.tmp" "$LOG_FILE"
+  fi
+fi
 
 # Alertar se tool falhou
 if [ "$TOOL_RESULT" != "ok" ]; then

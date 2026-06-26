@@ -1,9 +1,9 @@
 # Spec-Driven Agent Framework
 
-> **Versão:** 4.0.0 | **Status:** Production Ready | **Última atualização:** 2026-06-23
+> **Versão:** 4.2.0 | **Status:** Production Ready | **Última atualização:** 2026-06-26
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-4.0.0-blue.svg)](https://github.com/meuphilim/spec-driven-agent)
+[![Version](https://img.shields.io/badge/version-4.2.0-blue.svg)](https://github.com/meuphilim/spec-driven-agent)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code- Compatible-green.svg)](https://docs.anthropic.com/en/docs/claude-code)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D14.0.0-green.svg)](https://nodejs.org/)
 
@@ -20,6 +20,8 @@ O **Spec-Driven Agent Framework** é um sistema completo de desenvolvimento orie
 - **Controle de execução** — monitoramento de turns e custos
 - **Eficiência** — 77% menos tokens que frameworks tradicionais
 - **Reprodutível** — fluxo idêntico para qualquer tarefa
+- **Samantha Agent** — Especialista em produtividade, workflows e automação
+- **Reference Guides** — 5 guias de boas práticas (bash, CI/CD, docs, git, estrutura)
 
 ---
 
@@ -37,7 +39,7 @@ O **Spec-Driven Agent Framework** é um sistema completo de desenvolvimento orie
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    SPEC-DRIVEN AGENT v4.0                       │
+│                    SPEC-DRIVEN AGENT v4.2                       │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐  │
@@ -317,6 +319,29 @@ Ao abrir um projeto com o framework instalado:
 | `/learn` | Consolidar conhecimento |
 | `/socrates` | Coletar contexto ausente |
 
+### Samantha Agent
+
+Agente especializado em produtividade, workflows, automação e documentação técnica.
+
+| Área | Descrição |
+|------|-----------|
+| **Workflows** | Analisar fluxos, identificar gargalos, sugerir melhorias |
+| **Documentação** | READMEs, docs de API, changelogs, ADRs |
+| **Organização** | Listas de tarefas, estruturas de pastas, repos |
+| **Automação** | Scripts, git hooks, CI/CD, deploys |
+
+### Reference Guides
+
+Guias de boas práticas carregados sob demanda:
+
+| Guia | Quando usar |
+|------|-------------|
+| `bash-best-practices.md` | Scripts bash, tratamento de erros, cross-platform |
+| `ci-cd-patterns.md` | GitHub Actions, Turborepo, caching |
+| `documentation-templates.md` | README, ADRs, CHANGELOG, PR templates |
+| `git-workflows.md` | Conventional Commits, branch strategy |
+| `project-structure.md` | Monorepo layouts, convenções de pastas |
+
 ---
 
 ## Casos de Uso Práticos
@@ -380,32 +405,34 @@ Tipo: REFACTOR · Effort: high
 ## Limitações Conhecidas
 
 1. **Dependência de disciplina** — GATEs dependem de triggers de texto
-2. **Hooks são conceituais** — não implementados como código real
-3. **Knowledge base jovem** — precisa de mais uso para maturar
-4. **Turn limits são sugestões** — agentes podem exceder se necessário
+2. **Knowledge base jovem** — precisa de mais uso para maturar
+3. **Turn limits são sugestões** — agentes podem exceder se necessário
 
 ---
 
 ## Roadmap
 
-### v4.0 (Atual) ✅
+### v4.2 (Atual) ✅
 
 - [x] CLI npm cross-platform (init, update, status)
 - [x] GATEs obrigatórios (SPEC, PLAN, REFLECT)
 - [x] Effort levels adaptativos
 - [x] Monitoramento de turns
-- [x] Hooks de validação
+- [x] Hooks implementados como código real (8 scripts bash)
 - [x] Socrates Gate
 - [x] Subagents para contexto leve
 - [x] GitHub Actions CI/CD
 - [x] Testes automatizados (9/9)
+- [x] Samantha Agent (especialista em produtividade)
+- [x] Reference Guides (5 guias de boas práticas)
+- [x] Fix shell injection (execFileSync)
 
-### v4.1 (Planejado)
+### v4.3 (Planejado)
 
-- [ ] Hooks implementados como código real
 - [ ] Dashboard de métricas de uso
 - [ ] Integração com npm publish automático
 - [ ] Suporte a múltiplos modelos de LLM
+- [ ] Mais reference guides (testing, security, performance)
 
 ### v5.0 (Futuro)
 

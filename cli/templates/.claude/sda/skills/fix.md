@@ -30,7 +30,7 @@ Tipos: Lógica · Estado · Tipagem · Contrato · Ambiente · Edge case
 | Média | 2-3 arquivos | Spec completa → aguardar aprovação |
 | Alta | Múltiplos arquivos ou intermitente | Spec + `/plan` + aprovação |
 
-### 5. Spec do Fix (`.specs/fix-[desc].md`)
+### 5. Spec do Fix (`.claude/sda/specs/fix-[desc].md`)
 ```markdown
 # SPEC: fix-[desc]
 Tipo: FIX

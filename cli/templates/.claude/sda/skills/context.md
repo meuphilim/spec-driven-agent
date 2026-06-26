@@ -28,7 +28,7 @@ Ler ≥3 arquivos centrais. Observar: naming, imports, barrel exports, estilo de
 
 ### 5. Specs
 ```bash
-ls .specs/ 2>/dev/null
+ls .claude/sda/specs/ 2>/dev/null
 ```
 
 ### 6. Socrates Gate
@@ -38,8 +38,8 @@ Se gaps de contexto não resolvíveis por código → `@skills/socrates.md`
 
 ## CARREGAMENTO DE MEMÓRIA
 ```bash
-cat .knowledge/patterns.md .knowledge/heuristics.md .knowledge/antipatterns.md
-ls .sessions/ | sort -r | head -3
+cat .claude/sda/knowledge/patterns.md .claude/sda/knowledge/heuristics.md .claude/sda/knowledge/antipatterns.md
+ls .claude/sda/sessions/ | sort -r | head -3
 # Ler sessão mais recente do projeto
 ```
 

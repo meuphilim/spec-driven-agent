@@ -37,7 +37,7 @@ Pergunta: [específica e acionável]
 Opções: a) ... b) ... c) ... d) Outro: ___
 ```
 
-### 4. Registrar em `.sessions/YYYY-MM-DD-[projeto].md`
+### 4. Registrar em `.claude/sda/sessions/YYYY-MM-DD-[projeto].md`
 ```markdown
 ## Contexto Coletado (Socrates Gate)
 ### Negócio: Objetivo / Usuários / Problema
@@ -59,7 +59,7 @@ Suficiente para prosseguir? SIM → continuar | NÃO → [quais gaps impedem]
 ```
 🏛️ SOCRATES GATE — [projeto]
 📊 GAPS: [N] (🔴[N] 🟡[N] 🟢[N]) · 📋 Perguntas: [N] · ✅ Respostas: [N]
-📝 Contexto em: .sessions/YYYY-MM-DD-[projeto].md
+📝 Contexto em: .claude/sda/sessions/YYYY-MM-DD-[projeto].md
 ➡️ Próximo: [continuar | criar spec | mais contexto]
 ```
 

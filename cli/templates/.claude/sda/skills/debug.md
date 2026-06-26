@@ -65,7 +65,7 @@ Solução candidata: [direção — correção é escopo do /fix]
 ### 7. Próximo passo
 | Cenário | Ação |
 |---|---|
-| Correção simples | `.specs/fix-[desc].md` → `/fix` |
+| Correção simples | `.claude/sda/specs/fix-[desc].md` → `/fix` |
 | Correção complexa | spec + `/plan` → `/fix` |
 | Fora do escopo | Relatório + recomendar spec separada |
 | Não encontrou causa | Relatório do que foi testado + sugestões |

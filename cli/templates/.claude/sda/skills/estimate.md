@@ -40,8 +40,8 @@ Criar: [N] · Modificar: [N] · Remover: [N]
 ```
 ⚠️ TAREFA GRANDE: [G/XG] — [X horas]
 Sub-specs sugeridas:
-1. .specs/[sub-1].md → [P/M]
-2. .specs/[sub-2].md → [P/M]
+1. .claude/sda/specs/[sub-1].md → [P/M]
+2. .claude/sda/specs/[sub-2].md → [P/M]
 Dependências: [sub-1 → sub-2]
 ```
 

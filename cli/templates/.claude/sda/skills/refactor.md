@@ -26,7 +26,7 @@ Rodar novamente → passando? ✅
 ```
 Se impossível escrever testes: documentar risco e obter aprovação explícita.
 
-### 3. Spec (`.specs/refactor-[desc].md`)
+### 3. Spec (`.claude/sda/specs/refactor-[desc].md`)
 ```markdown
 # SPEC: refactor-[desc]  Tipo: REFACTOR
 ## Problema Atual [estrutura atual, concretamente]

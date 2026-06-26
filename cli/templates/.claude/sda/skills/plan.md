@@ -9,7 +9,7 @@
 
 ```markdown
 # PLANO: [título da spec]
-**Spec:** .specs/[arquivo].md  **Estimativa:** P|M|G
+**Spec:** .claude/sda/specs/[arquivo].md  **Estimativa:** P|M|G
 
 ## Passos
 ### Passo 1: [nome]

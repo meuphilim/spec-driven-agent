@@ -7,7 +7,7 @@
 
 ### 1. Specs
 ```bash
-ls .specs/ && cat .specs/*.md  # ler status de cada uma
+ls .claude/sda/specs/ && cat .claude/sda/specs/*.md  # ler status de cada uma
 ```
 Status: RASCUNHO · APROVADA · EM EXECUÇÃO · CONCLUÍDA · CANCELADA
 
@@ -18,7 +18,7 @@ git status && git log --oneline -10 && git branch
 
 ### 3. Sessões recentes
 ```bash
-ls -t .sessions/ | head -5
+ls -t .claude/sda/sessions/ | head -5
 # Ler cada sessão e extrair:
 # - Decisões ainda válidas
 # - Bloqueios anteriores relevantes

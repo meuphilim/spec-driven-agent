@@ -14,13 +14,13 @@
 ### 2. Classificar descobertas
 | Tipo | Destino |
 |---|---|
-| 🟢 PADRÃO | `.knowledge/patterns.md` |
-| 🔵 HEURÍSTICA | `.knowledge/heuristics.md` |
-| 🔴 ANTIPADRÃO | `.knowledge/antipatterns.md` |
+| 🟢 PADRÃO | `.claude/sda/knowledge/patterns.md` |
+| 🔵 HEURÍSTICA | `.claude/sda/knowledge/heuristics.md` |
+| 🔴 ANTIPADRÃO | `.claude/sda/knowledge/antipatterns.md` |
 | 🟡 MELHORIA DE SKILL | Registrar para `@skills/learn.md` |
 | ⚪ OBSERVAÇÃO | Registrar na sessão, rever depois |
 
-### 3. Registrar sessão (`.sessions/YYYY-MM-DD-[projeto].md`)
+### 3. Registrar sessão (`.claude/sda/sessions/YYYY-MM-DD-[projeto].md`)
 ```markdown
 # Sessão: YYYY-MM-DD — [projeto]
 ## Tarefas: [tipo] [spec] → CONCLUÍDA|PARCIAL|BLOQUEADA
@@ -59,7 +59,7 @@ Ao concluir o reflect, produza este bloco antes de encerrar a tarefa:
 │ ⚠️  Atrito: [item + causa]                            │
 │ 💡 Descobertas: [tipo]: [desc] → consolidar|aguardar │
 │                                                       │
-│ Sessão gravada em: .sessions/[arquivo]               │
+│ Sessão gravada em: .claude/sda/sessions/[arquivo]               │
 │                                                       │
 │ 🔄 Próximo: /learn | aguardar | encerrar             │
 └───────────────────────────────────────────────────────┘

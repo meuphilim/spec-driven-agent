@@ -52,7 +52,7 @@ Após gerar a spec, produza exatamente este bloco e **pare**:
 ```
 ┌─ SPEC GATE ──────────────────────────────────────────┐
 │ 📋 Spec: [título]                                     │
-│ Arquivo: .specs/[nome].md                             │
+│ Arquivo: .claude/sda/specs/[nome].md                             │
 │ Status: RASCUNHO                                      │
 │                                                       │
 │ Checklist:                                            │
@@ -70,4 +70,4 @@ Se o usuário pedir para pular: registre `Status: CANCELADA — motivo: [razão]
 
 ## REGRAS
 - Specs canceladas registram motivo
-- Specs ficam em `.specs/`
+- Specs ficam em `.claude/sda/specs/`

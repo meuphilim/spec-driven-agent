@@ -313,21 +313,30 @@ function update() {
     logSuccess('CLAUDE.md updated');
 
     // Update skills
-    const skillsBak = backupExisting(path.join(sdaRoot, 'skills'));
-    logWarning(`.claude/sda/skills/ backed up → ${skillsBak}`);
-    copyDirSync(path.join(templateDir, '.claude', 'sda', 'skills'), path.join(sdaRoot, 'skills'));
+    const skillsPath = path.join(sdaRoot, 'skills');
+    if (fs.existsSync(skillsPath)) {
+      const skillsBak = backupExisting(skillsPath);
+      logWarning(`.claude/sda/skills/ backed up → ${skillsBak}`);
+    }
+    copyDirSync(path.join(templateDir, '.claude', 'sda', 'skills'), skillsPath);
     logSuccess('.claude/sda/skills/ updated');
 
     // Update knowledge
-    const knowledgeBak = backupExisting(path.join(sdaRoot, 'knowledge'));
-    logWarning(`.claude/sda/knowledge/ backed up → ${knowledgeBak}`);
-    copyDirSync(path.join(templateDir, '.claude', 'sda', 'knowledge'), path.join(sdaRoot, 'knowledge'));
+    const knowledgePath = path.join(sdaRoot, 'knowledge');
+    if (fs.existsSync(knowledgePath)) {
+      const knowledgeBak = backupExisting(knowledgePath);
+      logWarning(`.claude/sda/knowledge/ backed up → ${knowledgeBak}`);
+    }
+    copyDirSync(path.join(templateDir, '.claude', 'sda', 'knowledge'), knowledgePath);
     logSuccess('.claude/sda/knowledge/ updated');
 
     // Update hooks
-    const hooksBak = backupExisting(path.join(sdaRoot, 'hooks'));
-    logWarning(`.claude/sda/hooks/ backed up → ${hooksBak}`);
-    copyDirSync(path.join(templateDir, '.claude', 'sda', 'hooks'), path.join(sdaRoot, 'hooks'));
+    const hooksPath = path.join(sdaRoot, 'hooks');
+    if (fs.existsSync(hooksPath)) {
+      const hooksBak = backupExisting(hooksPath);
+      logWarning(`.claude/sda/hooks/ backed up → ${hooksBak}`);
+    }
+    copyDirSync(path.join(templateDir, '.claude', 'sda', 'hooks'), hooksPath);
     try {
       const { execSync } = require('child_process');
       execSync(`chmod +x "${path.join(sdaRoot, 'hooks')}"/*.sh 2>/dev/null || true`, { stdio: 'ignore' });

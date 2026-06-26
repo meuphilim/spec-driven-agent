@@ -5,7 +5,7 @@
 
 ## VERIFICAR EVIDÊNCIAS PRIMEIRO
 ```bash
-ls .sessions/ | sort -r | head -5
+ls .claude/sda/sessions/ | sort -r | head -5
 ```
 - [ ] Aparece em ≥2 sessões?
 - [ ] É generalizável (não específico de uma tarefa)?
@@ -18,9 +18,9 @@ Se não passou → registre na sessão e aguarde.
 ## TIPOS E DESTINOS
 | Tipo | Pergunta-chave | Destino |
 |---|---|---|
-| PADRÃO | "Qual abordagem funcionou consistentemente?" | `.knowledge/patterns.md` |
-| HEURÍSTICA | "Qual regra prática melhora decisões futuras?" | `.knowledge/heuristics.md` |
-| ANTIPADRÃO | "O que não deve ser repetido?" | `.knowledge/antipatterns.md` |
+| PADRÃO | "Qual abordagem funcionou consistentemente?" | `.claude/sda/knowledge/patterns.md` |
+| HEURÍSTICA | "Qual regra prática melhora decisões futuras?" | `.claude/sda/knowledge/heuristics.md` |
+| ANTIPADRÃO | "O que não deve ser repetido?" | `.claude/sda/knowledge/antipatterns.md` |
 
 ---
 
@@ -52,18 +52,18 @@ Se não passou → registre na sessão e aguarde.
 ## ANTES DE GRAVAR — validar com usuário
 ```
 💡 CONSOLIDAR
-Tipo: [PADRÃO|HEURÍSTICA|ANTIPADRÃO] · Destino: .knowledge/[arquivo].md
+Tipo: [PADRÃO|HEURÍSTICA|ANTIPADRÃO] · Destino: .claude/sda/knowledge/[arquivo].md
 [conteúdo redigido]
 Posso gravar?
 ```
 **Não grave sem confirmação.**
 
-Após gravar: atualizar índice do arquivo + registrar em `.knowledge/changelog.md`
+Após gravar: atualizar índice do arquivo + registrar em `.claude/sda/knowledge/changelog.md`
 
 ---
 
 ## INVALIDAÇÃO
-1. Identificar conhecimento em `.knowledge/`
+1. Identificar conhecimento em `.claude/sda/knowledge/`
 2. Obter aprovação
 3. Mover para seção "Obsoleto" (NÃO deletar)
 4. Registrar em `changelog.md`

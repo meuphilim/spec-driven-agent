@@ -52,7 +52,7 @@ git diff main -- path/arquivo.ts # arquivo específico
 ## REPORT
 ```
 🔍 REVIEW — [feature/branch]
-Spec: .specs/[nome].md
+Spec: .claude/sda/specs/[nome].md
 
 🔴 BLOCKERS: [N]
 1. [arquivo:linha] — [problema] — [como corrigir]

@@ -146,29 +146,43 @@ spec-driven-agent/
 │   ├── test.js            # Testes automatizados
 │   └── templates/         # Templates do framework
 │       ├── CLAUDE.md
-│       ├── skills/ (13)
-│       └── .knowledge/ (4)
-├── skills/                # 13 skills modulares
-│   ├── context.md         # Mapeamento + memória
-│   ├── spec.md            # Template de especificação
-│   ├── estimate.md        # Estimativa de complexidade
-│   ├── plan.md            # Plano de execução
-│   ├── implement.md       # Protocolo de implementação
-│   ├── fix.md             # Correção de bugs
-│   ├── debug.md           # Investigação exploratória
-│   ├── refactor.md        # Reestruturação segura
-│   ├── review.md          # Code review
-│   ├── status.md          # Estado atual
-│   ├── reflect.md         # Auto-avaliação
-│   ├── learn.md           # Consolidação de conhecimento
-│   └── socrates.md        # Coleta de contexto ausente
-├── .knowledge/            # Knowledge base
-│   ├── patterns.md        # Padrões validados
-│   ├── heuristics.md      # Heurísticas aprendidas
-│   ├── antipatterns.md    # Antipadrões identificados
-│   └── changelog.md       # Versionamento do knowledge
-├── .specs/                # Especificações de tarefas
-├── .sessions/             # Histórico de sessões
+│       ├── .claude/sda/
+│       │   ├── skills/ (13 + references/)
+│       │   ├── knowledge/ (4)
+│       │   ├── hooks/ (7 scripts)
+│       │   ├── agents/ (Samantha)
+│       │   └── specs/
+├── .claude/sda/           # Framework instalado
+│   ├── skills/            # 13 skills modulares
+│   │   ├── context.md     # Mapeamento + memória
+│   │   ├── spec.md        # Template de especificação
+│   │   ├── estimate.md    # Estimativa de complexidade
+│   │   ├── plan.md        # Plano de execução
+│   │   ├── implement.md   # Protocolo de implementação
+│   │   ├── fix.md         # Correção de bugs
+│   │   ├── debug.md       # Investigação exploratória
+│   │   ├── refactor.md    # Reestruturação segura
+│   │   ├── review.md      # Code review
+│   │   ├── status.md      # Estado atual
+│   │   ├── reflect.md     # Auto-avaliação
+│   │   ├── learn.md       # Consolidação de conhecimento
+│   │   ├── socrates.md    # Coleta de contexto ausente
+│   │   └── references/    # Guias de referência
+│   │       ├── bash-best-practices.md
+│   │       ├── ci-cd-patterns.md
+│   │       ├── documentation-templates.md
+│   │       ├── git-workflows.md
+│   │       └── project-structure.md
+│   ├── knowledge/         # Knowledge base
+│   │   ├── patterns.md    # Padrões validados
+│   │   ├── heuristics.md  # Heurísticas aprendidas
+│   │   ├── antipatterns.md # Antipadrões identificados
+│   │   └── changelog.md   # Versionamento do knowledge
+│   ├── agents/            # Agentes especializados
+│   │   └── Samantha.md    # Especialista em produtividade
+│   ├── specs/             # Especificações de tarefas
+│   ├── sessions/          # Histórico de sessões
+│   └── hooks/             # Scripts bash de enforcement
 └── .github/               # Configuração GitHub
     ├── workflows/
     │   ├── ci.yml         # Pipeline CI

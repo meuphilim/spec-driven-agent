@@ -2,195 +2,282 @@
 
 /**
  * Spec-Driven Agent CLI
- * 
+ *
  * Usage:
- *   spec-driven-agent init [directory]
- *   spec-driven-agent update
- *   spec-driven-agent status
- *   spec-driven-agent --version
- *   spec-driven-agent --help
+ *   sda init [directory]      Initialize framework in directory (or current dir)
+ *   sda update                Update skills and knowledge base
+ *   sda status                Show framework status
+ *   sda hooks init <project>  Initialize a session
+ *   sda hooks status          Show current session state
+ *   sda hooks validate        Validate gate consistency
+ *   sda --version
+ *   sda --help
+ *
+ * All framework files are installed under .claude/sda/ to avoid
+ * conflicts with project-owned files (README.md, CHANGELOG.md,
+ * skills/, hooks/, etc.).
+ *
+ * The only file placed at project root is CLAUDE.md, which Claude Code
+ * requires at that exact location to load agent instructions.
  */
 
-const fs = require('fs');
+'use strict';
+
+const fs   = require('fs');
 const path = require('path');
 
-// Version
-const VERSION = '4.0.0';
+const VERSION = '4.1.0';
 
-// Sanitize path input
+// ─── Utilities ────────────────────────────────────────────────────────────────
+
 function sanitizePath(input) {
   if (!input) return input;
-  return path.normalize(input).replace(/^(\.\.[\/\\])+/, '');
+  const normalized = path.normalize(input).replace(/^(\.\.[\\/\\])+/, '');
+  if (/[;&|`$(){}!<>]/.test(normalized)) {
+    throw new Error(`Invalid characters in project name: "${input}"`);
+  }
+  return normalized;
 }
 
-// Colors for output
 const colors = {
-  reset: '\x1b[0m',
-  bright: '\x1b[1m',
-  red: '\x1b[31m',
-  green: '\x1b[32m',
-  yellow: '\x1b[33m',
-  blue: '\x1b[34m',
-  magenta: '\x1b[35m',
-  cyan: '\x1b[36m'
+  reset: '\x1b[0m', bright: '\x1b[1m',
+  red: '\x1b[31m',  green: '\x1b[32m', yellow: '\x1b[33m',
+  blue: '\x1b[34m', cyan:  '\x1b[36m', white:  '\x1b[37m',
 };
 
-// Helper functions
-function log(message, color = 'reset') {
-  console.log(`${colors[color]}${message}${colors.reset}`);
+function log(msg, color = 'reset') {
+  console.log(`${colors[color] || colors.reset}${msg}${colors.reset}`);
 }
+function logSuccess(msg) { log(`✅ ${msg}`, 'green');  }
+function logError(msg)   { log(`❌ ${msg}`, 'red');    }
+function logInfo(msg)    { log(`ℹ️  ${msg}`, 'cyan');  }
+function logWarning(msg) { log(`⚠️  ${msg}`, 'yellow'); }
 
-function logSuccess(message) {
-  log(`✅ ${message}`, 'green');
-}
-
-function logError(message) {
-  log(`❌ ${message}`, 'red');
-}
-
-function logInfo(message) {
-  log(`ℹ️  ${message}`, 'cyan');
-}
-
-function logWarning(message) {
-  log(`⚠️  ${message}`, 'yellow');
-}
-
-// Get template directory
 function getTemplateDir() {
   return path.join(__dirname, '..', 'templates');
 }
 
-// Copy directory recursively
+/** Recursively copy src → dest. dest is created if absent. */
 function copyDirSync(src, dest) {
-  if (!fs.existsSync(dest)) {
-    fs.mkdirSync(dest, { recursive: true });
-  }
-
-  const entries = fs.readdirSync(src, { withFileTypes: true });
-
-  for (const entry of entries) {
-    const srcPath = path.join(src, entry.name);
-    const destPath = path.join(dest, entry.name);
-
-    if (entry.isDirectory()) {
-      copyDirSync(srcPath, destPath);
-    } else {
-      fs.copyFileSync(srcPath, destPath);
-    }
+  fs.mkdirSync(dest, { recursive: true });
+  for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+    const s = path.join(src, entry.name);
+    const d = path.join(dest, entry.name);
+    entry.isDirectory() ? copyDirSync(s, d) : fs.copyFileSync(s, d);
   }
 }
 
-// Initialize framework
+/**
+ * Rename targetPath to a timestamped backup, return the backup name.
+ * Used instead of overwriting, so existing user files are never lost.
+ */
+function backupExisting(targetPath) {
+  const ts  = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  const bak = `${targetPath}.bak-${ts}`;
+  fs.renameSync(targetPath, bak);
+  return path.basename(bak);
+}
+
+// ─── Conflict detection ───────────────────────────────────────────────────────
+
+/**
+ * Inspect destDir for known project structures and files that could
+ * collide with framework installation.
+ *
+ * Returns:
+ *   detected  — array of framework/language names found
+ *   conflicts — array of { path, reason } for items needing attention
+ */
+function detectProjectStructure(destDir) {
+  const exists = (p) => fs.existsSync(path.join(destDir, p));
+
+  const signatures = [
+    { name: 'Next.js',    files: ['next.config.js', 'next.config.mjs', 'next.config.ts'] },
+    { name: 'NestJS',     files: ['nest-cli.json'] },
+    { name: 'Vite',       files: ['vite.config.js', 'vite.config.ts', 'vite.config.mjs'] },
+    { name: 'Vue',        files: ['vue.config.js'] },
+    { name: 'Angular',    files: ['angular.json'] },
+    { name: 'Turborepo',  files: ['turbo.json'] },
+    { name: 'Nx',         files: ['nx.json'] },
+    { name: 'Monorepo',   files: ['pnpm-workspace.yaml', 'lerna.json'] },
+    { name: 'Go module',  files: ['go.mod'] },
+    { name: 'Rust/Cargo', files: ['Cargo.toml'] },
+    { name: 'Django',     files: ['manage.py'] },
+    { name: 'Laravel',    files: ['artisan'] },
+    { name: 'Spring',     files: ['pom.xml', 'build.gradle'] },
+    { name: 'Docker',     files: ['docker-compose.yml', 'docker-compose.yaml', 'Dockerfile'] },
+    { name: 'Makefile',   files: ['Makefile', 'makefile'] },
+  ];
+
+  const detected = signatures
+    .filter(s => s.files.some(exists))
+    .map(s => s.name);
+
+  const conflicts = [];
+
+  // Files that would be overwritten (all others now live in .claude/sda/)
+  if (exists('CLAUDE.md'))
+    conflicts.push({ path: 'CLAUDE.md', reason: 'existing Claude Code configuration' });
+
+  // .claude/sda/ itself — safe to update in-place, but worth noting
+  if (exists('.claude/sda'))
+    conflicts.push({ path: '.claude/sda/', reason: 'previous SDA installation detected' });
+
+  return { detected, conflicts };
+}
+
+// ─── init ─────────────────────────────────────────────────────────────────────
+
 function init(targetDir) {
   const templateDir = getTemplateDir();
-  const destDir = path.resolve(sanitizePath(targetDir) || '.');
+  const destDir     = path.resolve(sanitizePath(targetDir) || '.');
 
-  log('\n🚀 Spec-Driven Agent Framework v' + VERSION, 'bright');
+  log('\n🚀 Spec-Driven Agent v' + VERSION, 'bright');
   log('━'.repeat(50), 'cyan');
   log('');
 
-  // Check if target directory exists
   if (!fs.existsSync(destDir)) {
     logInfo(`Creating directory: ${destDir}`);
     fs.mkdirSync(destDir, { recursive: true });
   }
 
-  // Check if CLAUDE.md already exists
-  const claudePath = path.join(destDir, 'CLAUDE.md');
-  if (fs.existsSync(claudePath)) {
-    logWarning('CLAUDE.md already exists in this directory');
-    logInfo('Existing files will be overwritten');
+  // ── Detect & report ────────────────────────────────────────────────────────
+  const { detected, conflicts } = detectProjectStructure(destDir);
+
+  if (detected.length > 0)
+    logInfo(`Detected: ${detected.join(', ')}`);
+
+  if (conflicts.length > 0) {
+    log('');
+    logWarning('Existing files will be backed up before overwriting:');
+    conflicts.forEach(c => log(`   ⚠  ${c.path} — ${c.reason}`, 'yellow'));
     log('');
   }
 
-  // Copy framework files
-  logInfo('Copying framework files...');
+  logInfo('Installing framework files...');
+  log('');
 
   try {
-    // Copy CLAUDE.md
-    fs.copyFileSync(
-      path.join(templateDir, 'CLAUDE.md'),
-      claudePath
-    );
-    logSuccess('CLAUDE.md');
-
-    // Copy skills directory
-    const skillsDest = path.join(destDir, 'skills');
-    copyDirSync(path.join(templateDir, 'skills'), skillsDest);
-    logSuccess('skills/ (13 skills)');
-
-    // Copy .knowledge directory
-    const knowledgeDest = path.join(destDir, '.knowledge');
-    copyDirSync(path.join(templateDir, '.knowledge'), knowledgeDest);
-    logSuccess('.knowledge/');
-
-    // Create .specs directory if it doesn't exist
-    const specsDir = path.join(destDir, '.specs');
-    if (!fs.existsSync(specsDir)) {
-      fs.mkdirSync(specsDir, { recursive: true });
+    // ── CLAUDE.md → project root (required by Claude Code) ─────────────────
+    // This is the ONLY file placed outside .claude/
+    const claudeSrc  = path.join(templateDir, 'CLAUDE.md');
+    const claudeDest = path.join(destDir, 'CLAUDE.md');
+    if (fs.existsSync(claudeDest)) {
+      const bak = backupExisting(claudeDest);
+      logWarning(`CLAUDE.md backed up → ${bak}`);
     }
-    logSuccess('.specs/');
+    fs.copyFileSync(claudeSrc, claudeDest);
+    logSuccess('CLAUDE.md (project root)');
 
-    // Create .sessions directory if it doesn't exist
-    const sessionsDir = path.join(destDir, '.sessions');
-    if (!fs.existsSync(sessionsDir)) {
-      fs.mkdirSync(sessionsDir, { recursive: true });
+    // ── .claude/sda/ — all framework artefacts, zero root pollution ────────
+    const sdaRoot = path.join(destDir, '.claude', 'sda');
+
+    // skills
+    const prevSkills = path.join(sdaRoot, 'skills');
+    if (fs.existsSync(prevSkills)) {
+      const bak = backupExisting(prevSkills);
+      logWarning(`.claude/sda/skills/ backed up → ${bak}`);
     }
-    logSuccess('.sessions/');
+    copyDirSync(path.join(templateDir, '.claude', 'sda', 'skills'), prevSkills);
+    logSuccess('.claude/sda/skills/ (13 skills)');
 
-    // Create README for .specs
-    const specsReadme = path.join(specsDir, 'README.md');
-    if (!fs.existsSync(specsReadme)) {
-      fs.writeFileSync(specsReadme, `# Specs Directory
-
-This directory contains task specifications.
-
-## Status Values
-
-- \`RASCUNHO\` - Draft, not yet approved
-- \`APROVADA\` - Approved, ready for implementation
-- \`CANCELADA\` - Cancelled with reason
-- \`CONCLUIDA\` - Completed
-
-## Naming Convention
-
-\`[tipo]-[descricao].md\`
-
-Examples:
-- \`feat-auth-oauth.md\`
-- \`fix-login-bug.md\`
-- \`refactor-api-cleanup.md\`
-`);
+    // knowledge
+    const knowledgeDest = path.join(sdaRoot, 'knowledge');
+    if (fs.existsSync(knowledgeDest)) {
+      const bak = backupExisting(knowledgeDest);
+      logWarning(`.claude/sda/knowledge/ backed up → ${bak}`);
     }
-    logSuccess('.specs/README.md');
+    copyDirSync(path.join(templateDir, '.claude', 'sda', 'knowledge'), knowledgeDest);
+    logSuccess('.claude/sda/knowledge/');
 
-    // Create README for .sessions
-    const sessionsReadme = path.join(sessionsDir, 'README.md');
-    if (!fs.existsSync(sessionsReadme)) {
-      fs.writeFileSync(sessionsReadme, `# Sessions Directory
-
-This directory contains execution history.
-
-## File Naming
-
-\`YYYY-MM-DD-[project-name].md\`
-
-## Auto-generated by /reflect
-
-Sessions are automatically created when you run \`/reflect\` at the end of tasks.
-`);
+    // specs (create-only — never overwrite user specs)
+    const specsDest = path.join(sdaRoot, 'specs');
+    if (!fs.existsSync(specsDest)) {
+      copyDirSync(path.join(templateDir, '.claude', 'sda', 'specs'), specsDest);
+      logSuccess('.claude/sda/specs/');
+    } else {
+      logInfo('.claude/sda/specs/ already exists — skipped');
     }
-    logSuccess('.sessions/README.md');
+
+    // sessions (create-only — never overwrite session history)
+    const sessionsDest = path.join(sdaRoot, 'sessions');
+    if (!fs.existsSync(sessionsDest)) {
+      copyDirSync(path.join(templateDir, '.claude', 'sda', 'sessions'), sessionsDest);
+      logSuccess('.claude/sda/sessions/');
+    } else {
+      logInfo('.claude/sda/sessions/ already exists — skipped');
+    }
+
+    // hooks (backup existing, then install fresh)
+    const hooksDest = path.join(sdaRoot, 'hooks');
+    if (fs.existsSync(hooksDest)) {
+      const bak = backupExisting(hooksDest);
+      logWarning(`.claude/sda/hooks/ backed up → ${bak}`);
+    }
+    copyDirSync(path.join(templateDir, '.claude', 'sda', 'hooks'), hooksDest);
+
+    // Make scripts executable (Unix / WSL / Git Bash)
+    try {
+      const { execSync } = require('child_process');
+      execSync(`chmod +x "${hooksDest}"/*.sh 2>/dev/null || true`, { stdio: 'ignore' });
+    } catch (_) { /* ignore on Windows without bash */ }
+
+    logSuccess('.claude/sda/hooks/ (7 scripts)');
+
+    // agents (backup existing, then install fresh)
+    const agentsDest = path.join(sdaRoot, 'agents');
+    if (fs.existsSync(agentsDest)) {
+      const bak = backupExisting(agentsDest);
+      logWarning(`.claude/sda/agents/ backed up → ${bak}`);
+    }
+    copyDirSync(path.join(templateDir, '.claude', 'sda', 'agents'), agentsDest);
+    logSuccess('.claude/sda/agents/ (Samantha)');
+
+    // skills/references (backup existing, then install fresh)
+    const refsDest = path.join(sdaRoot, 'skills', 'references');
+    if (fs.existsSync(refsDest)) {
+      const bak = backupExisting(refsDest);
+      logWarning(`.claude/sda/skills/references/ backed up → ${bak}`);
+    }
+    copyDirSync(path.join(templateDir, '.claude', 'sda', 'skills', 'references'), refsDest);
+    logSuccess('.claude/sda/skills/references/ (5 guides)');
+
+    // ── .gitignore — append SDA entries, never overwrite ───────────────────
+    const giPath      = path.join(destDir, '.gitignore');
+    const sdaEntries  = '\n# Spec-Driven Agent\n.claude/sda/hooks/state.json\n.claude/sda/hooks/state.history.log\n';
+    if (fs.existsSync(giPath)) {
+      const existing = fs.readFileSync(giPath, 'utf8');
+      if (!existing.includes('Spec-Driven Agent')) {
+        fs.appendFileSync(giPath, sdaEntries, 'utf8');
+        logSuccess('.gitignore (SDA entries appended)');
+      } else {
+        logSuccess('.gitignore (already up to date)');
+      }
+    } else {
+      fs.writeFileSync(giPath, sdaEntries.trimStart(), 'utf8');
+      logSuccess('.gitignore (created)');
+    }
 
     log('');
     log('━'.repeat(50), 'green');
     logSuccess('Framework installed successfully!');
     log('');
+    log('Installed structure:', 'cyan');
+    log('  CLAUDE.md                  ← loaded automatically by Claude Code', 'white');
+    log('  .claude/sda/skills/        ← 13 skills + references/', 'white');
+    log('  .claude/sda/knowledge/     ← patterns, heuristics, antipatterns', 'white');
+    log('  .claude/sda/specs/         ← task specifications', 'white');
+    log('  .claude/sda/sessions/      ← session history', 'white');
+    log('  .claude/sda/hooks/         ← 7 bash scripts', 'white');
+    log('  .claude/sda/agents/        ← Samantha agent', 'white');
+    log('');
     logInfo('Next steps:');
-    log('   1. Open your project in Claude Code', 'white');
-    log('   2. The CLAUDE.md will be loaded automatically', 'white');
-    log('   3. Start using /context, /spec, /plan, etc.', 'white');
+    log('  1. Register hooks in Claude Code settings.json:', 'white');
+    log('     PreToolUse  → bash .claude/sda/hooks/pre-tool.sh', 'white');
+    log('     PostToolUse → bash .claude/sda/hooks/post-tool.sh', 'white');
+    log('     Stop        → bash .claude/sda/hooks/stop.sh', 'white');
+    log('  2. Run `sda hooks init <project-name>` to start a session', 'white');
+    log('  3. Open project in Claude Code and use /context to begin', 'white');
     log('');
     logInfo('Documentation: https://github.com/meuphilim/spec-driven-agent');
     log('');
@@ -201,34 +288,69 @@ Sessions are automatically created when you run \`/reflect\` at the end of tasks
   }
 }
 
-// Update framework
+// ─── update ───────────────────────────────────────────────────────────────────
+
 function update() {
-  log('\n🔄 Updating Spec-Driven Agent Framework...', 'bright');
+  log('\n🔄 Updating Spec-Driven Agent...', 'bright');
   log('');
 
   const templateDir = getTemplateDir();
-  const currentDir = process.cwd();
+  const currentDir  = process.cwd();
+  const claudePath  = path.join(currentDir, 'CLAUDE.md');
+  const sdaRoot     = path.join(currentDir, '.claude', 'sda');
 
-  // Check if framework is installed
-  const claudePath = path.join(currentDir, 'CLAUDE.md');
   if (!fs.existsSync(claudePath)) {
-    logError('Framework not found in current directory');
-    logInfo('Run `spec-driven-agent init` first');
+    logError('Framework not found in current directory (CLAUDE.md missing)');
+    logInfo('Run `sda init` first');
     process.exit(1);
   }
 
   try {
     // Update CLAUDE.md
-    fs.copyFileSync(
-      path.join(templateDir, 'CLAUDE.md'),
-      claudePath
-    );
+    const bak = backupExisting(claudePath);
+    logWarning(`CLAUDE.md backed up → ${bak}`);
+    fs.copyFileSync(path.join(templateDir, 'CLAUDE.md'), claudePath);
     logSuccess('CLAUDE.md updated');
 
     // Update skills
-    const skillsDest = path.join(currentDir, 'skills');
-    copyDirSync(path.join(templateDir, 'skills'), skillsDest);
-    logSuccess('skills/ updated');
+    const skillsBak = backupExisting(path.join(sdaRoot, 'skills'));
+    logWarning(`.claude/sda/skills/ backed up → ${skillsBak}`);
+    copyDirSync(path.join(templateDir, '.claude', 'sda', 'skills'), path.join(sdaRoot, 'skills'));
+    logSuccess('.claude/sda/skills/ updated');
+
+    // Update knowledge
+    const knowledgeBak = backupExisting(path.join(sdaRoot, 'knowledge'));
+    logWarning(`.claude/sda/knowledge/ backed up → ${knowledgeBak}`);
+    copyDirSync(path.join(templateDir, '.claude', 'sda', 'knowledge'), path.join(sdaRoot, 'knowledge'));
+    logSuccess('.claude/sda/knowledge/ updated');
+
+    // Update hooks
+    const hooksBak = backupExisting(path.join(sdaRoot, 'hooks'));
+    logWarning(`.claude/sda/hooks/ backed up → ${hooksBak}`);
+    copyDirSync(path.join(templateDir, '.claude', 'sda', 'hooks'), path.join(sdaRoot, 'hooks'));
+    try {
+      const { execSync } = require('child_process');
+      execSync(`chmod +x "${path.join(sdaRoot, 'hooks')}"/*.sh 2>/dev/null || true`, { stdio: 'ignore' });
+    } catch (_) {}
+    logSuccess('.claude/sda/hooks/ updated');
+
+    // Update agents
+    const agentsDest = path.join(sdaRoot, 'agents');
+    if (fs.existsSync(agentsDest)) {
+      const agentsBak = backupExisting(agentsDest);
+      logWarning(`.claude/sda/agents/ backed up → ${agentsBak}`);
+    }
+    copyDirSync(path.join(templateDir, '.claude', 'sda', 'agents'), agentsDest);
+    logSuccess('.claude/sda/agents/ updated');
+
+    // Update references
+    const refsDest = path.join(sdaRoot, 'skills', 'references');
+    if (fs.existsSync(refsDest)) {
+      const refsBak = backupExisting(refsDest);
+      logWarning(`.claude/sda/skills/references/ backed up → ${refsBak}`);
+    }
+    copyDirSync(path.join(templateDir, '.claude', 'sda', 'skills', 'references'), refsDest);
+    logSuccess('.claude/sda/skills/references/ updated');
 
     log('');
     logSuccess('Framework updated to v' + VERSION);
@@ -239,142 +361,104 @@ function update() {
   }
 }
 
-// Show status
+// ─── status ───────────────────────────────────────────────────────────────────
+
 function status() {
   const currentDir = process.cwd();
+  const sdaRoot    = path.join(currentDir, '.claude', 'sda');
 
   log('\n📊 Spec-Driven Agent Status', 'bright');
   log('━'.repeat(50), 'cyan');
   log('');
 
-  // Check CLAUDE.md
-  const claudePath = path.join(currentDir, 'CLAUDE.md');
-  if (fs.existsSync(claudePath)) {
-    logSuccess('CLAUDE.md: Present');
-  } else {
-    logError('CLAUDE.md: Missing');
-  }
+  const check = (rel, label, counter) => {
+    const full = path.join(currentDir, rel);
+    if (!fs.existsSync(full)) { logError(`${label}: Missing`); return; }
+    if (counter) {
+      const count = fs.readdirSync(full).filter(f => f.endsWith('.md') && f !== 'README.md').length;
+      logSuccess(`${label}: ${count} files`);
+    } else {
+      logSuccess(`${label}: Present`);
+    }
+  };
 
-  // Check skills
-  const skillsDir = path.join(currentDir, 'skills');
-  if (fs.existsSync(skillsDir)) {
-    const skills = fs.readdirSync(skillsDir).filter(f => f.endsWith('.md'));
-    logSuccess(`Skills: ${skills.length} files`);
-  } else {
-    logError('Skills directory: Missing');
-  }
+  check('CLAUDE.md',                     'CLAUDE.md',              false);
+  check('.claude/sda/skills',            '.claude/sda/skills/',    true);
+  check('.claude/sda/knowledge',         '.claude/sda/knowledge/', true);
+  check('.claude/sda/specs',             '.claude/sda/specs/',     true);
+  check('.claude/sda/sessions',          '.claude/sda/sessions/',  true);
+  check('.claude/sda/hooks',             '.claude/sda/hooks/',     false);
+  check('.claude/sda/agents',            '.claude/sda/agents/',    true);
 
-  // Check .knowledge
-  const knowledgeDir = path.join(currentDir, '.knowledge');
-  if (fs.existsSync(knowledgeDir)) {
-    const kbFiles = fs.readdirSync(knowledgeDir).filter(f => f.endsWith('.md'));
-    logSuccess(`Knowledge base: ${kbFiles.length} files`);
+  const stateFile = path.join(sdaRoot, 'hooks', 'state.json');
+  if (fs.existsSync(stateFile)) {
+    try {
+      const s = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
+      log('');
+      log('Active session:', 'cyan');
+      log(`  Session : ${s.session_id || '—'}`,                            'white');
+      log(`  Phase   : ${s.phase}`,                                        'white');
+      log(`  Turns   : ${s.turns?.current}/${s.turns?.max}`,               'white');
+      log(`  GATEs   : spec=${s.gates?.spec}, plan=${s.gates?.plan}`,      'white');
+      log(`  Spec    : ${s.active_spec || 'none'}`,                        'white');
+    } catch (_) { logWarning('state.json found but could not be parsed'); }
   } else {
-    logWarning('Knowledge base: Not initialized');
-  }
-
-  // Check .specs
-  const specsDir = path.join(currentDir, '.specs');
-  if (fs.existsSync(specsDir)) {
-    const specs = fs.readdirSync(specsDir).filter(f => f.endsWith('.md') && f !== 'README.md');
-    logInfo(`Specs: ${specs.length} files`);
-  } else {
-    logInfo('Specs directory: Not created');
-  }
-
-  // Check .sessions
-  const sessionsDir = path.join(currentDir, '.sessions');
-  if (fs.existsSync(sessionsDir)) {
-    const sessions = fs.readdirSync(sessionsDir).filter(f => f.endsWith('.md') && f !== 'README.md');
-    logInfo(`Sessions: ${sessions.length} files`);
-  } else {
-    logInfo('Sessions directory: Not created');
+    log('');
+    logInfo('No active session (run `sda hooks init <project>`)');
   }
 
   log('');
 }
 
-// Show help
-function showHelp() {
-  log('\n🚀 Spec-Driven Agent CLI v' + VERSION, 'bright');
-  log('');
-  log('Usage:', 'cyan');
-  log('  spec-driven-agent <command> [options]', 'white');
-  log('  sda <command> [options]', 'white');
-  log('');
-  log('Commands:', 'cyan');
-  log('  init [directory]    Initialize framework in directory', 'white');
-  log('  update              Update framework to latest version', 'white');
-  log('  status              Show framework status', 'white');
-  log('  hooks init          Initialize hooks session', 'white');
-  log('  hooks status        Show hooks status', 'white');
-  log('  hooks validate      Validate hooks gates', 'white');
-  log('  help                Show this help message', 'white');
-  log('');
-  log('Options:', 'cyan');
-  log('  --version, -v       Show version number', 'white');
-  log('  --help, -h          Show help message', 'white');
-  log('');
-  log('Examples:', 'cyan');
-  log('  spec-driven-agent init                  # Init in current directory', 'white');
-  log('  spec-driven-agent init my-project       # Init in specific directory', 'white');
-  log('  spec-driven-agent update                # Update framework', 'white');
-  log('  spec-driven-agent status                # Show status', 'white');
-  log('');
-  log('Documentation:', 'cyan');
-  log('  https://github.com/meuphilim/spec-driven-agent', 'white');
-  log('');
-}
+// ─── hooks commands ───────────────────────────────────────────────────────────
 
-// Hooks functions
-function sanitizeInput(input) {
-  if (!input) return input;
-  return path.normalize(input).replace(/^(\.\.[\/\\])+/, '');
+function getSdaHooksDir() {
+  return path.join(process.cwd(), '.claude', 'sda', 'hooks');
 }
 
 function hooksInit(project) {
-  const sanitized = sanitizeInput(project);
-  const hooksDir = path.join(__dirname, '..', '..', 'hooks');
-  
-  log('\n🔧 Initializing hooks...', 'bright');
-  
-  if (!fs.existsSync(hooksDir)) {
-    logError('hooks/ directory not found');
-    logInfo('Run `spec-driven-agent init` first');
+  const sanitized = sanitizePath(project);
+  if (!sanitized) {
+    logError('Usage: sda hooks init <project-name>');
     process.exit(1);
   }
-  
+
+  const hooksDir = getSdaHooksDir();
+  if (!fs.existsSync(hooksDir)) {
+    logError('.claude/sda/hooks/ not found');
+    logInfo('Run `sda init` first');
+    process.exit(1);
+  }
+
+  log('\n🔧 Initializing session...', 'bright');
   try {
-    const { execSync } = require('child_process');
-    execSync(`bash "${path.join(hooksDir, 'init-session.sh')}" ${sanitized}`, { stdio: 'inherit' });
+    const { execFileSync } = require('child_process');
+    execFileSync('bash', [path.join(hooksDir, 'init-session.sh'), sanitized], { stdio: 'inherit' });
   } catch (error) {
-    logError(`Failed to init hooks: ${error.message}`);
+    logError(`Failed to initialize session: ${error.message}`);
     process.exit(1);
   }
 }
 
 function hooksStatus() {
-  const hooksDir = path.join(__dirname, '..', '..', 'hooks');
-  const stateFile = path.join(hooksDir, 'state.json');
-  
+  const stateFile = path.join(getSdaHooksDir(), 'state.json');
   if (!fs.existsSync(stateFile)) {
-    logError('hooks/state.json not found');
-    logInfo('Run `sda hooks init` first');
+    logError('.claude/sda/hooks/state.json not found');
+    logInfo('Run `sda hooks init <project>` first');
     process.exit(1);
   }
-  
+
   try {
-    const state = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
-    
-    log('\n📊 Hooks Status', 'bright');
+    const s = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
+    log('\n📊 Session State', 'bright');
     log('━'.repeat(40), 'cyan');
-    log(`  Sessão: ${state.session_id || 'not initialized'}`, 'white');
-    log(`  Projeto: ${state.project || 'unknown'}`, 'white');
-    log(`  Fase: ${state.phase}`, 'white');
-    log(`  Turns: ${state.turns.current}/${state.turns.max}`, 'white');
-    log(`  GATEs: spec=${state.gates.spec}, plan=${state.gates.plan}, reflect=${state.gates.reflect}`, 'white');
-    log(`  Spec ativa: ${state.active_spec || 'none'}`, 'white');
-    log(`  Parada intencional: ${state.intentional_stop}`, 'white');
+    log(`  Session  : ${s.session_id || '—'}`,                             'white');
+    log(`  Project  : ${s.project || '—'}`,                                'white');
+    log(`  Phase    : ${s.phase}`,                                         'white');
+    log(`  Turns    : ${s.turns?.current}/${s.turns?.max}`,                'white');
+    log(`  GATEs    : spec=${s.gates?.spec}, plan=${s.gates?.plan}, reflect=${s.gates?.reflect}`, 'white');
+    log(`  Spec     : ${s.active_spec || 'none'}`,                         'white');
+    log(`  Int.stop : ${s.intentional_stop}`,                              'white');
     log('');
   } catch (error) {
     logError(`Failed to read state: ${error.message}`);
@@ -383,104 +467,112 @@ function hooksStatus() {
 }
 
 function hooksValidate() {
-  const hooksDir = path.join(__dirname, '..', '..', 'hooks');
-  const stateFile = path.join(hooksDir, 'state.json');
-  
+  const stateFile = path.join(getSdaHooksDir(), 'state.json');
   if (!fs.existsSync(stateFile)) {
-    logError('hooks/state.json not found');
-    logInfo('Run `sda hooks init` first');
+    logError('.claude/sda/hooks/state.json not found');
+    logInfo('Run `sda hooks init <project>` first');
     process.exit(1);
   }
-  
+
   try {
-    const state = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
+    const s      = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
     const errors = [];
-    
-    // Validar GATEs baseado na fase
-    if (['plan', 'execute', 'report', 'reflect', 'learn'].includes(state.phase)) {
-      if (state.gates.spec !== 'approved') {
-        errors.push(`SPEC GATE não aprovado (fase: ${state.phase}, status: ${state.gates.spec})`);
-      }
-    }
-    
-    if (['execute', 'report', 'reflect', 'learn'].includes(state.phase)) {
-      if (state.gates.plan !== 'approved') {
-        errors.push(`PLAN GATE não aprovado (fase: ${state.phase}, status: ${state.gates.plan})`);
-      }
-    }
-    
-    // Validar turn limits
-    if (state.turns.current > state.turns.max) {
-      errors.push(`Turns excedido: ${state.turns.current}/${state.turns.max}`);
-    }
-    
+    const phase  = s.phase;
+
+    const planPhases    = ['plan', 'execute', 'report', 'reflect', 'learn'];
+    const executePhases = ['execute', 'report', 'reflect', 'learn'];
+
+    if (planPhases.includes(phase) && s.gates?.spec !== 'approved')
+      errors.push(`SPEC GATE not approved (phase: ${phase}, status: ${s.gates?.spec})`);
+
+    if (executePhases.includes(phase) && s.gates?.plan !== 'approved')
+      errors.push(`PLAN GATE not approved (phase: ${phase}, status: ${s.gates?.plan})`);
+
+    if (s.turns?.current > s.turns?.max)
+      errors.push(`Turn limit exceeded: ${s.turns.current}/${s.turns.max}`);
+
     if (errors.length > 0) {
-      log('\n❌ Erros de validação:', 'red');
+      log('\n❌ Validation errors:', 'red');
       errors.forEach(e => log(`  - ${e}`, 'red'));
       log('');
       process.exit(1);
     } else {
-      log('\n✅ Todos os GATEs válidos', 'green');
+      log('\n✅ All gates valid', 'green');
       log('');
     }
   } catch (error) {
-    logError(`Failed to validate: ${error.message}`);
+    logError(`Validation failed: ${error.message}`);
     process.exit(1);
   }
 }
 
-// Main CLI
+// ─── help ─────────────────────────────────────────────────────────────────────
+
+function showHelp() {
+  log('\n🚀 Spec-Driven Agent CLI v' + VERSION, 'bright');
+  log('');
+  log('Usage:', 'cyan');
+  log('  sda <command> [options]', 'white');
+  log('');
+  log('Commands:', 'cyan');
+    log('  init [dir]           Install framework (default: current directory)', 'white');
+    log('  update               Update CLAUDE.md, skills, knowledge, hooks, agents', 'white');
+    log('  status               Show framework and session status', 'white');
+    log('  hooks init <proj>    Initialize a new session', 'white');
+    log('  hooks status         Show current session state', 'white');
+    log('  hooks validate       Validate gate consistency', 'white');
+    log('  help                 Show this message', 'white');
+  log('');
+  log('Options:', 'cyan');
+  log('  --version, -v        Print version', 'white');
+  log('  --help,    -h        Show help', 'white');
+  log('');
+    log('Installed structure (inside target project):', 'cyan');
+    log('  CLAUDE.md                  ← project root (Claude Code requirement)', 'white');
+    log('  .claude/sda/skills/        ← 13 skills + references/', 'white');
+    log('  .claude/sda/knowledge/     ← patterns, heuristics, antipatterns', 'white');
+    log('  .claude/sda/specs/         ← task specifications', 'white');
+    log('  .claude/sda/sessions/      ← session history', 'white');
+    log('  .claude/sda/hooks/         ← bash hooks + state.json', 'white');
+    log('  .claude/sda/agents/        ← Samantha agent', 'white');
+  log('');
+  log('Documentation:', 'cyan');
+  log('  https://github.com/meuphilim/spec-driven-agent', 'white');
+  log('');
+}
+
+// ─── main ─────────────────────────────────────────────────────────────────────
+
 function main() {
-  const args = process.argv.slice(2);
+  const args    = process.argv.slice(2);
   const command = args[0];
 
-  // Handle no command
-  if (!command) {
-    showHelp();
-    return;
-  }
+  if (!command)                               { showHelp(); return; }
+  if (command === '--version' || command === '-v') { console.log(VERSION); return; }
+  if (command === '--help'    || command === '-h') { showHelp(); return; }
 
-  // Handle flags
-  if (command === '--version' || command === '-v') {
-    console.log(VERSION);
-    return;
-  }
-
-  if (command === '--help' || command === '-h') {
-    showHelp();
-    return;
-  }
-
-  // Handle commands
   switch (command) {
-    case 'init':
-      init(args[1]);
-      break;
-    case 'update':
-      update();
-      break;
-    case 'status':
-      status();
-      break;
-    case 'hooks':
-      const subcommand = args[1];
-      if (subcommand === 'init') hooksInit(args[2]);
-      else if (subcommand === 'status') hooksStatus();
-      else if (subcommand === 'validate') hooksValidate();
+    case 'init':     init(args[1]);    break;
+    case 'update':   update();         break;
+    case 'status':   status();         break;
+    case 'help':     showHelp();       break;
+    case 'hooks': {
+      const sub = args[1];
+      if      (sub === 'init')     hooksInit(args[2]);
+      else if (sub === 'status')   hooksStatus();
+      else if (sub === 'validate') hooksValidate();
       else {
-        logError('Subcomandos: init, status, validate');
+        logError(`Unknown hooks subcommand: ${sub || '(none)'}`);
         logInfo('Usage: sda hooks <init|status|validate>');
+        process.exit(1);
       }
       break;
-    case 'help':
-      showHelp();
-      break;
+    }
     default:
       logError(`Unknown command: ${command}`);
-      logInfo('Run `spec-driven-agent help` for usage');
+      logInfo('Run `sda help` for usage');
       process.exit(1);
   }
 }
 
-// Run CLI
 main();

@@ -7,6 +7,27 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [4.2.0] - 2026-06-25
+
+### Added
+
+- **Samantha Agent** — Agente especializado em produtividade, workflows, automação e documentação
+- **References/** — 5 guias de referência para boas práticas:
+  - `bash-best-practices.md` — Modo estrito, tratamento de erros, cross-platform
+  - `ci-cd-patterns.md` — GitHub Actions, Turborepo, caching, matrix builds
+  - `documentation-templates.md` — README, ADRs, CHANGELOG, PR templates
+  - `git-workflows.md` — Conventional Commits, branch strategy, hooks
+  - `project-structure.md` — Monorepo layouts, convenções de pastas
+
+### Changed
+
+- **CLI init** — Copia automaticamente agents/ e skills/references/
+- **CLI update** — Atualiza agents/ e skills/references/ junto com skills
+- **CLI status** — Exibe agents/ no checklist de status
+- **README.md** — Estrutura de diretórios atualizada com novos componentes
+
+---
+
 ## [4.0.0] - 2026-06-22
 
 ### Added

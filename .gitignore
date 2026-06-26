@@ -45,8 +45,10 @@ out/
 coverage/
 .nyc_output/
 
-# Claude Code
+# Claude Code (runtime — installed by sda init)
 .claude/
+# But allow CLI templates that ship the framework
+!cli/templates/.claude/
 
 # Session files (keep README only)
 .sessions/*.md

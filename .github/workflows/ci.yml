@@ -28,10 +28,11 @@ jobs:
       - name: Validate skills structure
         run: |
           REQUIRED_SKILLS=("context.md" "spec.md" "estimate.md" "plan.md" "implement.md" "fix.md" "debug.md" "refactor.md" "review.md" "status.md" "reflect.md" "learn.md" "socrates.md")
+          SKILLS_DIR="cli/templates/.claude/sda/skills"
           
           for skill in "${REQUIRED_SKILLS[@]}"; do
-            if [ ! -f "skills/$skill" ]; then
-              echo "❌ Missing required skill: skills/$skill"
+            if [ ! -f "$SKILLS_DIR/$skill" ]; then
+              echo "❌ Missing required skill: $SKILLS_DIR/$skill"
               exit 1
             fi
           done
@@ -40,10 +41,11 @@ jobs:
       - name: Validate knowledge base
         run: |
           KB_FILES=("patterns.md" "heuristics.md" "antipatterns.md" "changelog.md")
+          KB_DIR="cli/templates/.claude/sda/knowledge"
           
           for file in "${KB_FILES[@]}"; do
-            if [ ! -f ".knowledge/$file" ]; then
-              echo "❌ Missing knowledge base file: .knowledge/$file"
+            if [ ! -f "$KB_DIR/$file" ]; then
+              echo "❌ Missing knowledge base file: $KB_DIR/$file"
               exit 1
             fi
           done

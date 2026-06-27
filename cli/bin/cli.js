@@ -399,6 +399,17 @@ function status() {
   check('.claude/sda/hooks',             '.claude/sda/hooks/',     false);
   check('.claude/sda/agents',            '.claude/sda/agents/',    true);
 
+  const metricsFile = path.join(sdaRoot, 'metrics.json');
+  if (fs.existsSync(metricsFile)) {
+    try {
+      const m = JSON.parse(fs.readFileSync(metricsFile, 'utf8'));
+      const taskCount = m.tasks?.length || 0;
+      logSuccess(`.claude/sda/metrics.json: ${taskCount} tasks recorded`);
+    } catch (_) { logWarning('.claude/sda/metrics.json found but could not be parsed'); }
+  } else {
+    logInfo('.claude/sda/metrics.json: Not yet created');
+  }
+
   const stateFile = path.join(sdaRoot, 'hooks', 'state.json');
   if (fs.existsSync(stateFile)) {
     try {
@@ -417,6 +428,73 @@ function status() {
   }
 
   log('');
+}
+
+// ─── metrics ────────────────────────────────────────────────────────────────
+
+function metrics() {
+  const currentDir = process.cwd();
+  const metricsFile = path.join(currentDir, '.claude', 'sda', 'metrics.json');
+
+  log('\n📊 Spec-Driven Agent Metrics', 'bright');
+  log('━'.repeat(50), 'cyan');
+  log('');
+
+  if (!fs.existsSync(metricsFile)) {
+    logInfo('No metrics yet. Complete some tasks to see data.');
+    log('');
+    log('Metrics are collected automatically via post-task hook.', 'white');
+    log('Run `sda hooks init <project>` to start a session.', 'white');
+    log('');
+    return;
+  }
+
+  try {
+    const data = JSON.parse(fs.readFileSync(metricsFile, 'utf8'));
+
+    // Total tasks
+    const totalTasks = data.tasks?.length || 0;
+    log('Total tasks completed: ' + totalTasks, 'white');
+
+    if (totalTasks === 0) {
+      logInfo('No tasks recorded yet.');
+      log('');
+      return;
+    }
+
+    // Success rate
+    const successTasks = data.tasks.filter(t => t.result === 'success').length;
+    const successRate = totalTasks > 0 ? ((successTasks / totalTasks) * 100).toFixed(1) : 0;
+    log(`Success rate: ${successRate}% (${successTasks}/${totalTasks})`, 'green');
+
+    // Average turns per task
+    const totalTurns = data.tasks.reduce((sum, t) => sum + (t.turns || 0), 0);
+    const avgTurns = (totalTurns / totalTasks).toFixed(1);
+    log(`Avg turns/task: ${avgTurns}`, 'cyan');
+
+    // Tasks by type
+    log('');
+    log('Tasks by type:', 'cyan');
+    const byType = {};
+    data.tasks.forEach(t => {
+      byType[t.type] = (byType[t.type] || 0) + 1;
+    });
+    Object.entries(byType).sort((a, b) => b[1] - a[1]).forEach(([type, count]) => {
+      log(`  ${type}: ${count}`, 'white');
+    });
+
+    // Recent tasks (last 5)
+    log('');
+    log('Recent tasks:', 'cyan');
+    data.tasks.slice(-5).reverse().forEach(t => {
+      const icon = t.result === 'success' ? '✅' : '❌';
+      log(`  ${icon} ${t.name} (${t.type}) — ${t.turns} turns`, 'white');
+    });
+
+    log('');
+  } catch (error) {
+    logError(`Failed to read metrics: ${error.message}`);
+  }
 }
 
 // ─── hooks commands ───────────────────────────────────────────────────────────
@@ -515,6 +593,77 @@ function hooksValidate() {
   }
 }
 
+// ─── metrics ──────────────────────────────────────────────────────────────────
+
+function metrics() {
+  const metricsFile = path.join(process.cwd(), '.claude', 'sda', 'metrics.json');
+
+  if (!fs.existsSync(metricsFile)) {
+    log('\n📊 No metrics data yet', 'yellow');
+    logInfo('Metrics are collected after each task via post-task hook');
+    logInfo('Run some tasks first, then come back');
+    log('');
+    return;
+  }
+
+  try {
+    const m = JSON.parse(fs.readFileSync(metricsFile, 'utf8'));
+
+    log('\n📊 Dashboard de Métricas', 'bright');
+    log('━'.repeat(50), 'cyan');
+    log('');
+
+    // Resumo geral
+    log('📋 Resumo:', 'cyan');
+    log(`  Total de tarefas  : ${m.total_tasks || 0}`, 'white');
+    log(`  Taxa de sucesso   : ${(m.success_rate || 0).toFixed(1)}%`, 'white');
+    log(`  Duração média     : ${(m.avg_duration || 0).toFixed(1)}s`, 'white');
+    log('');
+
+    // Skills mais usadas
+    if (m.skills_used && Object.keys(m.skills_used).length > 0) {
+      log('🛠️  Skills Mais Usadas:', 'cyan');
+      const sorted = Object.entries(m.skills_used)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 5);
+      for (const [skill, count] of sorted) {
+        const bar = '█'.repeat(Math.min(count, 20));
+        log(`  ${skill.padEnd(20)} ${bar} (${count})`, 'white');
+      }
+      log('');
+    }
+
+    // Uso diário (últimos 7 dias)
+    if (m.daily_usage && Object.keys(m.daily_usage).length > 0) {
+      log('📅 Uso Diário (últimos 7 dias):', 'cyan');
+      const days = Object.entries(m.daily_usage)
+        .sort(([a], [b]) => b.localeCompare(a))
+        .slice(0, 7);
+      for (const [day, count] of days) {
+        const bar = '█'.repeat(Math.min(count, 20));
+        log(`  ${day} ${bar} (${count})`, 'white');
+      }
+      log('');
+    }
+
+    // GATE stats
+    if (m.gate_stats) {
+      log('🔒 GATEs:', 'cyan');
+      log(`  Spec   : ${m.gate_stats.spec || 0} aprovações`, 'white');
+      log(`  Plan   : ${m.gate_stats.plan || 0} aprovações`, 'white');
+      log(`  Reflect: ${m.gate_stats.reflect || 0} execuções`, 'white');
+      log('');
+    }
+
+    logInfo('Dados coletados via post-task hook');
+    log('');
+
+  } catch (error) {
+    logError(`Failed to read metrics: ${error.message}`);
+    process.exit(1);
+  }
+}
+
 // ─── help ─────────────────────────────────────────────────────────────────────
 
 function showHelp() {
@@ -527,6 +676,7 @@ function showHelp() {
     log('  init [dir]           Install framework (default: current directory)', 'white');
     log('  update               Update CLAUDE.md, skills, knowledge, hooks, agents', 'white');
     log('  status               Show framework and session status', 'white');
+    log('  metrics              Show usage metrics (tasks, turns, success rate)', 'white');
     log('  hooks init <proj>    Initialize a new session', 'white');
     log('  hooks status         Show current session state', 'white');
     log('  hooks validate       Validate gate consistency', 'white');
@@ -564,6 +714,7 @@ function main() {
     case 'init':     init(args[1]);    break;
     case 'update':   update();         break;
     case 'status':   status();         break;
+    case 'metrics':  metrics();        break;
     case 'help':     showHelp();       break;
     case 'hooks': {
       const sub = args[1];

@@ -298,6 +298,7 @@ Ao abrir um projeto com o framework instalado:
 | `sda init <dir>` | Inicializar framework em diretório específico |
 | `sda update` | Atualizar framework para última versão |
 | `sda status` | Ver status da instalação |
+| `sda metrics` | Dashboard de métricas de uso |
 | `sda --version` | Ver versão |
 | `sda --help` | Ver ajuda |
 

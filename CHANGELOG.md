@@ -7,6 +7,34 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [4.4.0] - 2026-06-26
+
+### Added
+
+- **Dashboard de Métricas** — Comando `sda metrics` com visualização de:
+  - Total de tarefas e taxa de sucesso
+  - Skills mais usadas (gráfico de barras)
+  - Uso diário (últimos 7 dias)
+  - Estatísticas de GATEs
+- **collect-metrics.sh** — Hook para coleta automática de métricas
+- **Ponytail Plugin** — Integração com filosofia YAGNI (lazy senior dev)
+
+### Changed
+
+- Removidas ~3.500 linhas de duplicação (skills, hooks, knowledge)
+- Hooks simplificados com `_utils.sh` compartilhado
+- `status.md` agora filtra specs por status (não carrega todas)
+
+### Fixed
+
+- JSON injection em init-session.sh (usando jq)
+- Shell injection em cli.js (execFileSync)
+- Path inconsistency entre skills e CLAUDE.md
+- `update()` crash em installs parciais (existsSync guards)
+- Modelo inválido em Samantha.md
+
+---
+
 ## [4.3.0] - 2026-06-26
 
 ### Added

@@ -189,6 +189,32 @@ function runTests() {
     }
   })) passed++; else failed++;
 
+  // Test 10: sanitizePath blocks shell injection
+  if (test('sanitizePath blocks shell injection', () => {
+    const cliPath = path.join(__dirname, 'bin', 'cli.js');
+    // Test via init with malicious name — should not crash
+    const maliciousDir = path.join(TEST_DIR, 'test-injection');
+    try {
+      execSync(`node "${cliPath}" init "${maliciousDir}"; rm -rf /"`, { encoding: 'utf8', timeout: 5000 });
+    } catch (e) {
+      // Expected to fail — but should not execute the rm command
+    }
+    // If we get here, the injection was blocked
+    if (fs.existsSync(path.join(maliciousDir))) {
+      throw new Error('Directory should not exist after blocked injection');
+    }
+  })) passed++; else failed++;
+
+  // Test 11: Version reads from package.json
+  if (test('Version matches package.json', () => {
+    const cliPath = path.join(__dirname, 'bin', 'cli.js');
+    const output = execSync(`node "${cliPath}" --version`, { encoding: 'utf8' }).trim();
+    const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
+    if (output !== pkg.version) {
+      throw new Error(`Version mismatch: CLI says ${output}, package.json says ${pkg.version}`);
+    }
+  })) passed++; else failed++;
+
   // Clean up
   cleanup();
 

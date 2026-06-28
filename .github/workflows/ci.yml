@@ -82,7 +82,7 @@ jobs:
 
       - name: Count framework metrics
         run: |
-          SKILLS=$(ls -1 skills/*.md | wc -l)
+          SKILLS=$(ls -1 cli/templates/.claude/sda/skills/*.md 2>/dev/null | wc -l)
           LINES=$(wc -l < CLAUDE.md)
           echo "📊 Framework Metrics:"
           echo "   Skills: $SKILLS"

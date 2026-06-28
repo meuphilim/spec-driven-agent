@@ -38,7 +38,7 @@ jobs:
 
       - name: Check skills directory
         run: |
-          SKILL_COUNT=$(ls -1 skills/*.md 2>/dev/null | wc -l)
+          SKILL_COUNT=$(ls -1 cli/templates/.claude/sda/skills/*.md 2>/dev/null | wc -l)
           if [ "$SKILL_COUNT" -lt 10 ]; then
             echo "❌ Expected at least 10 skills, found $SKILL_COUNT"
             exit 1

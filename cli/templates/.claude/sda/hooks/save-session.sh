@@ -6,7 +6,7 @@
 source "$(dirname "$0")/_utils.sh"
 
 STATE_FILE="$(dirname "$0")/state.json"
-SESSIONS_DIR="$(dirname "$0")/../.sessions"
+SESSIONS_DIR="$(dirname "$0")/../sessions"
 
 # Se state.json não existe, ignorar
 [ ! -f "$STATE_FILE" ] && exit 0

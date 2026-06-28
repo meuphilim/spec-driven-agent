@@ -26,7 +26,7 @@
 const fs   = require('fs');
 const path = require('path');
 
-const VERSION = '4.1.0';
+const VERSION = require('../package.json').version;
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
 
@@ -428,73 +428,6 @@ function status() {
   }
 
   log('');
-}
-
-// ─── metrics ────────────────────────────────────────────────────────────────
-
-function metrics() {
-  const currentDir = process.cwd();
-  const metricsFile = path.join(currentDir, '.claude', 'sda', 'metrics.json');
-
-  log('\n📊 Spec-Driven Agent Metrics', 'bright');
-  log('━'.repeat(50), 'cyan');
-  log('');
-
-  if (!fs.existsSync(metricsFile)) {
-    logInfo('No metrics yet. Complete some tasks to see data.');
-    log('');
-    log('Metrics are collected automatically via post-task hook.', 'white');
-    log('Run `sda hooks init <project>` to start a session.', 'white');
-    log('');
-    return;
-  }
-
-  try {
-    const data = JSON.parse(fs.readFileSync(metricsFile, 'utf8'));
-
-    // Total tasks
-    const totalTasks = data.tasks?.length || 0;
-    log('Total tasks completed: ' + totalTasks, 'white');
-
-    if (totalTasks === 0) {
-      logInfo('No tasks recorded yet.');
-      log('');
-      return;
-    }
-
-    // Success rate
-    const successTasks = data.tasks.filter(t => t.result === 'success').length;
-    const successRate = totalTasks > 0 ? ((successTasks / totalTasks) * 100).toFixed(1) : 0;
-    log(`Success rate: ${successRate}% (${successTasks}/${totalTasks})`, 'green');
-
-    // Average turns per task
-    const totalTurns = data.tasks.reduce((sum, t) => sum + (t.turns || 0), 0);
-    const avgTurns = (totalTurns / totalTasks).toFixed(1);
-    log(`Avg turns/task: ${avgTurns}`, 'cyan');
-
-    // Tasks by type
-    log('');
-    log('Tasks by type:', 'cyan');
-    const byType = {};
-    data.tasks.forEach(t => {
-      byType[t.type] = (byType[t.type] || 0) + 1;
-    });
-    Object.entries(byType).sort((a, b) => b[1] - a[1]).forEach(([type, count]) => {
-      log(`  ${type}: ${count}`, 'white');
-    });
-
-    // Recent tasks (last 5)
-    log('');
-    log('Recent tasks:', 'cyan');
-    data.tasks.slice(-5).reverse().forEach(t => {
-      const icon = t.result === 'success' ? '✅' : '❌';
-      log(`  ${icon} ${t.name} (${t.type}) — ${t.turns} turns`, 'white');
-    });
-
-    log('');
-  } catch (error) {
-    logError(`Failed to read metrics: ${error.message}`);
-  }
 }
 
 // ─── hooks commands ───────────────────────────────────────────────────────────

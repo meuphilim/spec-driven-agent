@@ -8,8 +8,8 @@
 const path = require('path');
 const fs = require('fs');
 
-// Framework version
-const VERSION = '4.0.0';
+// Framework version — single source of truth
+const VERSION = require('./package.json').version;
 
 // Get framework path
 function getFrameworkPath() {
@@ -19,7 +19,7 @@ function getFrameworkPath() {
 // Check if framework is installed in current directory
 function isInstalled(dir = process.cwd()) {
   const claudePath = path.join(dir, 'CLAUDE.md');
-  const skillsPath = path.join(dir, 'skills');
+  const skillsPath = path.join(dir, '.claude', 'sda', 'skills');
   
   return fs.existsSync(claudePath) && fs.existsSync(skillsPath);
 }

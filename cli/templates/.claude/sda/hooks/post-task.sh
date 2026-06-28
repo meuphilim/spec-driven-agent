@@ -1,59 +1,47 @@
 #!/bin/bash
 # post-task.sh — Hook: após concluir tarefa
 # Coleta métricas de uso para dashboard
-# Uso: bash hooks/post-task.sh [TASK_NAME] [TASK_TYPE] [RESULT]
+# Uso: bash hooks/post-task.sh [SKILL_NAME] [DURATION] [SUCCESS]
 
 source "$(dirname "$0")/_utils.sh"
 
-HOOKS_DIR="$(dirname "$0")"
 METRICS_FILE="$(dirname "$0")/../metrics.json"
-STATE_FILE="$HOOKS_DIR/state.json"
-
-# Se state.json não existe, ignorar
-[ ! -f "$STATE_FILE" ] && exit 0
-
-TASK_NAME="${1:-unknown}"
-TASK_TYPE="${2:-unknown}"
-TASK_RESULT="${3:-success}"
+SKILL="${1:-unknown}"
+DURATION="${2:-0}"
+SUCCESS="${3:-true}"
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+DAY=$(date -u +%Y-%m-%d)
 
 # Criar metrics.json se não existe
 if [ ! -f "$METRICS_FILE" ]; then
-  echo '{"tasks":[],"skills_used":{},"gates":{},"sessions":[]}' > "$METRICS_FILE"
+  $JQ -n '{
+    total_sessions: 0,
+    total_tasks: 0,
+    skills_used: {},
+    daily_usage: {},
+    gate_stats: { spec: 0, plan: 0, reflect: 0 },
+    avg_duration: 0,
+    success_rate: 0
+  }' > "$METRICS_FILE"
 fi
 
-# Extrair dados do state.json
-CURRENT_TURN=$($JQ '.turns.current // 0' "$STATE_FILE" 2>/dev/null || echo 0)
-PHASE=$($JQ '.phase // "unknown"' "$STATE_FILE" 2>/dev/null || echo "unknown")
-PROJECT=$($JQ '.project // "unknown"' "$STATE_FILE" 2>/dev/null || echo "unknown")
-
-# Adicionar tarefa ao array
+# Atualizar métricas
 TMP=$(mktemp)
-$JQ --arg name "$TASK_NAME" \
-    --arg type "$TASK_TYPE" \
-    --arg result "$TASK_RESULT" \
-    --arg ts "$TIMESTAMP" \
-    --argjson turns "$CURRENT_TURN" \
-    --arg phase "$PHASE" \
-    '.tasks += [{
-      "name": $name,
-      "type": $type,
-      "result": $result,
-      "timestamp": $ts,
-      "turns": $turns,
-      "phase": $phase
-    }]' "$METRICS_FILE" > "$TMP" && mv "$TMP" "$METRICS_FILE"
-
-# Atualizar contagem de skills usadas
-if [ "$TASK_TYPE" != "unknown" ]; then
-  TMP=$(mktemp)
-  $JQ --arg type "$TASK_TYPE" \
-      '.skills_used[$type] = ((.skills_used[$type] // 0) + 1)' \
-      "$METRICS_FILE" > "$TMP" && mv "$TMP" "$METRICS_FILE"
-fi
-
-# Manter só últimas 100 tarefas
-TMP=$(mktemp)
-$JQ '.tasks = .tasks[-100:]' "$METRICS_FILE" > "$TMP" && mv "$TMP" "$METRICS_FILE"
+$JQ \
+  --arg skill "$SKILL" \
+  --arg day "$DAY" \
+  --arg dur "$DURATION" \
+  --arg success "$SUCCESS" \
+  '
+  .total_tasks += 1 |
+  .skills_used[$skill] = ((.skills_used[$skill] // 0) + 1) |
+  .daily_usage[$day] = ((.daily_usage[$day] // 0) + 1) |
+  .avg_duration = ((.avg_duration * (.total_tasks - 1) + ($dur | tonumber)) / .total_tasks) |
+  if $success == "true" then
+    .success_rate = ((.success_rate * (.total_tasks - 1) + 100) / .total_tasks)
+  else
+    .success_rate = ((.success_rate * (.total_tasks - 1)) / .total_tasks)
+  end
+  ' "$METRICS_FILE" > "$TMP" && mv "$TMP" "$METRICS_FILE"
 
 exit 0

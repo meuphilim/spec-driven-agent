@@ -36,11 +36,19 @@ Se gaps de contexto não resolvíveis por código → `@skills/socrates.md`
 
 ---
 
-## CARREGAMENTO DE MEMÓRIA
+## CARREGAMENTO DE MEMÓRIA (otimizado)
+
+**Modo LITE** (tarefas P): Pular carregamento completo
 ```bash
-cat .claude/sda/knowledge/patterns.md .claude/sda/knowledge/heuristics.md .claude/sda/knowledge/antipatterns.md
+ls .claude/sda/sessions/ | sort -r | head -1
+```
+
+**Modo FULL** (tarefas M/G/XG): Carregar knowledge condicionalmente
+```bash
+# Só carrega se ≥5 linhas de conteúdo útil
+[ $(wc -l < .claude/sda/knowledge/patterns.md 2>/dev/null || echo 0) -gt 5 ] && head -20 .claude/sda/knowledge/patterns.md
+[ $(wc -l < .claude/sda/knowledge/heuristics.md 2>/dev/null || echo 0) -gt 5 ] && head -20 .claude/sda/knowledge/heuristics.md
 ls .claude/sda/sessions/ | sort -r | head -3
-# Ler sessão mais recente do projeto
 ```
 
 ---

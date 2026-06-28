@@ -42,6 +42,13 @@ ls -t .claude/sda/sessions/ | head -5
 ---
 
 ## REPORT
+
+**Modo LITE** (tarefas P):
+```
+📊 [data] · Branch: [nome] · Specs: [N] · Git: [N] mod · Turn: [N]
+```
+
+**Modo FULL** (tarefas M/G/XG):
 ```
 📊 STATUS — [data]  Branch: [nome]
 
@@ -51,19 +58,21 @@ ls -t .claude/sda/sessions/ | head -5
   RASCUNHO: [nome]
   CONCLUÍDAS (sessão): [nome] ✅
 
-📁 GIT: [N] modificados · Último commit: [hash] [msg] · Branch: [N à frente/atrás de main]
+📁 GIT: [N] modificados · Último commit: [hash] [msg]
 
-🧪 TESTES: [X/Y passando | não rodados]
+🧪 TESTES: [X/Y passando]
 
 📜 DECISÕES ATIVAS (sessões recentes):
   [decisão — sessão origem]
-  Bloqueios: [se aplicável]
-  Aguardando consolidação: [descoberta — sessão]
 
-⚠️ PENDÊNCIAS: [itens fora de escopo identificados]
+⚠️ PENDÊNCIAS: [itens fora de escopo]
 
 📊 Sessões sem descoberta: [N]
-🔄 Turns sessão atual: [N] · Effort ativo: [level]
+🔄 Turns sessão atual: [N] · Effort: [level]
+
+💡 MÉTRICAS:
+  Tokens estimados: [N] · Overhead GATEs: [%]
+  [Se overhead > 30%: "💡 Considere modo LITE para próximas tarefas similares"]
 
 ➡️ PRÓXIMO: [ação específica e acionável]
 ```

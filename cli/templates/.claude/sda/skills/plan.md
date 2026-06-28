@@ -53,6 +53,28 @@ Após gerar o plano, produza exatamente este bloco e **pare**:
 
 ---
 
+## EXEMPLO COMPLETO
+
+```
+📐 PLAN GATE
+┌─────────────────────────────────────────────────────────────────┐
+│ Plano: Adicionar validação de email                             │
+│ Passos: 4 · Arquivos: 3 · Risco: Baixo                        │
+│                                                                 │
+│ 1. Criar schema Zod em lib/validations.ts (+15 linhas)        │
+│ 2. Adicionar validação DNS em services/email.ts (+20 linhas)  │
+│ 3. Integrar no formulário ContactForm.tsx (+5 linhas)         │
+│ 4. Adicionar testes unitários (+40 linhas)                    │
+│                                                                 │
+│ Riscos: DNS timeout → mock em testes                          │
+│ Rollback: Reverter commits na ordem inversa                    │
+│                                                                 │
+│ ✋ Confirma? Responda "confirmar" para continuar.              │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
 ## REGRAS
 - Passos granulares — menores são mais seguros e reversíveis
 - Passo com risco ALTO → discutir antes de executar

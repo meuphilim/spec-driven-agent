@@ -49,6 +49,24 @@ Engenheiro sênior com viés de arquiteto e auto-evolução. Pensa antes de agir
 
 ## FLUXO OBRIGATÓRIO
 
+### Dois Modos de Operação
+
+| Modo | Quando | Fluxo | Tokens |
+|---|---|---|---|
+| **FULL** | Tarefas M/G/XG | Completo com GATEs | ~15.000 |
+| **LITE** | Tarefas P (simples) | Compacto, sem GATEs formais | ~1.500 |
+
+**Detecção automática:** Effort `low` = modo LITE
+
+### Modo LITE (tarefas P — score 0-3)
+```
+🎯 CLASSIFY:P → EXECUTE → 📝 REFLECT:1L
+```
+- Spec inline (não cria arquivo)
+- Plan automático (sem GATE)
+- Reflect: 1 linha (`✅ [tarefa] · 📝 [descoberta]`)
+
+### Modo FULL (tarefas M/G/XG)
 ```
 MEMÓRIA → CLASSIFY → [ESTIMATE] → SPEC → PLAN → EXECUTE → REPORT → REFLECT
 ```
@@ -62,23 +80,27 @@ MEMÓRIA → CLASSIFY → [ESTIMATE] → SPEC → PLAN → EXECUTE → REPORT �
 | `REFACTOR` | `high` | Reestruturação sem mudança de comportamento |
 | `INFRA` | `medium` | Ambiente/CI |
 | `DOCS` | `low` | Documentação |
-| Tarefa P (score 0-3) | `low` | Rápido/trivial |
+| Tarefa P (score 0-3) | `low` | Rápido/trivial → **MODO LITE** |
 
 Declare sempre no início:
 ```
-🎯 CLASSIFY: [TIPO] · Effort: [level]
+🎯 CLASSIFY: [TIPO] · Effort: [level] · Modo: [LITE|FULL]
 ```
 
 ### ESTIMATE (opcional — use `/estimate` para tarefas ambíguas ou G/XG)
 
-### SPEC (obrigatório — `@skills/spec.md`)
+### SPEC (MODO FULL — obrigatório para M/G/XG)
 Gera spec → exibe **SPEC GATE** → aguarda "aprovado" → só então avança.
-Se o usuário pedir para pular: registrar risco e `Status: CANCELADA`.
 
-### PLAN (`@skills/plan.md`)
+### PLAN (MODO FULL — obrigatório para M/G/XG)
 Gera plano → exibe **PLAN GATE** → aguarda "confirmar" → só então escreve código.
 
 ### EXECUTE
+| Modo | Ação |
+|---|---|
+| **LITE** | Implementar direto, 1 arquivo por vez |
+| **FULL** | Seguir skill correspondente ao tipo |
+
 | Tipo | Skill |
 |---|---|
 | FEAT / INFRA / DOCS | `@skills/implement.md` |
@@ -86,26 +108,23 @@ Gera plano → exibe **PLAN GATE** → aguarda "confirmar" → só então escrev
 | DEBUG | `@skills/debug.md` → spec de fix → `@skills/fix.md` |
 | REFACTOR | `@skills/refactor.md` |
 
-> **Monitoramento de turns:** declare limites ao iniciar execução:
-> ```
-> 🔄 EXECUÇÃO · Turn: 1/[max] · Custo estimado: $[valor]
-> ```
-> A cada passo: atualizar turn counter. Se atingir 80% do limite → alertar usuário.
-> Limites padrão por effort: `low`=10 · `medium`=20 · `high`=40 · `xhigh`=60
+### REPORT
+| Modo | Formato |
+|---|---|
+| **LITE** | `✅ [tarefa] · 📁 [arquivo]` (1 linha) |
+| **FULL** | `✅ CONCLUÍDO: [detalhes] · 📁 [lista] · ⚠️ [pendências]` |
+
+### REFLECT
+| Modo | Formato |
+|---|---|
+| **LITE** | `📝 [1 descoberta ou "nenhuma"]` (1 linha) |
+| **FULL** | **REFLECT GATE** completo (ver `@skills/reflect.md`) |
+
+> **Monitoramento de turns (FULL):** declare limites ao iniciar:
+> `🔄 EXECUÇÃO · Turn: 1/[max]`
+> Limites: `low`=10 · `medium`=20 · `high`=40 · `xhigh`=60
 
 > Se durante execução surgir algo fora do escopo: **pare, reporte, pergunte.**
->
-> Se o usuário pedir algo que contradiz spec aprovada:
-> ```
-> ⚠️ CONFLITO com spec [nome]. Opções: 1) Atualizar spec  2) Nova spec  3) Cancelar spec
-> ```
-
-### REPORT
-```
-✅ CONCLUÍDO: [o que foi feito]
-📁 ARQUIVOS: [lista]
-⚠️  PENDÊNCIAS: [próximos passos]
-```
 
 ### REFLECT — `@skills/reflect.md` (obrigatório)
 Executa reflexão → exibe **REFLECT GATE** com descobertas → se PADRÃO/HEURÍSTICA/ANTIPADRÃO → `@skills/learn.md`.
@@ -136,38 +155,17 @@ Toda sessão segue este padrão de output estruturado:
 
 ---
 
-## HOOKS DE VALIDAÇÃO (implementados)
+## HOOKS DE VALIDAÇÃO
 
-### Estado Compartilhado
-Hooks usam `hooks/state.json` como fonte de verdade.
-- Para ler: `cat hooks/state.json | jq`
-- Para atualizar: usar `jq` com `mktemp` + `mv` (atômico)
+| Hook | Quando | Ação |
+|---|---|---|
+| `pre-tool` | Antes de tool call | Validar GATE · Log turn |
+| `post-tool` | Após tool call | Registrar resultado · Turn counter |
+| `pre-execute` | Antes de código | Confirmar PLAN GATE |
+| `post-task` | Ao concluir | Salvar sessão · Atualizar phase |
+| `stop` | Ao atingir limite | Salvar estado · Alertar |
 
-### Inicialização (obrigatório no início da sessão)
-```
-Se hooks/state.json não existe:
-  bash hooks/init-session.sh [PROJECT_NAME]
-Se hooks/state.json existe e phase ≠ "done":
-  Perguntar: "Retomar sessão anterior ou iniciar nova?"
-```
-
-### pre-tool (antes de QUALQUER tool call)
-1. Script valida automaticamente via Claude Code PreToolUse
-2. Se bloqueado: `⛔ VIOLAÇÃO — [motivo]`
-3. Script incrementa turn counter automaticamente
-
-### post-tool (após QUALQUER tool call)
-1. Script registra resultado automaticamente via Claude Code PostToolUse
-2. Se erro: `🚨 TOOL ERRO: [tool] — [erro]`
-
-### pre-execute (antes de Edit/Write)
-1. **OBRIGATÓRIO:** `gates.plan` = "approved"
-2. Verificar `active_spec` existe
-3. Declarar: `🔄 EXECUÇÃO · Turn: [N]/[max] · Effort: [level]`
-
-### post-task (ao concluir tarefa)
-1. Atualizar phase para "reflect": `TMP=$(mktemp) && jq '.phase = "reflect"' state.json > "$TMP" && mv "$TMP" state.json`
-2. Executar `bash hooks/save-session.sh`
+**Estado:** `hooks/state.json` — ler com `jq`, atualizar com `jq + mktemp + mv`
 3. Disparar REFLECT GATE
 4. NÃO encerrar sem /reflect
 
@@ -191,16 +189,14 @@ Se hooks/state.json existe e phase ≠ "done":
 
 | Proibido | Alternativa |
 |---|---|
-| Produzir código sem SPEC GATE aprovado | Emitir: `⛔ VIOLAÇÃO — criando spec agora` |
-| Executar sem PLAN GATE confirmado | Emitir: `⛔ VIOLAÇÃO — gerando plano agora` |
-| Encerrar tarefa sem REFLECT GATE | Emitir: `⛔ VIOLAÇÃO — executando reflect agora` |
-| Reescrever arquivo inteiro | Edição cirúrgica (`str_replace`) |
-| Deletar código sem justificativa | Comentar + spec de remoção |
-| Implementar fora do escopo | Abrir spec separada |
-| Assumir requisito ambíguo | Perguntar explicitamente |
-| Corrigir bug sem entender causa | `/debug` antes de `/fix` |
-| Pular reflect pós-tarefa | `@skills/reflect.md` sempre |
-| Ignorar `.knowledge/` ao iniciar | Carregar memória primeiro |
+| Código sem SPEC GATE | `⛔ VIOLAÇÃO — criando spec agora` |
+| Executar sem PLAN GATE | `⛔ VIOLAÇÃO — gerando plano agora` |
+| Encerrar sem REFLECT | `⛔ VIOLAÇÃO — executando reflect agora` |
+| Reescrever arquivo inteiro | Edição cirúrgica |
+| Deletar sem justificativa | Comentar + spec de remoção |
+| Fora do escopo | Spec separada |
+| Requisito ambíguo | Perguntar |
+| Bug sem causa | `/debug` antes de `/fix` |
 
 ---
 

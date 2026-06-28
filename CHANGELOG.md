@@ -7,6 +7,44 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [5.0.0] - 2026-06-28
+
+### Added
+
+- **Modo Lite** — Fluxo otimizado para tarefas P (-60% tokens):
+  - CLASSIFY:P → EXECUTE → REFLECT:1L
+  - Sem GATEs formais, spec inline
+  - Detecção automática: effort low = LITE
+- **Few-shot examples** — Exemplos completos em spec.md, plan.md, reflect.md
+- **Knowledge loading condicional** — Só carrega se ≥5 linhas de conteúdo
+- **Observabilidade leve** — Métricas no /status + alerta de overhead
+- **Ponytail integration** — Filosofia YAGNI (lazy senior dev)
+- **SECURITY.md** — Política de vulnerabilidade
+- **CODE_OF_CONDUCT.md** — Código de conduta
+
+### Changed
+
+- **CLAUDE.md** — Comprimido: hooks (30→8 linhas), restrições (10→8 itens)
+- **Node.js** — Engine atualizado de >=14 para >=18
+- **README** — Reescrito com foco em modos LITE/FULL
+- **Status skill** — Modo LITE: 1 linha · Modo FULL: completo
+
+### Fixed
+
+- **Version mismatch** — CLI lê de package.json (single source of truth)
+- **save-session.sh path** — `.sessions` → `sessions`
+- **CI paths** — `skills/*.md` → caminho correto
+- **sanitizePath** — Adicionado blocklist de caracteres
+- **isInstalled()** — Verifica `.claude/sda/skills/` em vez de `skills/`
+
+### Removed
+
+- **collect-metrics.sh** — Consolidado em post-task.sh
+- **update-turn.sh** — Código morto removido
+- **Duplicate skills/hooks/knowledge** — ~3.500 linhas removidas
+
+---
+
 ## [4.4.0] - 2026-06-26
 
 ### Added

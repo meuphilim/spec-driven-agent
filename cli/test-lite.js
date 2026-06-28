@@ -109,7 +109,7 @@ function runTests() {
     const cli = fs.readFileSync(path.join(__dirname, 'bin', 'cli.js'), 'utf8');
     const cliVersion = cli.match(/VERSION = require\('..\/package.json'\)\.version/);
     if (!cliVersion) throw new Error('CLI does not read version from package.json');
-    if (pkg.version !== '5.0.0') throw new Error(`Expected 5.0.0, got ${pkg.version}`);
+    if (!pkg.version.match(/^\d+\.\d+\.\d+$/)) throw new Error(`Invalid version format: ${pkg.version}`);
   })) passed++; else failed++;
 
   // Test 8: Ponytail skill present

@@ -7,6 +7,33 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [5.1.0] - 2026-06-28
+
+### Added
+
+- **Testes LITE** — 8 testes automatizados para Modo LITE (`test-lite.js`):
+  - CLAUDE.md contém definição LITE
+  - Tabela dual-mode presente
+  - Status skill com formato LITE
+  - Context skill com loading condicional
+  - Reflect skill com formato compacto
+  - Init cria estrutura completa
+  - Versão consistente entre arquivos
+  - Ponytail integrado
+- **Validation Protocol** — Protocolo completo para validar Modo LITE e Knowledge Base:
+  - 10 tarefas P com coleta de métricas
+  - 5 sessões KB com consolidação
+  - Templates de registro padronizados
+  - Análise e relatório de resultados
+- **Session Template** — Template para coleta de métricas durante validação
+
+### Changed
+
+- **reflect.md** — Adicionado suporte a Modo LITE (formato compacto 1 linha)
+- **README.md** — Atualizado para v5.1.0 com badges e documentação completa
+
+---
+
 ## [5.0.0] - 2026-06-28
 
 ### Added

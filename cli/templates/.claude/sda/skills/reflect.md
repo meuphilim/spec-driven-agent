@@ -40,7 +40,18 @@ Se 3 sessões consecutivas sem descobertas:
 Possível causa: reflexão automática · tarefas simples · viés de confirmação
 Recomendo revisar processo ou aceitar que o projeto não gera aprendizado novo.
 ```
-Dica: tarefas P (pequenas) podem pular `/reflect`.
+### 4.1 Modo LITE (tarefas P)
+
+Para tarefas com effort `low`, usar formato compacto:
+
+```
+📝 [1 descoberta ou "nenhuma"]
+```
+
+Exemplo:
+```
+📝 PADRÃO: Sempre usar execFileSync em vez de execSync
+```
 
 ### 5. Consolidação
 Se há descobertas PADRÃO/HEURÍSTICA/ANTIPADRÃO → executar `@skills/learn.md`.

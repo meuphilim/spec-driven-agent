@@ -7,24 +7,6 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
-## [5.1.5] - 2026-07-01
-
-### Added
-
-- **npm provenance** — `publishConfig.provenance: true` + workflow `id-token: write` (OIDC)
-- **Funding/author** — campos `author` e `funding` confirmados no `cli/package.json`
-
-### Fixed
-
-- **prepublishOnly** — revertido para `node -e` (cross-platform)
-- **Version** — 5.1.5 (novo patch para provenance)
-
-### Changed
-
-- **release.yml** — publish usa OIDC (sem `NPM_TOKEN`), flag `--provenance`
-
----
-
 ## [5.1.4] - 2026-07-01
 
 ### Fixed

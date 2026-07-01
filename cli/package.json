@@ -1,6 +1,6 @@
 {
   "name": "spec-driven-agent",
-  "version": "5.1.5",
+  "version": "5.1.4",
   "description": "Spec-Driven Agent Framework - Desenvolvimento orientado por especificações para agentes LLM",
   "main": "index.js",
   "bin": {
@@ -21,14 +21,7 @@
     "llm",
     "development"
   ],
-  "author": {
-    "name": "Meuphilim",
-    "url": "https://github.com/meuphilim"
-  },
-  "funding": {
-    "type": "individual",
-    "url": "https://github.com/sponsors/meuphilim"
-  },
+  "author": "Meuphilim",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -49,7 +42,6 @@
     "LICENSE"
   ],
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   }
 }

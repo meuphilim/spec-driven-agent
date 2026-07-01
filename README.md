@@ -1,9 +1,9 @@
 # Spec-Driven Agent Framework
 
-> **Versão:** 5.1.5 | **Status:** Production Ready | **Última atualização:** 2026-07-01
+> **Versão:** 5.1.4 | **Status:** Production Ready | **Última atualização:** 2026-07-01
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-5.1.5-blue.svg)](https://github.com/meuphilim/spec-driven-agent)
+[![Version](https://img.shields.io/badge/version-5.1.4-blue.svg)](https://github.com/meuphilim/spec-driven-agent)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Compatible-green.svg)](https://docs.anthropic.com/en/docs/claude-code)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-green.svg)](https://nodejs.org/)
 [![Tests](https://img.shields.io/badge/tests-25%2F25-brightgreen.svg)](https://github.com/meuphilim/spec-driven-agent)

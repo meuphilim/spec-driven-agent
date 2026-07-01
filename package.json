@@ -1,6 +1,6 @@
 {
   "name": "spec-driven-agent-workspace",
-  "version": "5.1.0",
+  "version": "5.1.5",
   "description": "Spec-Driven Agent Framework - Desenvolvimento orientado por especificações para agentes LLM (workspace de desenvolvimento — o pacote publicado no npm é cli/)",
   "private": true,
   "main": "cli/index.js",
@@ -33,6 +33,6 @@
   },
   "homepage": "https://github.com/meuphilim/spec-driven-agent#readme",
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=18.0.0"
   }
 }

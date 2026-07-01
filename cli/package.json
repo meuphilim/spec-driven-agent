@@ -10,7 +10,7 @@
   "scripts": {
     "test": "node test.js",
     "lint": "echo 'No lint configured'",
-    "prepublishOnly": "node -e \"require('fs').copyFileSync('../README.md','./README.md'); require('fs').copyFileSync('../LICENSE','./LICENSE')\""
+    "prepublishOnly": "node -e \"require('fs').copyFileSync('../README.md','README.md');require('fs').copyFileSync('../LICENSE','LICENSE')\""
   },
   "keywords": [
     "claude",
@@ -39,7 +39,11 @@
   },
   "homepage": "https://github.com/meuphilim/spec-driven-agent#readme",
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "files": [
     "bin/",
@@ -47,8 +51,5 @@
     "index.js",
     "README.md",
     "LICENSE"
-  ],
-  "publishConfig": {
-    "access": "public"
-  }
+  ]
 }

@@ -30,24 +30,26 @@ if [ -n "$JQ" ]; then
       intentional_stop: false
     }' > "$TMP" && mv "$TMP" "$STATE_FILE"
 else
-  # Fallback: sanitizar variáveis manualmente
+  # Fallback: usar node para JSON seguro (evita injection via heredoc)
   SAFE_PROJECT=$(echo "$PROJECT" | tr -d '"\\')
   SAFE_SESSION=$(echo "$SESSION_ID" | tr -d '"\\')
-  cat > "$STATE_FILE" <<EOF
-{
-  "session_id": "$SAFE_SESSION",
-  "project": "$SAFE_PROJECT",
-  "started_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-  "phase": "init",
-  "classify": {},
-  "turns": { "current": 0, "max": 40, "limit_80_warned": false },
-  "gates": { "spec": "none", "plan": "none", "reflect": "none" },
-  "active_spec": null,
-  "scope_keywords": [],
-  "session_file": null,
-  "intentional_stop": false
-}
-EOF
+  node -e "
+    const fs = require('fs');
+    const state = {
+      session_id: process.argv[1],
+      project: process.argv[2],
+      started_at: new Date().toISOString(),
+      phase: 'init',
+      classify: {},
+      turns: { current: 0, max: 40, limit_80_warned: false },
+      gates: { spec: 'none', plan: 'none', reflect: 'none' },
+      active_spec: null,
+      scope_keywords: [],
+      session_file: null,
+      intentional_stop: false
+    };
+    fs.writeFileSync(process.argv[3], JSON.stringify(state, null, 2));
+  " "$SAFE_SESSION" "$SAFE_PROJECT" "$STATE_FILE"
 fi
 
 echo "✅ Sessão inicializada: $SESSION_ID"

@@ -215,6 +215,80 @@ function runTests() {
     }
   })) passed++; else failed++;
 
+  // Test 12: sanitizePath blocks various injection patterns
+  if (test('sanitizePath blocks semicolon injection', () => {
+    const cliPath = path.join(__dirname, 'bin', 'cli.js');
+    try {
+      execSync(`node "${cliPath}" init "test;echo pwned"`, { encoding: 'utf8', timeout: 3000 });
+      throw new Error('Should have thrown for semicolon injection');
+    } catch (e) {
+      if (e.message === 'Should have thrown for semicolon injection') throw e;
+      // Expected — command should fail
+    }
+  })) passed++; else failed++;
+
+  if (test('sanitizePath blocks pipe injection', () => {
+    const cliPath = path.join(__dirname, 'bin', 'cli.js');
+    try {
+      execSync(`node "${cliPath}" init "test|cat /etc/passwd"`, { encoding: 'utf8', timeout: 3000 });
+      throw new Error('Should have thrown for pipe injection');
+    } catch (e) {
+      if (e.message === 'Should have thrown for pipe injection') throw e;
+    }
+  })) passed++; else failed++;
+
+  if (test('sanitizePath blocks backtick injection', () => {
+    const cliPath = path.join(__dirname, 'bin', 'cli.js');
+    try {
+      execSync(`node "${cliPath}" init "test\`id\`"`, { encoding: 'utf8', timeout: 3000 });
+      throw new Error('Should have thrown for backtick injection');
+    } catch (e) {
+      if (e.message === 'Should have thrown for backtick injection') throw e;
+    }
+  })) passed++; else failed++;
+
+  // Test 13: bin paths have ./ prefix
+  if (test('bin paths have ./ prefix', () => {
+    const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
+    if (!pkg.bin) throw new Error('bin field missing');
+    for (const [name, binPath] of Object.entries(pkg.bin)) {
+      if (!binPath.startsWith('./')) {
+        throw new Error(`bin.${name} missing ./ prefix: ${binPath}`);
+      }
+    }
+  })) passed++; else failed++;
+
+  // Test 14: Update command works
+  if (test('Update command backs up existing files', () => {
+    // Init first
+    cleanup();
+    fs.mkdirSync(TEST_DIR, { recursive: true });
+    execSync(`node cli/bin/cli.js init "${TEST_DIR}"`, { encoding: 'utf8' });
+
+    // Run update
+    const cliPath = path.join(__dirname, 'bin', 'cli.js');
+    execSync(`node "${cliPath}" update`, { encoding: 'utf8', cwd: TEST_DIR });
+
+    // Verify backup was created
+    const sdaDir = path.join(TEST_DIR, '.claude', 'sda');
+    const skillsBak = fs.readdirSync(sdaDir).filter(f => f.startsWith('skills.bak-'));
+    if (skillsBak.length === 0) throw new Error('No skills backup created');
+
+    // Verify files still present
+    if (!fs.existsSync(path.join(sdaDir, 'skills', 'context.md'))) {
+      throw new Error('Skills missing after update');
+    }
+  })) passed++; else failed++;
+
+  // Test 15: index.js exports correctly
+  if (test('index.js exports VERSION and utilities', () => {
+    const api = require(path.join(__dirname, 'index.js'));
+    if (!api.VERSION) throw new Error('VERSION not exported');
+    if (!api.getFrameworkPath) throw new Error('getFrameworkPath not exported');
+    if (!api.isInstalled) throw new Error('isInstalled not exported');
+    if (!api.VERSION.match(/^\d+\.\d+\.\d+$/)) throw new Error('Invalid VERSION format');
+  })) passed++; else failed++;
+
   // Clean up
   cleanup();
 

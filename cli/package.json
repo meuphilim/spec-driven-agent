@@ -1,6 +1,6 @@
 {
   "name": "spec-driven-agent",
-  "version": "5.1.0",
+  "version": "5.1.1",
   "description": "Spec-Driven Agent Framework - Desenvolvimento orientado por especificações para agentes LLM",
   "main": "index.js",
   "bin": {
@@ -10,7 +10,7 @@
   "scripts": {
     "test": "node test.js",
     "lint": "echo 'No lint configured'",
-    "prepublishOnly": "cp ../README.md ./README.md"
+    "prepublishOnly": "node -e \"require('fs').copyFileSync('../README.md','./README.md')\""
   },
   "keywords": [
     "claude",

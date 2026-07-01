@@ -1,12 +1,12 @@
 # Spec-Driven Agent Framework
 
-> **Versão:** 5.1.0 | **Status:** Production Ready | **Última atualização:** 2026-06-28
+> **Versão:** 5.1.3 | **Status:** Production Ready | **Última atualização:** 2026-07-01
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-5.1.0-blue.svg)](https://github.com/meuphilim/spec-driven-agent)
+[![Version](https://img.shields.io/badge/version-5.1.3-blue.svg)](https://github.com/meuphilim/spec-driven-agent)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Compatible-green.svg)](https://docs.anthropic.com/en/docs/claude-code)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-green.svg)](https://nodejs.org/)
-[![Tests](https://img.shields.io/badge/tests-19%2F19-brightgreen.svg)](https://github.com/meuphilim/spec-driven-agent)
+[![Tests](https://img.shields.io/badge/tests-25%2F25-brightgreen.svg)](https://github.com/meuphilim/spec-driven-agent)
 
 ---
 
@@ -24,7 +24,7 @@ O **Spec-Driven Agent Framework** é um sistema completo de desenvolvimento orie
 - **Samantha Agent** — Especialista em produtividade e automação
 - **8 Reference Guides** — Boas práticas completas
 - **Ponytail** — Filosofia YAGNI integrada
-- **19 Testes** — Cobertura automatizada
+- **25 Testes** — Cobertura automatizada
 
 ---
 

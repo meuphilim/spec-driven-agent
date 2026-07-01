@@ -7,6 +7,29 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [5.1.3] - 2026-07-01
+
+### Fixed
+
+- **JSON injection** — `init-session.sh` fallback usa `node -e` em vez de heredoc com interpolação
+- **bin paths** — validado prefixo `./` para npm publish
+- **prepublishOnly** — script cross-platform via `node -e` (compatível Windows/Unix)
+
+### Added
+
+- **Matrix CI** — testes em Node 18/20/22 × Ubuntu/Windows (6 jobs)
+- **Testes expandidos** — 17 → 25 testes:
+  - sanitizePath: semicolon, pipe, backtick injection
+  - bin paths validation
+  - update command backup verification
+  - index.js exports validation
+
+### Changed
+
+- **ci.yml** — reestruturado com jobs separados (validate + test matrix)
+
+---
+
 ## [5.1.0] - 2026-06-28
 
 ### Added

@@ -1,6 +1,6 @@
 {
   "name": "spec-driven-agent",
-  "version": "5.1.2",
+  "version": "5.1.3",
   "description": "Spec-Driven Agent Framework - Desenvolvimento orientado por especificações para agentes LLM",
   "main": "index.js",
   "bin": {

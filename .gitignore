@@ -64,6 +64,7 @@ coverage/
 .specs/plan-otimizacao-*.md
 .specs/relatorio-*.md
 
-# Audit reports (development only)
-AUDIT-REPORT.md
-audit-*
+
+# Arquivos copiados automaticamente pelo prepublishOnly (não versionar)
+cli/README.md
+cli/LICENSE

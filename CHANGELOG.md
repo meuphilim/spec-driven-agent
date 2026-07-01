@@ -7,6 +7,22 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [5.1.4] - 2026-07-01
+
+### Fixed
+
+- **prepublishOnly** — revertido para `node -e` (cross-platform, compatível Windows)
+- **Version** — alinhado para 5.1.4 (evita conflito com 5.1.0 existente no npm)
+
+### Changed
+
+- **cli/bin/cli.js** — `makeScriptsExecutable()` usando `fs.chmodSync` (anti-shell injection)
+- **package.json (root)** — `private: true`, nome `spec-driven-agent-workspace`
+- **.gitignore** — exclui `cli/README.md` e `cli/LICENSE` (gerados por prepublishOnly)
+- **cli/package.json** — `LICENSE` adicionado ao `files`
+
+---
+
 ## [5.1.3] - 2026-07-01
 
 ### Fixed

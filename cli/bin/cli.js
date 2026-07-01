@@ -39,6 +39,20 @@ function sanitizePath(input) {
   return normalized;
 }
 
+// Marca scripts .sh como executáveis usando fs.chmodSync (sem shell,
+// portanto sem risco de injeção de comando via path). No-op silencioso
+// em plataformas onde chmod não se aplica (ex.: Windows).
+function makeScriptsExecutable(dir) {
+  if (!fs.existsSync(dir)) return;
+  try {
+    for (const file of fs.readdirSync(dir)) {
+      if (file.endsWith('.sh')) {
+        fs.chmodSync(path.join(dir, file), 0o755);
+      }
+    }
+  } catch (_) { /* ignore on platforms without POSIX permissions */ }
+}
+
 const colors = {
   reset: '\x1b[0m', bright: '\x1b[1m',
   red: '\x1b[31m',  green: '\x1b[32m', yellow: '\x1b[33m',
@@ -217,10 +231,7 @@ function init(targetDir) {
     copyDirSync(path.join(templateDir, '.claude', 'sda', 'hooks'), hooksDest);
 
     // Make scripts executable (Unix / WSL / Git Bash)
-    try {
-      const { execSync } = require('child_process');
-      execSync(`chmod +x "${hooksDest}"/*.sh 2>/dev/null || true`, { stdio: 'ignore' });
-    } catch (_) { /* ignore on Windows without bash */ }
+    makeScriptsExecutable(hooksDest);
 
     logSuccess('.claude/sda/hooks/ (7 scripts)');
 
@@ -337,10 +348,7 @@ function update() {
       logWarning(`.claude/sda/hooks/ backed up → ${hooksBak}`);
     }
     copyDirSync(path.join(templateDir, '.claude', 'sda', 'hooks'), hooksPath);
-    try {
-      const { execSync } = require('child_process');
-      execSync(`chmod +x "${path.join(sdaRoot, 'hooks')}"/*.sh 2>/dev/null || true`, { stdio: 'ignore' });
-    } catch (_) {}
+    makeScriptsExecutable(hooksPath);
     logSuccess('.claude/sda/hooks/ updated');
 
     // Update agents

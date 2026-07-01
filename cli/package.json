@@ -9,7 +9,8 @@
   },
   "scripts": {
     "test": "node test.js",
-    "lint": "echo 'No lint configured'"
+    "lint": "echo 'No lint configured'",
+    "prepublishOnly": "cp ../README.md ./README.md"
   },
   "keywords": [
     "claude",

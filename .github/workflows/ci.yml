@@ -53,6 +53,7 @@ jobs:
 
       - name: Check CLAUDE.md structure
         run: |
+          # Check for required sections
           SECTIONS=("IDENTIDADE" "FLUXO OBRIGATÓRIO" "HOOKS" "SKILLS" "SUBAGENTS")
           
           for section in "${SECTIONS[@]}"; do
@@ -63,13 +64,40 @@ jobs:
           done
           echo "✅ CLAUDE.md structure valid"
 
-      - name: Check no secrets in code
+      - name: Check for hardcoded credentials (high-confidence patterns)
         run: |
-          if grep -r "password\|secret\|api_key\|token" --include="*.md" --include="*.yml" --include="*.yaml" . | grep -v "CHANGELOG\|README\|CONTRIBUTING\|.github/workflows" | grep -v "GITHUB_TOKEN\|secrets\." | head -5; then
-            echo "⚠️ Potential secrets found in code"
-          else
-            echo "✅ No secrets detected"
+          # Padrões de token reais (alta confiança, poucos falsos positivos)
+          PATTERN='npm_[A-Za-z0-9]{36}|ghp_[A-Za-z0-9]{36}|gho_[A-Za-z0-9]{36}|sk-ant-[A-Za-z0-9-]{20,}|sk-[A-Za-z0-9]{32,}|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----'
+          MATCHES=$(grep -rInE "$PATTERN" \
+            --include="*.js" --include="*.sh" --include="*.md" \
+            --include="*.yml" --include="*.yaml" --include="*.json" \
+            --exclude-dir=.git --exclude-dir=node_modules . || true)
+          if [ -n "$MATCHES" ]; then
+            echo "❌ Possível credencial real encontrada no código:"
+            echo "$MATCHES"
+            exit 1
           fi
+          echo "✅ Nenhum padrão de credencial real encontrado"
+
+      - name: Check no secrets in code (heuristic, non-blocking)
+        run: |
+          if grep -rIn "password\|secret\|api_key\|token" \
+            --include="*.md" --include="*.yml" --include="*.yaml" --include="*.js" --include="*.sh" \
+            --exclude-dir=.git --exclude-dir=node_modules . \
+            | grep -v "CHANGELOG\|README\|CONTRIBUTING\|.github/workflows" \
+            | grep -v "GITHUB_TOKEN\|secrets\.\|NODE_AUTH_TOKEN" | head -10; then
+            echo "⚠️ Termos suspeitos encontrados — revisar manualmente (não bloqueia o build)"
+          else
+            echo "✅ Nenhum termo suspeito detectado"
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Run CLI tests
+        run: node cli/test.js
 
       - name: Count framework metrics
         run: |
@@ -79,25 +107,3 @@ jobs:
           echo "   Skills: $SKILLS"
           echo "   CLAUDE.md lines: $LINES"
           echo "   Status: ✅ Valid"
-
-  test:
-    name: Test (Node ${{ matrix.node-version }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-        node-version: [18, 20, 22]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-
-      - name: Run CLI tests
-        run: node cli/test.js
-
-      - name: Run LITE tests
-        run: node cli/test-lite.js

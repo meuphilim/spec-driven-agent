@@ -7,6 +7,21 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [5.1.5] - 2026-07-01
+
+### Added
+
+- **npm provenance** — Trusted Publishing (OIDC) via `publish-npm` job
+- **Funding/author** — campos `author` e `funding` no `cli/package.json`
+- **Environment `npm-publish`** — job dedicado com `id-token: write`
+
+### Fixed
+
+- **prepublishOnly** — `node -e` cross-platform (compatível Windows/Unix)
+- **release.yml** — separado em jobs `release` + `publish-npm`
+
+---
+
 ## [5.1.4] - 2026-07-01
 
 ### Fixed

@@ -11,7 +11,7 @@ SESSION_ID="${2:-$(date +%Y-%m-%d)-$PROJECT}"
 
 if [ -n "$JQ" ]; then
   # Seguro: jq constrói JSON com escaped values
-  TMP=$(mktemp)
+  TMP=$(mktemp_safe)
   $JQ -n \
     --arg sid "$SESSION_ID" \
     --arg proj "$PROJECT" \
@@ -30,9 +30,8 @@ if [ -n "$JQ" ]; then
       intentional_stop: false
     }' > "$TMP" && mv "$TMP" "$STATE_FILE"
 else
-  # Fallback: usar node para JSON seguro (evita injection via heredoc)
-  SAFE_PROJECT=$(echo "$PROJECT" | tr -d '"\\')
-  SAFE_SESSION=$(echo "$SESSION_ID" | tr -d '"\\')
+  # Fallback: usar node para JSON seguro (process.argv lida com escaping)
+  # tr -d removido: dava falsa segurança (não protegia $() ou ` no shell)
   node -e "
     const fs = require('fs');
     const state = {
@@ -49,7 +48,7 @@ else
       intentional_stop: false
     };
     fs.writeFileSync(process.argv[3], JSON.stringify(state, null, 2));
-  " "$SAFE_SESSION" "$SAFE_PROJECT" "$STATE_FILE"
+  " "$SESSION_ID" "$PROJECT" "$STATE_FILE"
 fi
 
 echo "✅ Sessão inicializada: $SESSION_ID"

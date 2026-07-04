@@ -2,7 +2,7 @@
 
 > Regras práticas que melhoram decisões futuras.
 > Consulte este arquivo ao iniciar qualquer tarefa.
-> Atualize via `@skills/learn.md` após validação com o usuário.
+> Atualize via `@.claude/sda/skills/learn.md` após validação com o usuário.
 
 ---
 

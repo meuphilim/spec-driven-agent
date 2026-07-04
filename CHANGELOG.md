@@ -7,18 +7,26 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
-## [5.1.5] - 2026-07-01
+## [5.1.6] - 2026-07-04
 
 ### Added
 
-- **npm provenance** — Trusted Publishing (OIDC) via `publish-npm` job
-- **Funding/author** — campos `author` e `funding` no `cli/package.json`
-- **Environment `npm-publish`** — job dedicado com `id-token: write`
+- **Testes unitários** — 26 testes para `sanitizePath` em `cli/test-unit.js` (53 total)
+- **Cross-platform `mktemp_safe()`** — fallback Node.js para Windows sem `mktemp`
+- **CI matricial** — Node 18/20/22 × Ubuntu/Windows (6 jobs) + LITE mode tests
+- **`cli/lib/sanitize.js`** — módulo compartilhado extraído para testes isolados
 
 ### Fixed
 
-- **prepublishOnly** — `node -e` cross-platform (compatível Windows/Unix)
-- **release.yml** — separado em jobs `release` + `publish-npm`
+- **Paths `@skills/`** → `@.claude/sda/skills/` em 9+ arquivos (35 correções)
+- **`sanitizePath()`** — blocklist expandido de 9→17 metacharacters + `path.resolve`
+- **All hooks** — migrados de `$(mktemp)` para `mktemp_safe()`
+- **`release.yml`** — `softprops/action-gh-release@v1` → `@v2`
+
+### Changed
+
+- **README.md** — badges, contagem de testes (49), tabela cross-platform
+- **CI workflow** — dividido em `lint` (validação) + `test` (matriz) jobs
 
 ---
 

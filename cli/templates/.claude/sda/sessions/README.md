@@ -13,13 +13,13 @@ Exemplo: `2026-06-21-mercado-express.md`
 
 ## Como é gerado
 
-Automaticamente via `@skills/reflect.md` ao final de cada tarefa.
+Automaticamente via `@.claude/sda/skills/reflect.md` ao final de cada tarefa.
 
 ## Como é usado
 
 - `/status` lê sessões recentes para contexto
 - `/learn` lê sessões para identificar padrões repetidos
-- `@skills/context.md` carrega sessão do dia se existir
+- `@.claude/sda/skills/context.md` carrega sessão do dia se existir
 
 ## Ciclo de vida
 

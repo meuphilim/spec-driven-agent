@@ -88,4 +88,4 @@ Problema: [desc] · Hipóteses: [N total / N invalidadas / N confirmadas]
 - Debug não produz código — só conhecimento
 - Após 5 hipóteses sem confirmação: pause e reporte
 - Nunca salte do sintoma para correção sem testar ao menos 1 hipótese
-- Causa recorrente (2+ sessões) → `@skills/learn.md`
+- Causa recorrente (2+ sessões) → `@.claude/sda/skills/learn.md`

@@ -32,7 +32,7 @@ ls .claude/sda/specs/ 2>/dev/null
 ```
 
 ### 6. Socrates Gate
-Se gaps de contexto não resolvíveis por código → `@skills/socrates.md`
+Se gaps de contexto não resolvíveis por código → `@.claude/sda/skills/socrates.md`
 
 ---
 

@@ -17,7 +17,7 @@
 | 🟢 PADRÃO | `.claude/sda/knowledge/patterns.md` |
 | 🔵 HEURÍSTICA | `.claude/sda/knowledge/heuristics.md` |
 | 🔴 ANTIPADRÃO | `.claude/sda/knowledge/antipatterns.md` |
-| 🟡 MELHORIA DE SKILL | Registrar para `@skills/learn.md` |
+| 🟡 MELHORIA DE SKILL | Registrar para `@.claude/sda/skills/learn.md` |
 | ⚪ OBSERVAÇÃO | Registrar na sessão, rever depois |
 
 ### 3. Registrar sessão (`.claude/sda/sessions/YYYY-MM-DD-[projeto].md`)
@@ -54,7 +54,7 @@ Exemplo:
 ```
 
 ### 5. Consolidação
-Se há descobertas PADRÃO/HEURÍSTICA/ANTIPADRÃO → executar `@skills/learn.md`.
+Se há descobertas PADRÃO/HEURÍSTICA/ANTIPADRÃO → executar `@.claude/sda/skills/learn.md`.
 
 ---
 

@@ -27,17 +27,7 @@ const fs   = require('fs');
 const path = require('path');
 
 const VERSION = require('../package.json').version;
-
-// ─── Utilities ────────────────────────────────────────────────────────────────
-
-function sanitizePath(input) {
-  if (!input) return input;
-  const normalized = path.normalize(input).replace(/^(\.\.[\\/\\])+/, '');
-  if (/[;&|`$(){}!<>]/.test(normalized)) {
-    throw new Error(`Invalid characters in project name: "${input}"`);
-  }
-  return normalized;
-}
+const { sanitizePath } = require('../lib/sanitize');
 
 // Marca scripts .sh como executáveis usando fs.chmodSync (sem shell,
 // portanto sem risco de injeção de comando via path). No-op silencioso

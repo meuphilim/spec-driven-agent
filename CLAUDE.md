@@ -14,7 +14,7 @@ Engenheiro sênior com viés de arquiteto e auto-evolução. Pensa antes de agir
 
 ```
 1. Ler "LIÇÕES APRENDIDAS" abaixo
-2. Se precisar de profundidade: @skills/context.md
+2. Se precisar de profundidade: @.claude/sda/skills/context.md
 3. Se .knowledge/ populado: ler patterns.md → heuristics.md → antipatterns.md
 ```
 
@@ -27,8 +27,8 @@ Engenheiro sênior com viés de arquiteto e auto-evolução. Pensa antes de agir
 | Fase | Quando | Ação |
 |---|---|---|
 | OBSERVE | Durante execução | Registrar em `.sessions/` |
-| ANALYZE | Ao finalizar tarefa | `@skills/reflect.md` |
-| LEARN | Ao identificar padrão | `@skills/learn.md` |
+| ANALYZE | Ao finalizar tarefa | `@.claude/sda/skills/reflect.md` |
+| LEARN | Ao identificar padrão | `@.claude/sda/skills/learn.md` |
 | OPTIMIZE | Ao consolidar | Atualizar skill impactada |
 | VALIDATE | Após melhoria | Confirmar com usuário |
 | PERSIST | Após validação | Gravar em `.knowledge/` |
@@ -103,10 +103,10 @@ Gera plano → exibe **PLAN GATE** → aguarda "confirmar" → só então escrev
 
 | Tipo | Skill |
 |---|---|
-| FEAT / INFRA / DOCS | `@skills/implement.md` |
-| FIX | `@skills/fix.md` |
-| DEBUG | `@skills/debug.md` → spec de fix → `@skills/fix.md` |
-| REFACTOR | `@skills/refactor.md` |
+| FEAT / INFRA / DOCS | `@.claude/sda/skills/implement.md` |
+| FIX | `@.claude/sda/skills/fix.md` |
+| DEBUG | `@.claude/sda/skills/debug.md` → spec de fix → `@.claude/sda/skills/fix.md` |
+| REFACTOR | `@.claude/sda/skills/refactor.md` |
 
 ### REPORT
 | Modo | Formato |
@@ -118,7 +118,7 @@ Gera plano → exibe **PLAN GATE** → aguarda "confirmar" → só então escrev
 | Modo | Formato |
 |---|---|
 | **LITE** | `📝 [1 descoberta ou "nenhuma"]` (1 linha) |
-| **FULL** | **REFLECT GATE** completo (ver `@skills/reflect.md`) |
+| **FULL** | **REFLECT GATE** completo (ver `@.claude/sda/skills/reflect.md`) |
 
 > **Monitoramento de turns (FULL):** declare limites ao iniciar:
 > `🔄 EXECUÇÃO · Turn: 1/[max]`
@@ -126,8 +126,8 @@ Gera plano → exibe **PLAN GATE** → aguarda "confirmar" → só então escrev
 
 > Se durante execução surgir algo fora do escopo: **pare, reporte, pergunte.**
 
-### REFLECT — `@skills/reflect.md` (obrigatório)
-Executa reflexão → exibe **REFLECT GATE** com descobertas → se PADRÃO/HEURÍSTICA/ANTIPADRÃO → `@skills/learn.md`.
+### REFLECT — `@.claude/sda/skills/reflect.md` (obrigatório)
+Executa reflexão → exibe **REFLECT GATE** com descobertas → se PADRÃO/HEURÍSTICA/ANTIPADRÃO → `@.claude/sda/skills/learn.md`.
 
 ---
 
@@ -204,19 +204,19 @@ Toda sessão segue este padrão de output estruturado:
 
 | Comando | Skill |
 |---|---|
-| `/context` | `@skills/context.md` |
-| `/spec` | `@skills/spec.md` |
-| `/estimate` | `@skills/estimate.md` |
-| `/plan` | `@skills/plan.md` |
-| `/implement` | `@skills/implement.md` |
-| `/fix` | `@skills/fix.md` |
-| `/debug` | `@skills/debug.md` |
-| `/refactor` | `@skills/refactor.md` |
-| `/review` | `@skills/review.md` |
-| `/status` | `@skills/status.md` |
-| `/reflect` | `@skills/reflect.md` |
-| `/learn` | `@skills/learn.md` |
-| `/socrates` | `@skills/socrates.md` |
+| `/context` | `@.claude/sda/skills/context.md` |
+| `/spec` | `@.claude/sda/skills/spec.md` |
+| `/estimate` | `@.claude/sda/skills/estimate.md` |
+| `/plan` | `@.claude/sda/skills/plan.md` |
+| `/implement` | `@.claude/sda/skills/implement.md` |
+| `/fix` | `@.claude/sda/skills/fix.md` |
+| `/debug` | `@.claude/sda/skills/debug.md` |
+| `/refactor` | `@.claude/sda/skills/refactor.md` |
+| `/review` | `@.claude/sda/skills/review.md` |
+| `/status` | `@.claude/sda/skills/status.md` |
+| `/reflect` | `@.claude/sda/skills/reflect.md` |
+| `/learn` | `@.claude/sda/skills/learn.md` |
+| `/socrates` | `@.claude/sda/skills/socrates.md` |
 
 ---
 

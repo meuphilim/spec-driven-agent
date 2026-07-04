@@ -1,12 +1,12 @@
 # Spec-Driven Agent Framework
 
-> **Versão:** 5.1.5 | **Status:** Production Ready | **Última atualização:** 2026-07-01
+> **Versão:** 5.1.6 | **Status:** Production Ready | **Última atualização:** 2026-07-04
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-5.1.5-blue.svg)](https://github.com/meuphilim/spec-driven-agent)
+[![Version](https://img.shields.io/badge/version-5.1.6-blue.svg)](https://github.com/meuphilim/spec-driven-agent)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Compatible-green.svg)](https://docs.anthropic.com/en/docs/claude-code)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-green.svg)](https://nodejs.org/)
-[![Tests](https://img.shields.io/badge/tests-25%2F25-brightgreen.svg)](https://github.com/meuphilim/spec-driven-agent)
+[![Tests](https://img.shields.io/badge/tests-53%2F53-brightgreen.svg)](https://github.com/meuphilim/spec-driven-agent)
 
 ---
 
@@ -24,7 +24,7 @@ O **Spec-Driven Agent Framework** é um sistema completo de desenvolvimento orie
 - **Samantha Agent** — Especialista em produtividade e automação
 - **8 Reference Guides** — Boas práticas completas
 - **Ponytail** — Filosofia YAGNI integrada
-- **25 Testes** — Cobertura automatizada
+- **53 Testes** — Cobertura automatizada (19 integração + 8 LITE + 26 unitários)
 
 ---
 
@@ -157,11 +157,12 @@ Consulte `VALIDATION-PROTOCOL.md` para detalhes.
 ### Testes Automatizados
 
 ```bash
-node cli/test.js       # 17 testes principais
-node cli/test-lite.js  # 8 testes do Modo LITE
+node cli/test.js        # 19 testes de integração
+node cli/test-lite.js   # 8 testes do Modo LITE
+node cli/test-unit.js   # 26 testes unitários
 ```
 
-**Total: 25 testes — todos passando ✅**
+**Total: 53 testes — todos passando ✅**
 
 ---
 
@@ -170,8 +171,9 @@ node cli/test-lite.js  # 8 testes do Modo LITE
 | Medida | Status |
 |---|---|
 | Shell injection fix | ✅ execFileSync |
-| Path sanitization | ✅ Blocklist completa |
+| Path sanitization | ✅ Blocklist + `path.resolve` + 22 tests |
 | JSON injection fix | ✅ jq -n --arg |
+| Cross-platform | ✅ `mktemp_safe` + `find_jq` + CRLF-safe |
 | SECURITY.md | ✅ Política definida |
 | CODE_OF_CONDUCT.md | ✅ Contributor Covenant |
 
@@ -199,7 +201,7 @@ node cli/test-lite.js  # 8 testes do Modo LITE
 - [x] Ponytail integration
 - [x] Dashboard de métricas
 - [x] npm publish automático
-- [x] 25 testes automatizados
+- [x] 49 testes automatizados (19 int + 8 LITE + 22 unit)
 - [x] SECURITY.md + CODE_OF_CONDUCT.md
 - [x] Validation protocol
 - [x] Session templates

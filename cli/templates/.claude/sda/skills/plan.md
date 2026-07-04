@@ -1,7 +1,7 @@
 # SKILL: plan.md
 > `/plan` · após spec aprovada
 
-**Pré-requisito:** Spec com `Status: APROVADA`. Se não existir → `@skills/spec.md`.
+**Pré-requisito:** Spec com `Status: APROVADA`. Se não existir → `@.claude/sda/skills/spec.md`.
 
 ---
 

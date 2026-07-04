@@ -47,7 +47,7 @@ fi
 
 # === LOG DO TURN ===
 # Incrementar turn counter atomicamente com jq + mktemp
-TMP=$(mktemp)
+TMP=$(mktemp_safe)
 $JQ '.turns.current += 1' "$STATE_FILE" > "$TMP" && mv "$TMP" "$STATE_FILE"
 
 # === ALERTA 80% ===
@@ -61,7 +61,7 @@ if [ "$MAX" -gt 0 ]; then
     WARNED=$($JQ -r '.turns.limit_80_warned' "$STATE_FILE")
     if [ "$WARNED" = "false" ]; then
       echo "⚠️ TURN $CURRENT/$MAX — 80% do limite atingido."
-      TMP=$(mktemp)
+      TMP=$(mktemp_safe)
       $JQ '.turns.limit_80_warned = true' "$STATE_FILE" > "$TMP" && mv "$TMP" "$STATE_FILE"
     fi
   fi

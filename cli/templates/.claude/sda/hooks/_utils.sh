@@ -18,3 +18,18 @@ if [ -z "$JQ" ]; then
   echo "⚠️ jq não encontrado. Hooks não funcionarão."
   exit 0
 fi
+
+# mktemp_safe — Criar ficheiro temporário de forma cross-platform
+# Usa mktemp se disponível; fallback para node -e
+mktemp_safe() {
+  if command -v mktemp &>/dev/null; then
+    mktemp "$@"
+  else
+    node -e "
+      const fs = require('fs'), path = require('path');
+      const tmp = path.join(require('os').tmpdir(), 'sda-' + process.pid + '-' + Date.now() + '.tmp');
+      fs.writeFileSync(tmp, '');
+      console.log(tmp);
+    "
+  fi
+}

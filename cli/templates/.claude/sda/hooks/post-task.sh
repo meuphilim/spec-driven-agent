@@ -26,7 +26,7 @@ if [ ! -f "$METRICS_FILE" ]; then
 fi
 
 # Atualizar métricas
-TMP=$(mktemp)
+TMP=$(mktemp_safe)
 $JQ \
   --arg skill "$SKILL" \
   --arg day "$DAY" \

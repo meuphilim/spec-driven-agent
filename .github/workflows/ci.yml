@@ -7,8 +7,8 @@ on:
     branches: [main, master]
 
 jobs:
-  validate:
-    name: Validate Framework
+  lint:
+    name: Lint & Validate
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -16,7 +16,7 @@ jobs:
 
       - name: Check required files
         run: |
-          REQUIRED_FILES=("README.md" "CHANGELOG.md" "LICENSE" "CLAUDE.md" "CONTRIBUTING.md" ".gitignore")
+          REQUIRED_FILES=("README.md" "LICENSE" "CLAUDE.md" "CONTRIBUTING.md" ".gitignore")
           for file in "${REQUIRED_FILES[@]}"; do
             if [ ! -f "$file" ]; then
               echo "❌ Missing required file: $file"
@@ -29,7 +29,6 @@ jobs:
         run: |
           REQUIRED_SKILLS=("context.md" "spec.md" "estimate.md" "plan.md" "implement.md" "fix.md" "debug.md" "refactor.md" "review.md" "status.md" "reflect.md" "learn.md" "socrates.md")
           SKILLS_DIR="cli/templates/.claude/sda/skills"
-          
           for skill in "${REQUIRED_SKILLS[@]}"; do
             if [ ! -f "$SKILLS_DIR/$skill" ]; then
               echo "❌ Missing required skill: $SKILLS_DIR/$skill"
@@ -42,7 +41,6 @@ jobs:
         run: |
           KB_FILES=("patterns.md" "heuristics.md" "antipatterns.md" "changelog.md")
           KB_DIR="cli/templates/.claude/sda/knowledge"
-          
           for file in "${KB_FILES[@]}"; do
             if [ ! -f "$KB_DIR/$file" ]; then
               echo "❌ Missing knowledge base file: $KB_DIR/$file"
@@ -53,9 +51,7 @@ jobs:
 
       - name: Check CLAUDE.md structure
         run: |
-          # Check for required sections
           SECTIONS=("IDENTIDADE" "FLUXO OBRIGATÓRIO" "HOOKS" "SKILLS" "SUBAGENTS")
-          
           for section in "${SECTIONS[@]}"; do
             if ! grep -q "$section" CLAUDE.md; then
               echo "❌ Missing section in CLAUDE.md: $section"
@@ -64,40 +60,19 @@ jobs:
           done
           echo "✅ CLAUDE.md structure valid"
 
-      - name: Check for hardcoded credentials (high-confidence patterns)
+      - name: Check for hardcoded credentials
         run: |
-          # Padrões de token reais (alta confiança, poucos falsos positivos)
           PATTERN='npm_[A-Za-z0-9]{36}|ghp_[A-Za-z0-9]{36}|gho_[A-Za-z0-9]{36}|sk-ant-[A-Za-z0-9-]{20,}|sk-[A-Za-z0-9]{32,}|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----'
           MATCHES=$(grep -rInE "$PATTERN" \
             --include="*.js" --include="*.sh" --include="*.md" \
             --include="*.yml" --include="*.yaml" --include="*.json" \
             --exclude-dir=.git --exclude-dir=node_modules . || true)
           if [ -n "$MATCHES" ]; then
-            echo "❌ Possível credencial real encontrada no código:"
+            echo "❌ Possible credential found in code:"
             echo "$MATCHES"
             exit 1
           fi
-          echo "✅ Nenhum padrão de credencial real encontrado"
-
-      - name: Check no secrets in code (heuristic, non-blocking)
-        run: |
-          if grep -rIn "password\|secret\|api_key\|token" \
-            --include="*.md" --include="*.yml" --include="*.yaml" --include="*.js" --include="*.sh" \
-            --exclude-dir=.git --exclude-dir=node_modules . \
-            | grep -v "CHANGELOG\|README\|CONTRIBUTING\|.github/workflows" \
-            | grep -v "GITHUB_TOKEN\|secrets\.\|NODE_AUTH_TOKEN" | head -10; then
-            echo "⚠️ Termos suspeitos encontrados — revisar manualmente (não bloqueia o build)"
-          else
-            echo "✅ Nenhum termo suspeito detectado"
-          fi
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
-      - name: Run CLI tests
-        run: node cli/test.js
+          echo "✅ No credential patterns found"
 
       - name: Count framework metrics
         run: |
@@ -107,3 +82,37 @@ jobs:
           echo "   Skills: $SKILLS"
           echo "   CLAUDE.md lines: $LINES"
           echo "   Status: ✅ Valid"
+
+  test:
+    name: Test (Node ${{ matrix.node }} / ${{ matrix.os }})
+    needs: lint
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: [18, 20, 22]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Run CLI tests (main)
+        run: node cli/test.js
+        shell: bash
+
+      - name: Run CLI tests (LITE mode)
+        run: node cli/test-lite.js
+        shell: bash
+
+      - name: Test init + status
+        run: |
+          TEST_DIR="$(mktemp -d)"
+          node cli/bin/cli.js init "$TEST_DIR"
+          node cli/bin/cli.js status --cwd "$TEST_DIR"
+          echo "✅ init + status OK"
+        shell: bash

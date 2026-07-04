@@ -2,7 +2,7 @@
 
 > O que claramente não deve ser repetido — com causa raiz e alternativa.
 > Consulte este arquivo ao iniciar qualquer tarefa.
-> Atualize via `@skills/learn.md` após validação com o usuário.
+> Atualize via `@.claude/sda/skills/learn.md` após validação com o usuário.
 
 ---
 

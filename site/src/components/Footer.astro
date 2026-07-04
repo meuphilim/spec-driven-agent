@@ -1,0 +1,49 @@
+---
+const currentYear = new Date().getFullYear();
+const footerLinks = [
+  { href: 'https://github.com/meuphilim/spec-driven-agent', label: 'GitHub' },
+  { href: 'https://www.npmjs.com/package/spec-driven-agent', label: 'npm' },
+  { href: 'https://github.com/meuphilim/spec-driven-agent/issues', label: 'Issues' },
+  { href: 'https://github.com/meuphilim/spec-driven-agent/discussions', label: 'Discussions' },
+];
+---
+
+<footer class="border-t border-white/5 py-12">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-2">
+        <span class="text-accent-400 font-bold font-mono">&gt;_</span>
+        <span class="text-sm text-gray-400">
+          spec-driven-agent <span class="text-gray-600">v5.1.6</span>
+        </span>
+      </div>
+
+      <div class="flex items-center gap-6">
+        {footerLinks.map((link) => (
+          <a href={link.href} target="_blank" rel="noopener noreferrer"
+             class="text-sm text-gray-500 hover:text-gray-300 transition-colors">
+            {link.label}
+          </a>
+        ))}
+      </div>
+
+      <div class="text-xs text-gray-600">
+        © {currentYear} · MIT License
+      </div>
+    </div>
+
+    <div class="mt-8 pt-6 border-t border-white/5 text-center">
+      <div class="inline-flex items-center gap-2 text-xs font-mono text-gray-600">
+        <span class="text-accent-400/60">Built with</span>
+        <span>Astro</span>
+        <span class="text-gray-700">·</span>
+        <span>Tailwind CSS</span>
+        <span class="text-gray-700">·</span>
+        <span class="text-accent-400/60">Zero JS framework</span>
+      </div>
+      <div class="mt-2 text-xs text-gray-600/60">
+        Designed for Claude Code · Agentic Engineering
+      </div>
+    </div>
+  </div>
+</footer>

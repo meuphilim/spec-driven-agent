@@ -1,0 +1,31 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Nav from '../components/Nav.astro';
+import Hero from '../components/Hero.astro';
+import ProblemSolution from '../components/ProblemSolution.astro';
+import SDDCycle from '../components/SDDCycle.astro';
+import Features from '../components/Features.astro';
+import ModeComparison from '../components/ModeComparison.astro';
+import Installation from '../components/Installation.astro';
+import Commands from '../components/Commands.astro';
+import CTA from '../components/CTA.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout
+  title="Spec-Driven Agent — Development Framework for Claude Code"
+  description="SDD framework enforces disciplined development via GATEs (SPEC, DESIGN, PLAN, VALIDATE, REFLECT). Built for Claude Code. 53 tests. MIT license."
+>
+  <Nav />
+  <main class="min-h-screen">
+    <Hero />
+    <ProblemSolution />
+    <SDDCycle />
+    <Features />
+    <ModeComparison />
+    <Installation />
+    <Commands />
+    <CTA />
+    <Footer />
+  </main>
+</BaseLayout>

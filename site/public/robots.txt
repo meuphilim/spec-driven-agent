@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://meuphilim.github.io/spec-driven-agent/sitemap-index.xml

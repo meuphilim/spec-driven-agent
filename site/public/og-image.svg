@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0a0a0a"/>
+      <stop offset="100%" stop-color="#1a2e05"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#a3e635"/>
+      <stop offset="100%" stop-color="#65a30d"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="1050" cy="100" r="300" fill="#84cc16" opacity="0.04"/>
+  <circle cx="150" cy="500" r="200" fill="#84cc16" opacity="0.03"/>
+  <text x="80" y="240" font-family="monospace" font-size="64" font-weight="bold" fill="#a3e635">&gt;_ spec-driven-agent</text>
+  <text x="80" y="320" font-family="sans-serif" font-size="36" fill="#9ca3af">Write specs. Let the agent execute.</text>
+  <rect x="80" y="370" width="280" height="4" rx="2" fill="url(#accent)"/>
+  <text x="80" y="420" font-family="monospace" font-size="20" fill="#6b7280">5 GATEs · 53 Tests · LITE mode (-60% tokens)</text>
+  <text x="80" y="460" font-family="monospace" font-size="20" fill="#6b7280">MIT License · Node = 18 · Claude Code</text>
+</svg>

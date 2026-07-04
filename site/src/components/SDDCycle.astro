@@ -1,0 +1,74 @@
+---
+const phases = [
+  { step: '1', icon: '🏛️', label: 'Constitution', desc: 'Load project guardrails, stack, conventions.', color: 'text-accent-400', gate: false },
+  { step: '2', icon: '📋', label: 'Specify', desc: 'Generate spec with acceptance criteria.', color: 'text-blue-400', gate: true, gateLabel: 'SPEC GATE' },
+  { step: '3', icon: '🏗️', label: 'Design', desc: 'Architecture decisions, data flow, contracts.', color: 'text-purple-400', gate: true, gateLabel: 'DESIGN GATE' },
+  { step: '4', icon: '📐', label: 'Plan', desc: 'Atomic steps per file, rollback strategy.', color: 'text-yellow-400', gate: true, gateLabel: 'PLAN GATE' },
+  { step: '5', icon: '⚙️', label: 'Execute', desc: 'Implement each plan step, validate per pass.', color: 'text-green-400', gate: false },
+  { step: '6', icon: '✅', label: 'Validate', desc: 'Code review against spec criteria.', color: 'text-emerald-400', gate: true, gateLabel: 'VALIDATE' },
+  { step: '7', icon: '🪞', label: 'Reflect', desc: 'Auto-evaluation. Consolidate into knowledge base.', color: 'text-rose-400', gate: true, gateLabel: 'REFLECT GATE' },
+];
+---
+
+<section id="how-it-works" class="py-20 md:py-28">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-16">
+      <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-gray-100">The SDD Cycle</h2>
+      <p class="mt-4 text-gray-400 max-w-2xl mx-auto">
+        Seven phases. Five GATEs. One orchestrated flow by <strong class="text-gray-200">Samantha Agent</strong>.
+      </p>
+    </div>
+
+    <div class="hidden lg:block">
+      <div class="relative flex items-start justify-between">
+        <div class="absolute top-8 left-0 right-0 h-0.5 bg-gradient-to-r from-accent-500/40 via-white/10 to-accent-500/40" />
+        {phases.map((phase) => (
+          <div class="relative flex flex-col items-center text-center" style="flex: 0 0 auto; width: 13%;">
+            <div class="relative z-10 w-14 h-14 rounded-full bg-[#0a0a0a] border-2 border-white/10 flex items-center justify-center text-xl transition-all duration-300 hover:scale-110 hover:border-accent-500/50 group cursor-default">
+              <span>{phase.icon}</span>
+            </div>
+            <div class={`mt-3 text-xs font-semibold ${phase.color}`}>{phase.label}</div>
+            <div class="mt-1 text-[10px] text-gray-500 leading-relaxed px-1">{phase.desc}</div>
+            {phase.gate && (
+              <div class="mt-2 px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[9px] font-mono text-gray-500">{phase.gateLabel}</div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div class="lg:hidden space-y-4">
+      {phases.map((phase) => (
+        <div class="flex items-start gap-4 p-4 rounded-xl glass-card group hover:border-accent-500/20 transition-colors">
+          <div class="flex-shrink-0 w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-lg">{phase.icon}</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2">
+              <span class={`text-sm font-semibold ${phase.color}`}>{phase.label}</span>
+              {phase.gate && <span class="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-mono text-gray-500">{phase.gateLabel}</span>}
+            </div>
+            <p class="mt-0.5 text-xs text-gray-500">{phase.desc}</p>
+          </div>
+          <div class="flex-shrink-0 text-xs text-gray-600 font-mono">{phase.step}/7</div>
+        </div>
+      ))}
+    </div>
+
+    <div class="mt-12 p-6 rounded-xl glass-card text-center">
+      <div class="inline-flex items-center gap-2 text-sm font-mono text-gray-400">
+        <span class="text-accent-400">CONSTITUTION</span>
+        <svg class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+        <span>SPECIFY</span>
+        <svg class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+        <span>DESIGN</span>
+        <svg class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+        <span>PLAN</span>
+        <svg class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+        <span>EXECUTE</span>
+        <svg class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+        <span>VALIDATE</span>
+        <svg class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+        <span class="text-rose-400">REFLECT</span>
+      </div>
+    </div>
+  </div>
+</section>

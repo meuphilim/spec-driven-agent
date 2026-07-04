@@ -1,0 +1,92 @@
+---
+const modes = [
+  {
+    name: 'LITE',
+    label: 'Quick mode',
+    tokens: '~1,500',
+    savings: '60%',
+    savingsClass: 'text-green-400',
+    color: 'accent',
+    tasks: 'P (score 0-3)',
+    flow: 'CLASSIFY → EXECUTE → REFLECT',
+    details: [
+      'Spec inline (no file created)',
+      'Plan automatic (no GATE)',
+      'Reflect: 1 line',
+    ],
+  },
+  {
+    name: 'FULL',
+    label: 'Full SDD',
+    tokens: '~15,000',
+    savings: 'Baseline',
+    savingsClass: 'text-gray-400',
+    color: 'blue',
+    tasks: 'M, G, XG',
+    flow: 'CONSTITUTION → SPECIFY → DESIGN → PLAN → EXECUTE → VALIDATE → REFLECT',
+    details: [
+      'Spec file with acceptance criteria',
+      '5 GATEs: SPEC → DESIGN → PLAN → VALIDATE → REFLECT',
+      'Samantha orchestrates all transitions',
+    ],
+  },
+];
+---
+
+<section id="modes" class="py-20 md:py-28">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-16">
+      <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-gray-100">Two modes. One framework.</h2>
+      <p class="mt-4 text-gray-400 max-w-2xl mx-auto">
+        Automatic task classification routes each job to the right workflow.
+      </p>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+      {modes.map((mode, i) => (
+        <div class={`relative overflow-hidden rounded-xl border ${i === 0 ? 'border-accent-500/20 bg-accent-500/[0.03]' : 'border-white/10 bg-white/[0.02]'} p-6 sm:p-8 transition-all duration-300 hover:scale-[1.02]`}>
+          {i === 0 && <div class="absolute top-0 right-0 w-48 h-48 bg-accent-500/5 rounded-full blur-3xl" />}
+          <div class="relative">
+            <div class="flex items-center justify-between mb-4">
+              <span class={`inline-flex items-center px-3 py-1 rounded-full text-xs font-mono font-semibold ${i === 0 ? 'bg-accent-500/10 text-accent-300 border border-accent-500/20' : 'bg-blue-500/10 text-blue-300 border border-blue-500/20'}`}>
+                {mode.name}
+              </span>
+              <span class="text-xs font-mono text-gray-500">{mode.tokens}</span>
+            </div>
+
+            <h3 class="text-lg font-semibold text-gray-100 mb-1">{mode.label}</h3>
+
+            <div class="flex items-center gap-2 mt-3">
+              <span class={`text-sm font-mono font-bold ${mode.savingsClass}`}>{mode.savings}</span>
+              <span class="text-xs text-gray-500">token savings</span>
+            </div>
+
+            <div class="mt-4 text-xs font-mono text-gray-500">
+              For: <span class="text-gray-300">{mode.tasks}</span>
+            </div>
+
+            <div class="mt-2 p-3 rounded-lg bg-white/[0.02] border border-white/5">
+              <div class="text-xs font-mono text-gray-400 leading-relaxed">{mode.flow}</div>
+            </div>
+
+            <ul class="mt-4 space-y-2">
+              {mode.details.map((detail) => (
+                <li class="flex items-start gap-2 text-sm text-gray-400">
+                  <svg class="w-4 h-4 mt-0.5 flex-shrink-0 text-accent-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                  {detail}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div class="mt-10 max-w-4xl mx-auto p-6 rounded-xl glass-card text-center">
+      <p class="text-sm text-gray-400">
+        <strong class="text-gray-200">Automatic detection:</strong> Effort <code class="text-accent-400 font-mono text-xs">low</code> → LITE mode automatically.
+        No manual switching. No configuration.
+      </p>
+    </div>
+  </div>
+</section>

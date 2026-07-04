@@ -214,6 +214,12 @@ node cli/test-unit.js   # 26 testes unitários
 
 ---
 
+## Créditos
+
+Consulte [CREDITS.md](CREDITS.md) para atribuições detalhadas de skills, inspirações conceituais (YAGNI, KISS) e ferramentas de terceiros.
+
+---
+
 ## Contribuindo
 
 Consulte [CONTRIBUTING.md](CONTRIBUTING.md) para guia completo.
@@ -223,6 +229,8 @@ Consulte [CONTRIBUTING.md](CONTRIBUTING.md) para guia completo.
 ## Licença
 
 MIT License. Consulte [LICENSE](LICENSE).
+
+Copyright (c) 2026 Meuphilim
 
 ---
 

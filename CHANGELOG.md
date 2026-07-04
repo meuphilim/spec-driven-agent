@@ -25,8 +25,17 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Changed
 
-- **README.md** — badges, contagem de testes (49), tabela cross-platform
+- **README.md** — badges, contagem de testes (53), tabela cross-platform
 - **CI workflow** — dividido em `lint` (validação) + `test` (matriz) jobs
+
+### Performance / Token Optimization
+
+- **Ponytail skill** — compressão de 117 → 52 linhas (−70% tokens por invocação)
+- **Samantha agent** — compactado de 379 → 67 linhas (−75% tokens/sessão se agente primário)
+- **Checklists extraídos** — criados `samantha-audit-checklists.md` (+3.8KB on-demand)
+- **Patterns extraídos** — criados `samantha-patterns.md` (+1.2KB on-demand)
+- **Exemplos compartilhados** — `examples.md` criado (4.4KB on-demand); spec.md, plan.md, reflect.md extraídos (−2.5KB cada)
+- **Skills + referências** — de 13 → 14 skills (+1), 8 → 10 referências (+2)
 
 ---
 

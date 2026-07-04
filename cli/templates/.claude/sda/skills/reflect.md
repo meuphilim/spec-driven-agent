@@ -78,26 +78,4 @@ Ao concluir o reflect, produza este bloco antes de encerrar a tarefa:
 
 Se `descobertas` estiver vazio por 3 sessões → emitir alerta de qualidade (ver protocolo §4).
 
----
-
-## EXEMPLO COMPLETO
-
-```
-🪞 REFLECT GATE
-┌─────────────────────────────────────────────────────────────────┐
-│ Reflexão: Adicionar validação de email                          │
-│                                                                 │
-│ ✅ Funcionou:                                                  │
-│ - Zod schema reutilizou regex existente do projeto              │
-│ - Validação DNS isolada em service separado                     │
-│                                                                 │
-│ ⚠️  Atrito:                                                    │
-│ - Teste de DNS timeout falhou em CI (rede) → mock necessário   │
-│                                                                 │
-│ 💡 Descobertas:                                                 │
-│ - PADRÃO: Sempre mockar calls externos em testes unitários     │
-│   → consolidar                                                │
-│                                                                 │
-│ Sessão: .claude/sda/sessions/2026-06-28-validacao-email.md     │
-└─────────────────────────────────────────────────────────────────┘
-```
+> Exemplo completo em `@.claude/sda/skills/examples.md` (consulte na primeira vez)

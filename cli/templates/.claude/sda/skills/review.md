@@ -3,12 +3,34 @@
 
 ---
 
+## OBRIGATÓRIO: CARREGAR SPEC
+Antes de revisar, carregue a spec correspondente:
+```bash
+ls .claude/sda/specs/*.md 2>/dev/null | head -5
+```
+Confirme que o código implementa cada critério de aceite. **Review sem spec é inválido.**
+
+---
+
 ## OBTER DIFF
 ```bash
 git diff main                    # branch vs main
 git diff HEAD~1                  # último commit
 git diff main -- path/arquivo.ts # arquivo específico
 ```
+
+---
+
+## VALIDAÇÃO AUTOMÁTICA (Fase SDD: Validate)
+Cruce cada critério da spec com o diff:
+
+```
+📋 VALIDAÇÃO vs SPEC — [spec]
+✅ Critério implementado: [evidência no diff]
+❌ Critério ausente/não implementado: [detalhe]
+⚠️ Critério parcial: [o que falta]
+```
+**Se houver ❌:** reportar como 🔴 BLOCKER no review.
 
 ---
 

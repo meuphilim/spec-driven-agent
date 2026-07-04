@@ -1,7 +1,10 @@
 # SKILL: plan.md
 > `/plan` · após spec aprovada
 
-**Pré-requisito:** Spec com `Status: APROVADA`. Se não existir → `@.claude/sda/skills/spec.md`.
+**Pré-requisitos:**
+1. Spec com `Status: APROVADA` — se não existir → `@.claude/sda/skills/spec.md`
+2. Design com `Status: APROVADO` (DESIGN GATE) — se não existir → `@.claude/sda/skills/design.md`
+   *Pular Design exige justificativa registrada e aprovação explícita.*
 
 ---
 

@@ -1,6 +1,8 @@
-# Spec-Driven Agent Framework
+# Spec-Driven Development Framework (SDD)
 
 > **Versão:** 5.1.6 | **Status:** Production Ready | **Última atualização:** 2026-07-04
+>
+> **Orquestrador:** [Samantha Agent](CLAUDE.md) — gerencia o ciclo SDD completo
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Version](https://img.shields.io/badge/version-5.1.6-blue.svg)](https://github.com/meuphilim/spec-driven-agent)
@@ -12,7 +14,8 @@
 
 ## Visão Geral
 
-O **Spec-Driven Agent Framework** é um sistema completo de desenvolvimento orientado por especificações, projetado para agentes LLM (Claude Code). Combina especificação obrigatória, ciclo de aprendizado automático e controle de execução para garantir código de alta qualidade com rastreabilidade completa.
+O **Spec-Driven Development Framework (SDD)** implementa o ciclo completo de desenvolvimento orientado por especificações, orquestrado pelo agente **Samantha**:
+`Constitution → Specify → Design → Plan → Execute → Validate → Reflect`.
 
 ### Por que usar?
 
@@ -21,8 +24,8 @@ O **Spec-Driven Agent Framework** é um sistema completo de desenvolvimento orie
 - **Controle de execução** — monitoramento de turns e custos
 - **Eficiência** — Modo Lite reduz 60% tokens em tarefas simples
 - **Reprodutível** — fluxo idêntico para qualquer tarefa
-- **Samantha Agent** — Especialista em produtividade e automação
-- **8 Reference Guides** — Boas práticas completas
+- **Samantha Agent** — Orquestradora SDD, gerencia transições entre fases
+- **10 Reference Guides** — Boas práticas completas
 - **Ponytail** — Filosofia YAGNI integrada
 - **53 Testes** — Cobertura automatizada (19 integração + 8 LITE + 26 unitários)
 
@@ -49,19 +52,21 @@ O **Spec-Driven Agent Framework** é um sistema completo de desenvolvimento orie
 - Plan automático (sem GATE)
 - Reflect: 1 linha
 
-### Modo FULL
+### Modo FULL — SDD
 
 ```
-MEMÓRIA → CLASSIFY → [ESTIMATE] → SPEC → PLAN → EXECUTE → REPORT → REFLECT
+CONSTITUTION → SPECIFY → DESIGN → PLAN → EXECUTE → VALIDATE → REFLECT
 ```
 
-### GATEs (Modo FULL)
+### GATEs (Modo FULL — SDD)
 
-| GATE | Trigger | O que impede |
-|------|---------|--------------|
-| **SPEC GATE** | "aprovado" | Código sem spec aprovada |
-| **PLAN GATE** | "confirmar" | Código sem plano confirmado |
-| **REFLECT GATE** | automático | Tarefa sem reflexão |
+| GATE | Fase | Trigger | O que impede |
+|------|------|---------|--------------|
+| **SPEC GATE** | Specify | "aprovado" | Código sem spec aprovada |
+| **DESIGN GATE** | Design | "design ok" | Plan sem design aprovado |
+| **PLAN GATE** | Plan | "confirmar" | Código sem plano confirmado |
+| **VALIDATE** | Validate | automático | Merge sem verificar spec |
+| **REFLECT GATE** | Reflect | automático | Tarefa sem reflexão |
 
 ### Effort Level
 
@@ -109,26 +114,27 @@ node cli/bin/cli.js init /caminho/para/projeto
 | `sda metrics` | Dashboard de métricas |
 | `sda --version` | Ver versão |
 
-### Framework (Claude Code)
+### Framework (Claude Code) — Ciclo SDD
 
-| Comando | Função |
-|---------|--------|
-| `/context` | Mapear projeto |
-| `/spec` | Criar especificação |
-| `/plan` | Gerar plano |
-| `/implement` | Executar implementação |
-| `/fix` | Corrigir bug |
-| `/debug` | Investigar problema |
-| `/refactor` | Reestruturar código |
-| `/review` | Code review |
-| `/status` | Ver estado atual |
-| `/reflect` | Auto-avaliação |
-| `/learn` | Consolidar conhecimento |
-| `/socrates` | Coletar contexto ausente |
+| Comando | Fase SDD | Função |
+|---------|----------|--------|
+| `/context` | Constitution | Mapear projeto + alimentar guardrails |
+| `/spec` | Specify | Criar especificação |
+| `/design` | Design | Decisões de arquitetura |
+| `/plan` | Plan | Gerar plano atômico |
+| `/implement` | Execute | Executar implementação |
+| `/fix` | Execute | Corrigir bug |
+| `/debug` | Execute | Investigar problema |
+| `/refactor` | Execute | Reestruturar código |
+| `/review` | Validate | Code review + validação contra spec |
+| `/status` | — | Ver estado atual |
+| `/reflect` | Reflect | Auto-avaliação |
+| `/learn` | Reflect | Consolidar conhecimento |
+| `/socrates` | Constitution | Coletar contexto ausente |
 
 ---
 
-## Reference Guides (8)
+## Reference Guides (10)
 
 | Guia | Quando usar |
 |------|-------------|

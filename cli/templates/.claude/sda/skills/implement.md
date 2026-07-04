@@ -37,10 +37,28 @@ Tipos → Lógica de negócio → Integração → UI → Testes
 - [ ] Testes escritos/atualizados?
 - [ ] Build passa?
 
+## VALIDAÇÃO CONTRA SPEC (Fase SDD: Validate)
+Antes de reportar conclusão, cruze o código implementado contra CADA critério da spec:
+
+```
+🔍 VALIDAÇÃO — [nome da spec]
+Critério 1: [desc] → ✅ | ❌ [evidência]
+Critério 2: [desc] → ✅ | ❌ [evidência]
+...
+Resultado: [N]/[N] critérios atendidos
+```
+
+Se algum critério falhar:
+- Implementação incompleta → corrija antes de prosseguir
+- Spec desatualizada → abra atualização da spec
+- Decisão consciente (design mudou) → documente e registre
+
+**Nota:** Primeiro filtro. `/review` fará validação adicional.
+
 ## REPORT
 ```
 ✅ IMPLEMENTAÇÃO CONCLUÍDA
-Spec: [nome] · Critérios: X/X
+Spec: [nome] · Critérios: X/X validados
 📁 Criados: [lista] · Modificados: [lista]
 ⚠️ Pendências: [fora do escopo]
 ```

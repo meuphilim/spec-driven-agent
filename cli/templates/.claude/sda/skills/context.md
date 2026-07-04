@@ -64,9 +64,35 @@ Regra: código vence documentação.
 
 ---
 
+## CONSTITUTION — Guardrails do Projeto (Fase SDD)
+
+O `/context` alimenta automaticamente a **Constitution**:
+
+```
+🏛️ CONSTITUTION
+Projeto: [nome]
+Stack: [linguagens + frameworks]
+Acessibilidade: [nível alvo: A/AA/AAA · guidelines: WCAG 2.2]
+Convenções: [observadas]
+Restrições: [ambientes, versões, políticas]
+```
+
+Para povoar:
+- Tech stack: `package.json`, `tsconfig.json`, configs
+- Acessibilidade: verificar `.accessibilityrc`, `axe` config, menções em docs. Ausente? Sugerir `/socrates`
+- Restrições: `.nvmrc`, `.node-version`, `engines`, CI
+- Convenções: observadas durante mapeamento
+
+**Constitution antecede qualquer tarefa SDD.**
+
 ## RELATÓRIO
 
 ```
+🏛️ CONSTITUTION
+Stack: [linguagens + frameworks]
+Acessibilidade: [nível / não definida]
+Restrições: [ambientes, versões]
+
 📦 PROJETO: [nome]
 🛠️  STACK: [linguagens + frameworks]
 📁 ESTRUTURA: Componentes: [path] · Utils: [path] · Tipos: [path] · Testes: [path]
@@ -76,7 +102,7 @@ Regra: código vence documentação.
 🧪 TESTES: [N testes | framework | passando/falhando]
 📄 SPECS ATIVAS: [nome → status]
 ⚠️  ALERTAS: [dependências, testes falhando, etc.]
-✅ Contexto carregado. Pronto para receber tarefas.
+✅ Contexto carregado. Constitution pronta. Pronto para SDD.
 ```
 
 ---

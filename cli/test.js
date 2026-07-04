@@ -72,11 +72,11 @@ function runTests() {
     if (!fs.existsSync(path.join(sdaDir, 'knowledge'))) throw new Error('knowledge/ not found');
   })) passed++; else failed++;
 
-  // Test 4: All 14 skills present
-  if (test('All 14 skills present', () => {
+  // Test 4: All 15 skills present
+  if (test('All 15 skills present', () => {
     const skillsDir = path.join(__dirname, 'templates', '.claude', 'sda', 'skills');
     const requiredSkills = [
-      'context.md', 'spec.md', 'estimate.md', 'plan.md',
+      'context.md', 'spec.md', 'estimate.md', 'design.md', 'plan.md',
       'implement.md', 'fix.md', 'debug.md', 'refactor.md',
       'review.md', 'status.md', 'reflect.md', 'learn.md', 'socrates.md'
     ];
@@ -155,8 +155,8 @@ function runTests() {
     
     // Verify skills copied
     const skills = fs.readdirSync(path.join(sdaDir, 'skills')).filter(f => f.endsWith('.md'));
-    if (skills.length !== 14) {
-      throw new Error(`Expected 14 skills, got ${skills.length}`);
+    if (skills.length !== 15) {
+      throw new Error(`Expected 15 skills, got ${skills.length}`);
     }
     
     // Verify references copied

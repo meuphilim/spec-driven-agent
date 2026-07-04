@@ -65,7 +65,7 @@ Após gerar a spec, produza exatamente este bloco e **pare**:
 └───────────────────────────────────────────────────────┘
 ```
 
-**Sem "aprovado" explícito → não avance para `/plan`.**
+**Sem "aprovado" explícito → não avance para `/design`.**
 Se o usuário pedir para pular: registre `Status: CANCELADA — motivo: [razão]` e documente o risco.
 
 > Exemplo completo em `@.claude/sda/skills/examples.md` (consulte na primeira vez)

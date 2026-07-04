@@ -26,7 +26,7 @@ O **Spec-Driven Development Framework (SDD)** implementa o ciclo completo de des
 - **Reprodutível** — fluxo idêntico para qualquer tarefa
 - **Samantha Agent** — Orquestradora SDD, gerencia transições entre fases
 - **15 Skills** — 14 skills + 1 agente orquestrador
-- **10 Reference Guides** — Boas práticas completas
+- **8 Reference Guides** — Boas práticas completas
 - **Ponytail** — Filosofia YAGNI integrada
 - **53 Testes** — Cobertura automatizada (19 integração + 8 LITE + 26 unitários)
 
@@ -204,7 +204,7 @@ node cli/test-unit.js   # 26 testes unitários
 - [x] Few-shot examples
 - [x] Knowledge loading condicional
 - [x] Observabilidade leve
-- [x] 10 reference guides
+- [x] 8 reference guides
 - [x] Ponytail integration
 - [x] Dashboard de métricas
 - [x] npm publish automático

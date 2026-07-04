@@ -27,7 +27,7 @@ jobs:
 
       - name: Validate skills structure
         run: |
-          REQUIRED_SKILLS=("context.md" "spec.md" "estimate.md" "plan.md" "implement.md" "fix.md" "debug.md" "refactor.md" "review.md" "status.md" "reflect.md" "learn.md" "socrates.md")
+          REQUIRED_SKILLS=("context.md" "spec.md" "estimate.md" "design.md" "plan.md" "implement.md" "fix.md" "debug.md" "refactor.md" "review.md" "status.md" "reflect.md" "learn.md" "socrates.md")
           SKILLS_DIR="cli/templates/.claude/sda/skills"
           for skill in "${REQUIRED_SKILLS[@]}"; do
             if [ ! -f "$SKILLS_DIR/$skill" ]; then
@@ -35,7 +35,7 @@ jobs:
               exit 1
             fi
           done
-          echo "✅ All 13 required skills present"
+          echo "✅ All 14 required skills present"
 
       - name: Validate knowledge base
         run: |

@@ -25,7 +25,7 @@ O **Spec-Driven Development Framework (SDD)** implementa o ciclo completo de des
 - **Eficiência** — Modo Lite reduz 60% tokens em tarefas simples
 - **Reprodutível** — fluxo idêntico para qualquer tarefa
 - **Samantha Agent** — Orquestradora SDD, gerencia transições entre fases
-- **10 Reference Guides** — Boas práticas completas
+- **8 Reference Guides** — Boas práticas completas
 - **Ponytail** — Filosofia YAGNI integrada
 - **53 Testes** — Cobertura automatizada (19 integração + 8 LITE + 26 unitários)
 
@@ -207,7 +207,7 @@ node cli/test-unit.js   # 26 testes unitários
 - [x] Ponytail integration
 - [x] Dashboard de métricas
 - [x] npm publish automático
-- [x] 49 testes automatizados (19 int + 8 LITE + 22 unit)
+- [x] 53 testes automatizados (19 int + 8 LITE + 26 unit)
 - [x] SECURITY.md + CODE_OF_CONDUCT.md
 - [x] Validation protocol
 - [x] Session templates

@@ -111,7 +111,7 @@ jobs:
           fi
           
           echo "### 📦 Components" >> /tmp/changelog.md
-          echo "- 13 modular skills" >> /tmp/changelog.md
+          echo "- 14 modular skills" >> /tmp/changelog.md
           echo "- Knowledge base (patterns, heuristics, antipatterns)" >> /tmp/changelog.md
           echo "- Spec-driven workflow with GATEs" >> /tmp/changelog.md
           echo "- Effort levels and turn monitoring" >> /tmp/changelog.md

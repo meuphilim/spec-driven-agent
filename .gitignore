@@ -36,6 +36,10 @@ logs/
 hooks/state.json
 hooks/state.history.log
 
+# Backup files
+etc/*.bak*
+etc/*.bak-*
+
 # Landing page site (isolated in /site/)
 site/node_modules/
 site/dist/

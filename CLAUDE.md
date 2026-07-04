@@ -1,6 +1,7 @@
-# CLAUDE.md — Spec-Driven Agent + Samantha Evolution Framework
+# CLAUDE.md — Spec-Driven Development (SDD) + Samantha Evolution Framework
 
 > **Princípio:** nenhuma linha de código sem spec aprovada. Toda sessão gera conhecimento.
+> **Orquestrador:** `@.claude/sda/agents/Samantha.md` gerencia o ciclo SDD completo.
 
 ---
 
@@ -47,13 +48,19 @@ Engenheiro sênior com viés de arquiteto e auto-evolução. Pensa antes de agir
 
 ---
 
-## FLUXO OBRIGATÓRIO
+## FLUXO OBRIGATÓRIO — SDD (Spec-Driven Development)
+
+Este framework segue o **Spec-Driven Development (SDD)**, orquestrado por `@.claude/sda/agents/Samantha.md`:
+
+```
+CONSTITUTION → SPECIFY → DESIGN → PLAN → EXECUTE → VALIDATE → REFLECT
+```
 
 ### Dois Modos de Operação
 
 | Modo | Quando | Fluxo | Tokens |
 |---|---|---|---|
-| **FULL** | Tarefas M/G/XG | Completo com GATEs | ~15.000 |
+| **FULL** | Tarefas M/G/XG | SDD completo com GATEs | ~15.000 |
 | **LITE** | Tarefas P (simples) | Compacto, sem GATEs formais | ~1.500 |
 
 **Detecção automática:** Effort `low` = modo LITE
@@ -64,12 +71,46 @@ Engenheiro sênior com viés de arquiteto e auto-evolução. Pensa antes de agir
 ```
 - Spec inline (não cria arquivo)
 - Plan automático (sem GATE)
-- Reflect: 1 linha (`✅ [tarefa] · 📝 [descoberta]`)
+- Reflect: 1 linha
 
-### Modo FULL (tarefas M/G/XG)
+### Modo FULL — SDD
 ```
-MEMÓRIA → CLASSIFY → [ESTIMATE] → SPEC → PLAN → EXECUTE → REPORT → REFLECT
+CONSTITUTION → SPECIFY → DESIGN → PLAN → EXECUTE → VALIDATE → REFLECT
 ```
+Samantha orquestra cada transição de fase, invocando a skill correta e verificando os GATEs.
+
+### Fases SDD Detalhadas
+
+**1. 🏛️ CONSTITUTION** — Carregado por `/context` ao iniciar sessão.
+- Guardrails do projeto (convenções, tech stack, restrições)
+- Regras de acessibilidade (WCAG 2.2)
+- Stack e estrutura mapeados em `.claude/sda/sessions/`
+
+**2. 📋 SPECIFY** — `/spec` · `@.claude/sda/skills/spec.md`
+- Gera spec com critérios de aceite, escopo, riscos
+- **SPEC GATE** → aguarda "aprovado"
+
+**3. 🏗️ DESIGN** — `/design` · `@.claude/sda/skills/design.md`
+- Decisões de arquitetura, fluxo de dados, contratos
+- **DESIGN GATE** → aguarda "design ok"
+- Opcional: pular para mudanças simples (justificativa + aprovação)
+
+**4. 📐 PLAN** — `/plan` · `@.claude/sda/skills/plan.md`
+- Passos atômicos, arquivos impactados, rollback
+- Requer Design aprovado (ou justificativa)
+- **PLAN GATE** → aguarda "confirmar"
+
+**5. ⚙️ EXECUTE** — `/implement` | `/fix` | `/refactor` | `/debug`
+- Executa cada passo do plano
+- Valida contra critérios da spec a cada passo
+
+**6. ✅ VALIDATE** — `/review` + auto-check spec
+- Verificação automática dos critérios de aceite
+- Código conferido contra cada item da spec
+
+**7. 🪞 REFLECT** — `/reflect` · `@.claude/sda/skills/reflect.md`
+- Reflexão, descobertas, consolidação em `.claude/sda/knowledge/`
+- Se PADRÃO/HEURÍSTICA/ANTIPADRÃO → `@.claude/sda/skills/learn.md`
 
 ### CLASSIFY + EFFORT LEVEL
 | Tipo | Effort | Descrição |
@@ -90,10 +131,16 @@ Declare sempre no início:
 ### ESTIMATE (opcional — use `/estimate` para tarefas ambíguas ou G/XG)
 
 ### SPEC (MODO FULL — obrigatório para M/G/XG)
-Gera spec → exibe **SPEC GATE** → aguarda "aprovado" → só então avança.
+Gera spec → exibe **SPEC GATE** → aguarda "aprovado" → só então avança para `/design`.
+Se o usuário pedir para pular: registrar risco e `Status: CANCELADA`.
+
+### DESIGN (MODO FULL)
+Executar `/design` → exibe **DESIGN GATE** → aguarda "design ok" → só então avança para `/plan`.
+Pular Design exige justificativa registrada e aprovação explícita.
 
 ### PLAN (MODO FULL — obrigatório para M/G/XG)
 Gera plano → exibe **PLAN GATE** → aguarda "confirmar" → só então escreve código.
+Requer Design aprovado (ou justificativa de skipping).
 
 ### EXECUTE
 | Modo | Ação |
@@ -157,22 +204,17 @@ Toda sessão segue este padrão de output estruturado:
 
 ## HOOKS DE VALIDAÇÃO
 
-| Hook | Quando | Ação |
-|---|---|---|
-| `pre-tool` | Antes de tool call | Validar GATE · Log turn |
-| `post-tool` | Após tool call | Registrar resultado · Turn counter |
-| `pre-execute` | Antes de código | Confirmar PLAN GATE |
-| `post-task` | Ao concluir | Salvar sessão · Atualizar phase |
-| `stop` | Ao atingir limite | Salvar estado · Alertar |
+| Hook | Fase SDD | Quando | Ação |
+|---|---|---|---|
+| `pre-tool` | Todas | Antes de tool call | Validar GATE · Log turn |
+| `post-tool` | Todas | Após tool call | Registrar resultado · Turn counter |
+| `pre-execute` | Execute | Antes de código | Confirmar PLAN GATE · Verificar DESIGN GATE |
+| `design-gate` | Design | Após gerar design | Exibir DESIGN GATE · Aguardar "design ok" |
+| `validate` | Validate | Após cada passo | Conferir código contra critérios da spec |
+| `post-task` | Reflect | Ao concluir | Salvar sessão · Atualizar phase |
+| `stop` | Todas | Ao atingir limite | Salvar estado · Alertar |
 
-**Estado:** `hooks/state.json` — ler com `jq`, atualizar com `jq + mktemp + mv`
-3. Disparar REFLECT GATE
-4. NÃO encerrar sem /reflect
-
-### stop (ao atingir limite ou interromper)
-1. Script salva estado automaticamente via Claude Code Stop
-2. Se `intentional_stop = false` E phase ≠ done: alertar pendências
-3. Para parada intencional: `TMP=$(mktemp) && jq '.intentional_stop = true' state.json > "$TMP" && mv "$TMP" state.json`
+**Estado:** `hooks/state.json` (5 GATEs: spec, design, plan, validate, reflect) — ler com `jq`, atualizar com `jq + mktemp + mv`
 
 ---
 
@@ -190,7 +232,9 @@ Toda sessão segue este padrão de output estruturado:
 | Proibido | Alternativa |
 |---|---|
 | Código sem SPEC GATE | `⛔ VIOLAÇÃO — criando spec agora` |
+| Pular Design sem justificativa | `⛔ VIOLAÇÃO — documente skipping com `/design`` |
 | Executar sem PLAN GATE | `⛔ VIOLAÇÃO — gerando plano agora` |
+| Pular Validate (conferir código vs spec) | `⛔ VIOLAÇÃO — rodando validação automática` |
 | Encerrar sem REFLECT | `⛔ VIOLAÇÃO — executando reflect agora` |
 | Reescrever arquivo inteiro | Edição cirúrgica |
 | Deletar sem justificativa | Comentar + spec de remoção |
@@ -202,21 +246,22 @@ Toda sessão segue este padrão de output estruturado:
 
 ## SKILLS
 
-| Comando | Skill |
-|---|---|
-| `/context` | `@.claude/sda/skills/context.md` |
-| `/spec` | `@.claude/sda/skills/spec.md` |
-| `/estimate` | `@.claude/sda/skills/estimate.md` |
-| `/plan` | `@.claude/sda/skills/plan.md` |
-| `/implement` | `@.claude/sda/skills/implement.md` |
-| `/fix` | `@.claude/sda/skills/fix.md` |
-| `/debug` | `@.claude/sda/skills/debug.md` |
-| `/refactor` | `@.claude/sda/skills/refactor.md` |
-| `/review` | `@.claude/sda/skills/review.md` |
-| `/status` | `@.claude/sda/skills/status.md` |
-| `/reflect` | `@.claude/sda/skills/reflect.md` |
-| `/learn` | `@.claude/sda/skills/learn.md` |
-| `/socrates` | `@.claude/sda/skills/socrates.md` |
+| Comando | Fase SDD | Skill |
+|---|---|---|
+| `/context` | Constitution | `@.claude/sda/skills/context.md` |
+| `/spec` | Specify | `@.claude/sda/skills/spec.md` |
+| `/estimate` | Specify | `@.claude/sda/skills/estimate.md` |
+| `/design` | Design | `@.claude/sda/skills/design.md` |
+| `/plan` | Plan | `@.claude/sda/skills/plan.md` |
+| `/implement` | Execute | `@.claude/sda/skills/implement.md` |
+| `/fix` | Execute | `@.claude/sda/skills/fix.md` |
+| `/debug` | Execute | `@.claude/sda/skills/debug.md` |
+| `/refactor` | Execute | `@.claude/sda/skills/refactor.md` |
+| `/review` | Validate | `@.claude/sda/skills/review.md` |
+| `/status` | — | `@.claude/sda/skills/status.md` |
+| `/reflect` | Reflect | `@.claude/sda/skills/reflect.md` |
+| `/learn` | Reflect | `@.claude/sda/skills/learn.md` |
+| `/socrates` | Constitution | `@.claude/sda/skills/socrates.md` |
 
 ---
 
@@ -274,10 +319,6 @@ REGRAS ESPECIAIS:
 2026-06-22 — Auditoria: 6 gaps, 6 automações; specs fix-context, fix-reflect, fix-learn
 2026-06-22 — socrates.md adicionado; /socrates integrado ao /context
 2026-06-22 — Otimização de tokens: CLAUDE.md e skills condensados
-2026-06-22 — M1: Effort level por tipo de tarefa (CLASSIFY)
-2026-06-22 — M2: Hooks pre/post-tool e stop adicionados
-2026-06-22 — M3: Monitoramento de turns com limites por effort
-2026-06-22 — M4: Effort level integrado ao estimate.md
-2026-06-22 — M5: Padrão de mensagens de sessão (Init/Turn/Result/Bloqueio)
-2026-06-22 — M6: Protocolo de subagents para contexto leve
+2026-06-22 — M1 a M6: Effort level, Hooks, Turns, Estimate, Mensagens, Subagents
+2026-07-04 — SDD alignment: 7-phase flow, Samantha orquestradora, DESIGN GATE, Validate, hooks com 5 GATEs
 ```

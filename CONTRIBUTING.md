@@ -1,4 +1,4 @@
-# Contribuindo para o Spec-Driven Agent
+# Contribuindo para o Spec-Driven Development (SDD)
 
 Obrigado por considerar contribuir! Este documento descreve como participar do desenvolvimento do framework.
 
@@ -54,11 +54,12 @@ Para qualquer mudança significativa:
 ```
 1. /context    → Mapear o que está sendo modificado
 2. /spec       → Criar especificação da mudança
-3. /plan       → Gerar plano de execução
-4. /implement  → Executar mudanças
-5. /review     → Revisar código
-6. /reflect    → Auto-avaliação
-7. /learn      → Consolidar aprendizados
+3. /design     → Decisões de arquitetura
+4. /plan       → Gerar plano de execução
+5. /implement  → Executar mudanças
+6. /review     → Revisar código + validar contra spec
+7. /reflect    → Auto-avaliação
+8. /learn      → Consolidar aprendizados
 ```
 
 ### 4. Commit

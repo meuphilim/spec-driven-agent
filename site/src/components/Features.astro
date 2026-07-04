@@ -62,9 +62,7 @@ const bentoLayout = [
         <div class={`${item.span} group relative overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.12] transition-all duration-300 p-6`}>
           <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-accent-500/5 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity" />
           <div class="relative">
-            <div class="w-10 h-10 rounded-lg bg-accent-500/10 border border-accent-500/20 flex items-center justify-center text-accent-400 mb-4">
-              {item.feature.icon}
-            </div>
+            <div class="w-10 h-10 rounded-lg bg-accent-500/10 border border-accent-500/20 flex items-center justify-center text-accent-400 mb-4" set:html={item.feature.icon} />
             <h3 class="text-base font-semibold text-gray-100 mb-2">{item.feature.title}</h3>
             <p class="text-sm text-gray-400 leading-relaxed">{item.feature.description}</p>
           </div>

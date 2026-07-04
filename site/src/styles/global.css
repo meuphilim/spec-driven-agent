@@ -15,6 +15,7 @@
   --color-accent-800: #3f6212;
   --color-accent-900: #365314;
   --color-accent-950: #1a2e05;
+  --animate-blink: blink 1s step-end infinite;
 }
 
 @custom-variant dark (&:where(.dark, .dark *));

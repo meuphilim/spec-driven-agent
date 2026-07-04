@@ -1,0 +1,10 @@
+/* CSS animations — isolated so Lightning CSS doesn't tree-shake them */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}

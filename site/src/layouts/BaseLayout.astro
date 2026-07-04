@@ -5,6 +5,8 @@ export interface Props {
   ogImage?: string;
 }
 
+import '../styles/animations.css';
+
 const { title, description, ogImage = '/spec-driven-agent/og-image.svg' } = Astro.props;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ---

@@ -19,7 +19,7 @@ if [ ! -f "$METRICS_FILE" ]; then
     total_tasks: 0,
     skills_used: {},
     daily_usage: {},
-    gate_stats: { spec: 0, plan: 0, reflect: 0 },
+    gate_stats: { spec: 0, design: 0, plan: 0, validate: 0, reflect: 0 },
     avg_duration: 0,
     success_rate: 0
   }' > "$METRICS_FILE"

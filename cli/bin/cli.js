@@ -417,7 +417,7 @@ function status() {
       log(`  Session : ${s.session_id || '—'}`,                            'white');
       log(`  Phase   : ${s.phase}`,                                        'white');
       log(`  Turns   : ${s.turns?.current}/${s.turns?.max}`,               'white');
-      log(`  GATEs   : spec=${s.gates?.spec}, plan=${s.gates?.plan}`,      'white');
+      log(`  GATEs   : spec=${s.gates?.spec}, design=${s.gates?.design}, plan=${s.gates?.plan}`, 'white');
       log(`  Spec    : ${s.active_spec || 'none'}`,                        'white');
     } catch (_) { logWarning('state.json found but could not be parsed'); }
   } else {
@@ -474,7 +474,7 @@ function hooksStatus() {
     log(`  Project  : ${s.project || '—'}`,                                'white');
     log(`  Phase    : ${s.phase}`,                                         'white');
     log(`  Turns    : ${s.turns?.current}/${s.turns?.max}`,                'white');
-    log(`  GATEs    : spec=${s.gates?.spec}, plan=${s.gates?.plan}, reflect=${s.gates?.reflect}`, 'white');
+    log(`  GATEs    : spec=${s.gates?.spec}, design=${s.gates?.design}, plan=${s.gates?.plan}, validate=${s.gates?.validate}, reflect=${s.gates?.reflect}`, 'white');
     log(`  Spec     : ${s.active_spec || 'none'}`,                         'white');
     log(`  Int.stop : ${s.intentional_stop}`,                              'white');
     log('');

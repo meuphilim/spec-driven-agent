@@ -15,20 +15,30 @@ TOOL_NAME="${1:-unknown}"
 # Ler valores com jq (NÃO sed)
 PHASE=$($JQ -r '.phase' "$STATE_FILE")
 GATESPEC=$($JQ -r '.gates.spec' "$STATE_FILE")
+GATEDESIGN=$($JQ -r '.gates.design' "$STATE_FILE")
 GATEPLAN=$($JQ -r '.gates.plan' "$STATE_FILE")
 
 # === VALIDAÇÃO DE GATE: spec ===
 # Se fase é plan ou posterior, spec deve estar aprovado
-if [[ "$PHASE" =~ ^(plan|execute|report|reflect|learn)$ ]]; then
+if [[ "$PHASE" =~ ^(plan|execute|validate|report|reflect|learn)$ ]]; then
   if [ "$GATESPEC" != "approved" ]; then
     echo "⛔ BLOQUEADO: Fase $PHASE requer SPEC GATE. Status: $GATESPEC"
     exit 2
   fi
 fi
 
+# === VALIDAÇÃO DE GATE: design ===
+# Se fase é plan ou posterior, design deve estar aprovado (ou skipped)
+if [[ "$PHASE" =~ ^(plan|execute|validate|report|reflect|learn)$ ]]; then
+  if [ "$GATEDESIGN" != "approved" ] && [ "$GATEDESIGN" != "skipped" ]; then
+    echo "⛔ BLOQUEADO: Fase $PHASE requer DESIGN GATE. Status: $GATEDESIGN"
+    exit 2
+  fi
+fi
+
 # === VALIDAÇÃO DE GATE: plan ===
 # Se fase é execute ou posterior, plan deve estar aprovado
-if [[ "$PHASE" =~ ^(execute|report|reflect|learn)$ ]]; then
+if [[ "$PHASE" =~ ^(execute|validate|report|reflect|learn)$ ]]; then
   if [ "$GATEPLAN" != "approved" ]; then
     echo "⛔ BLOQUEADO: Fase $PHASE requer PLAN GATE. Status: $GATEPLAN"
     exit 2

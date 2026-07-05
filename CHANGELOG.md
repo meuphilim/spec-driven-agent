@@ -7,6 +7,40 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [5.1.7] - 2026-07-05
+
+### Added
+
+- **Landing page oficial** — site Astro 5 + Tailwind CSS 4 com 10 seções, dual-theme, terminal hero animado
+- **Deploy Vercel** — `vercel.json` com auto-detecção de ambiente, deploy zero-config
+- **Deploy GitHub Pages** — workflow `site.yml` com build + publish automático
+- **SDD Alignment** — Samantha como orquestradora, 7 fases (Constitution → Reflect), 5 GATEs
+- **`design.md` skill** — arquitetura, fluxo de dados, contratos, DESIGN GATE
+- **`review.md` skill** — code review automatizado com verificação contra spec
+- **`CREDITS.md`** — atribuições oficiais para skills, conceitos e ferramentas
+- **SEO completo** — OG tags, Twitter cards, sitemap.xml, robots.txt, canonical URL
+
+### Fixed
+
+- **Vercel build** — corrigido `exit 127` (path do site) e schema `rootDirectory` inválido
+- **SVG rendering** — keyframes ausentes, animação blink no Tailwind v4
+- **`.gitignore`** — backup e site dirs adicionados
+
+### Changed
+
+- **CLAUD.md** — alinhado ao fluxo SDD completo com Samantha como orquestradora
+- **README.md** — badges atualizados, documentação do site adicionada
+
+### Performance / Token Optimization
+
+- **Ponytail skill** — compressão de 117 → 52 linhas (−70% tokens por invocação)
+- **Samantha agent** — compactado de 379 → 67 linhas (−75% tokens/sessão se agente primário)
+- **Checklists extraídos** — `samantha-audit-checklists.md` (+79 linhas on-demand)
+- **Patterns extraídos** — `samantha-patterns.md` (+63 linhas on-demand)
+- **Exemplos on-demand** — `examples.md` extraído para referência sem custo fixo
+
+---
+
 ## [5.1.6] - 2026-07-04
 
 ### Added

@@ -7,7 +7,12 @@
 source "$(dirname "$0")/_utils.sh"
 
 STATE_FILE="$(dirname "$0")/state.json"
-TOOL_NAME="${1:-unknown}"
+HOOKS_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# Ler stdin (payload JSON do Claude Code) com fallback args posicionais
+STDIN_JSON=$(stdin_read)
+TOOL_NAME=$(echo "$STDIN_JSON" | $JQ -r '.tool_name // "'${1:-unknown}'"')
+EFFORT=$(echo "$STDIN_JSON" | $JQ -r '.effort.level // "unknown"')
 
 # Se state.json não existe, ignorar (primeira tool da sessão)
 [ ! -f "$STATE_FILE" ] && exit 0
@@ -60,8 +65,11 @@ fi
 TMP=$(mktemp_safe)
 $JQ '.turns.current += 1' "$STATE_FILE" > "$TMP" && mv "$TMP" "$STATE_FILE"
 
-# === ALERTA 80% ===
+# Escrever evento turn no JSONL
 CURRENT=$($JQ -r '.turns.current' "$STATE_FILE")
+event_logger "{\"event\":\"turn\",\"turn\":$CURRENT,\"phase\":\"$PHASE\",\"effort\":\"$EFFORT\"}"
+
+# === ALERTA 80% ===
 MAX=$($JQ -r '.turns.max' "$STATE_FILE")
 
 if [ "$MAX" -gt 0 ]; then

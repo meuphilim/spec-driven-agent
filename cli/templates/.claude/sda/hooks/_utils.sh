@@ -33,3 +33,41 @@ mktemp_safe() {
     "
   fi
 }
+
+# ─── Event Logger — JSONL append-only ──────────────────────────────────────
+
+# stdin_read — Lê stdin inteiro, fallback para "{}"
+# Use no início de hooks para capturar o payload JSON do Claude Code.
+stdin_read() {
+  local input
+  input=$(cat /dev/stdin 2>/dev/null || echo "")
+  [ -z "$input" ] && echo "{}" || echo "$input"
+}
+
+# jsonl_write — Appenda 1 linha JSONL no arquivo do dia
+# Cria o diretório metrics/ se não existir.
+# Uso: jsonl_write <event_json_string>
+jsonl_write() {
+  local hooks_dir
+  hooks_dir="$(cd "$(dirname "$0")" && pwd)"
+  local metrics_dir="$hooks_dir/../metrics"
+  local today
+  today=$(date -u +%Y-%m-%d)
+  local file="$metrics_dir/events-$today.jsonl"
+  mkdir -p "$metrics_dir"
+  echo "$1" >> "$file"
+}
+
+# event_logger — Constrói e escreve evento padronizado no JSONL
+# Adiciona timestamp automaticamente.
+# Uso: event_logger '{"event":"tool","tool":"Read",...}'
+event_logger() {
+  local ts
+  ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+  local payload="$1"
+  # Se payload já começa com {, insere ts no início
+  # Se payload está vazio, não escreve nada
+  if [ -n "$payload" ]; then
+    jsonl_write "{\"ts\":\"$ts\",$payload}"
+  fi
+}

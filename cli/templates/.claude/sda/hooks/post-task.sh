@@ -1,47 +1,37 @@
 #!/bin/bash
 # post-task.sh — Hook: após concluir tarefa
-# Coleta métricas de uso para dashboard
-# Uso: bash hooks/post-task.sh [SKILL_NAME] [DURATION] [SUCCESS]
+# Escreve eventos task + gate no JSONL.
+# Antes escrevia metrics.json — agora usa append-only JSONL.
+# Uso: bash hooks/post-task.sh [SKILL_NAME] [DURATION] [SUCCESS] [SPEC]
 
 source "$(dirname "$0")/_utils.sh"
 
-METRICS_FILE="$(dirname "$0")/../metrics.json"
+HOOKS_DIR="$(cd "$(dirname "$0")" && pwd)"
+STATE_FILE="$HOOKS_DIR/state.json"
+
 SKILL="${1:-unknown}"
 DURATION="${2:-0}"
 SUCCESS="${3:-true}"
-TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-DAY=$(date -u +%Y-%m-%d)
+SPEC="${4:-unknown}"
 
-# Criar metrics.json se não existe
-if [ ! -f "$METRICS_FILE" ]; then
-  $JQ -n '{
-    total_sessions: 0,
-    total_tasks: 0,
-    skills_used: {},
-    daily_usage: {},
-    gate_stats: { spec: 0, design: 0, plan: 0, validate: 0, reflect: 0 },
-    avg_duration: 0,
-    success_rate: 0
-  }' > "$METRICS_FILE"
+# ─── Evento task ───────────────────────────────────────────────────────────
+event_logger "{\"event\":\"task\",\"skill\":\"$SKILL\",\"spec\":\"$SPEC\",\"success\":$SUCCESS,\"dur_s\":$DURATION}"
+
+# ─── Evento gate (aprovações) ─────────────────────────────────────────────
+# Se state.json existe, ler gates aprovados
+if [ -f "$STATE_FILE" ]; then
+  GATE_SPEC=$($JQ -r '.gates.spec // "none"' "$STATE_FILE")
+  GATE_DESIGN=$($JQ -r '.gates.design // "none"' "$STATE_FILE")
+  GATE_PLAN=$($JQ -r '.gates.plan // "none"' "$STATE_FILE")
+  
+  [ "$GATE_SPEC" = "approved" ]   && event_logger "{\"event\":\"gate\",\"gate\":\"spec\",\"status\":\"approved\",\"spec\":\"$SPEC\"}"
+  [ "$GATE_DESIGN" = "approved" ] && event_logger "{\"event\":\"gate\",\"gate\":\"design\",\"status\":\"approved\",\"spec\":\"$SPEC\"}"
+  [ "$GATE_PLAN" = "approved" ]   && event_logger "{\"event\":\"gate\",\"gate\":\"plan\",\"status\":\"approved\",\"spec\":\"$SPEC\"}"
 fi
 
-# Atualizar métricas
-TMP=$(mktemp_safe)
-$JQ \
-  --arg skill "$SKILL" \
-  --arg day "$DAY" \
-  --arg dur "$DURATION" \
-  --arg success "$SUCCESS" \
-  '
-  .total_tasks += 1 |
-  .skills_used[$skill] = ((.skills_used[$skill] // 0) + 1) |
-  .daily_usage[$day] = ((.daily_usage[$day] // 0) + 1) |
-  .avg_duration = ((.avg_duration * (.total_tasks - 1) + ($dur | tonumber)) / .total_tasks) |
-  if $success == "true" then
-    .success_rate = ((.success_rate * (.total_tasks - 1) + 100) / .total_tasks)
-  else
-    .success_rate = ((.success_rate * (.total_tasks - 1)) / .total_tasks)
-  end
-  ' "$METRICS_FILE" > "$TMP" && mv "$TMP" "$METRICS_FILE"
+# metrics.json NÃO é mais escrito — usar JSONL + snapshots
+
+# ─── Compaction (1x/dia) ────────────────────────────────────────────────────
+bash "$HOOKS_DIR/events-compact.sh"
 
 exit 0

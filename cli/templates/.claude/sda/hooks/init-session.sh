@@ -51,4 +51,9 @@ else
   " "$SESSION_ID" "$PROJECT" "$STATE_FILE"
 fi
 
+# Escrever evento session_start no JSONL
+MODEL="${3:-unknown}"
+MODE="${4:-FULL}"
+event_logger "{\"event\":\"session_start\",\"session_id\":\"$SESSION_ID\",\"project\":\"$PROJECT\",\"model\":\"$MODEL\",\"mode\":\"$MODE\"}"
+
 echo "✅ Sessão inicializada: $SESSION_ID"

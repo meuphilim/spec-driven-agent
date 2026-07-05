@@ -28,6 +28,7 @@ const path = require('path');
 
 const VERSION = require('../package.json').version;
 const { sanitizePath } = require('../lib/sanitize');
+const { dashboard } = require('../lib/dashboard');
 
 // Marca scripts .sh como executáveis usando fs.chmodSync (sem shell,
 // portanto sem risco de injeção de comando via path). No-op silencioso
@@ -524,75 +525,10 @@ function hooksValidate() {
   }
 }
 
-// ─── metrics ──────────────────────────────────────────────────────────────────
+// ─── metrics (alias for dashboard --summary) ─────────────────────────────────
 
 function metrics() {
-  const metricsFile = path.join(process.cwd(), '.claude', 'sda', 'metrics.json');
-
-  if (!fs.existsSync(metricsFile)) {
-    log('\n📊 No metrics data yet', 'yellow');
-    logInfo('Metrics are collected after each task via post-task hook');
-    logInfo('Run some tasks first, then come back');
-    log('');
-    return;
-  }
-
-  try {
-    const m = JSON.parse(fs.readFileSync(metricsFile, 'utf8'));
-
-    log('\n📊 Dashboard de Métricas', 'bright');
-    log('━'.repeat(50), 'cyan');
-    log('');
-
-    // Resumo geral
-    log('📋 Resumo:', 'cyan');
-    log(`  Total de tarefas  : ${m.total_tasks || 0}`, 'white');
-    log(`  Taxa de sucesso   : ${(m.success_rate || 0).toFixed(1)}%`, 'white');
-    log(`  Duração média     : ${(m.avg_duration || 0).toFixed(1)}s`, 'white');
-    log('');
-
-    // Skills mais usadas
-    if (m.skills_used && Object.keys(m.skills_used).length > 0) {
-      log('🛠️  Skills Mais Usadas:', 'cyan');
-      const sorted = Object.entries(m.skills_used)
-        .sort(([,a], [,b]) => b - a)
-        .slice(0, 5);
-      for (const [skill, count] of sorted) {
-        const bar = '█'.repeat(Math.min(count, 20));
-        log(`  ${skill.padEnd(20)} ${bar} (${count})`, 'white');
-      }
-      log('');
-    }
-
-    // Uso diário (últimos 7 dias)
-    if (m.daily_usage && Object.keys(m.daily_usage).length > 0) {
-      log('📅 Uso Diário (últimos 7 dias):', 'cyan');
-      const days = Object.entries(m.daily_usage)
-        .sort(([a], [b]) => b.localeCompare(a))
-        .slice(0, 7);
-      for (const [day, count] of days) {
-        const bar = '█'.repeat(Math.min(count, 20));
-        log(`  ${day} ${bar} (${count})`, 'white');
-      }
-      log('');
-    }
-
-    // GATE stats
-    if (m.gate_stats) {
-      log('🔒 GATEs:', 'cyan');
-      log(`  Spec   : ${m.gate_stats.spec || 0} aprovações`, 'white');
-      log(`  Plan   : ${m.gate_stats.plan || 0} aprovações`, 'white');
-      log(`  Reflect: ${m.gate_stats.reflect || 0} execuções`, 'white');
-      log('');
-    }
-
-    logInfo('Dados coletados via post-task hook');
-    log('');
-
-  } catch (error) {
-    logError(`Failed to read metrics: ${error.message}`);
-    process.exit(1);
-  }
+  dashboard('summary', process.cwd());
 }
 
 // ─── help ─────────────────────────────────────────────────────────────────────
@@ -642,10 +578,20 @@ function main() {
   if (command === '--help'    || command === '-h') { showHelp(); return; }
 
   switch (command) {
-    case 'init':     init(args[1]);    break;
-    case 'update':   update();         break;
-    case 'status':   status();         break;
-    case 'metrics':  metrics();        break;
+    case 'init':      init(args[1]);    break;
+    case 'update':    update();         break;
+    case 'status':    status();         break;
+    case 'metrics':   metrics();        break;
+    case 'dashboard': {
+      const sub = args[1];  // live, summary, json, build
+      // --days N
+      const daysIdx = args.indexOf('--days');
+      const days = (daysIdx >= 0 && args[daysIdx + 1]) ? parseInt(args[daysIdx + 1], 10) : 0;
+      // Extrair subcomando ignorando flags
+      const subcmd = sub && !sub.startsWith('--') ? sub : 'summary';
+      dashboard(subcmd, process.cwd(), days);
+      break;
+    }
     case 'help':     showHelp();       break;
     case 'hooks': {
       const sub = args[1];

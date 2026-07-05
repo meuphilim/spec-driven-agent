@@ -21,6 +21,10 @@ if [ "$INTENTIONAL" = "false" ] && [ "$PHASE" != "done" ]; then
   echo "📋 Execute /reflect antes de encerrar"
 fi
 
+# Escrever evento session_end no JSONL
+SESSION_ID=$($JQ -r '.session_id // "unknown"' "$STATE_FILE")
+event_logger "{\"event\":\"session_end\",\"session_id\":\"$SESSION_ID\",\"reason\":\"stop\"}"
+
 # Salvar sessão
 bash "$(dirname "$0")/save-session.sh"
 

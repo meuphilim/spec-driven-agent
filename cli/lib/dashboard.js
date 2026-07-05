@@ -84,11 +84,11 @@ function showSummary(metricsDir, days = 0) {
   // Tokens
   console.log(colorize('🪙 Tokens:', 'cyan'));
   if (snap.tokens_available) {
-    console.log(colorize(`  Total            : ${snap.tokens.total.toLocaleString()}`, 'white'));
-    console.log(colorize(`  Input            : ${snap.tokens.input.toLocaleString()}`, 'white'));
-    console.log(colorize(`  Output           : ${snap.tokens.output.toLocaleString()}`, 'white'));
-    if (snap.tokens.cache_write > 0) console.log(colorize(`  Cache write      : ${snap.tokens.cache_write.toLocaleString()}`, 'white'));
-    if (snap.tokens.cache_read > 0)  console.log(colorize(`  Cache read       : ${snap.tokens.cache_read.toLocaleString()}`, 'white'));
+    console.log(colorize(`  Total            : ${snap.tokens.total.toLocaleString('pt-BR')}`, 'white'));
+    console.log(colorize(`  Input            : ${snap.tokens.input.toLocaleString('pt-BR')}`, 'white'));
+    console.log(colorize(`  Output           : ${snap.tokens.output.toLocaleString('pt-BR')}`, 'white'));
+    if (snap.tokens.cache_write > 0) console.log(colorize(`  Cache write      : ${snap.tokens.cache_write.toLocaleString('pt-BR')}`, 'white'));
+    if (snap.tokens.cache_read > 0)  console.log(colorize(`  Cache read       : ${snap.tokens.cache_read.toLocaleString('pt-BR')}`, 'white'));
   } else {
     console.log(colorize(`  Indisponível     : Dados de token só estão disponíveis`, 'yellow'));
     console.log(colorize(`                     para chamadas de subagentes (Agent tool).`, 'yellow'));
@@ -96,13 +96,13 @@ function showSummary(metricsDir, days = 0) {
   }
   console.log('');
 
-  // Economia LITE vs FULL
+    // Economia LITE vs FULL
   if (snap.economy && snap.economy.available) {
     console.log(colorize('💰 Economia (LITE vs FULL):', 'cyan'));
-    console.log(colorize(`  Tokens LITE      : ${snap.economy.lite_tokens.toLocaleString()}`, 'white'));
-    console.log(colorize(`  Média FULL/task  : ${snap.economy.full_baseline_per_task.toLocaleString()} (baseline)`, 'white'));
-    console.log(colorize(`  Tokens estimados : ${snap.economy.estimated_full_tokens.toLocaleString()} (se FULL)`, 'white'));
-    console.log(colorize(`  Economia         : ${snap.economy.saved_tokens.toLocaleString()} tokens (${snap.economy.savings_pct}%)`, 'green'));
+    console.log(colorize(`  Tokens LITE         : ${snap.economy.lite_tokens.toLocaleString('pt-BR')} (${snap.economy.lite_agent_calls} chamadas de agente)`, 'white'));
+    console.log(colorize(`  Baseline FULL/agent : ${snap.economy.full_baseline_per_agent.toLocaleString('pt-BR')}`, 'white'));
+    console.log(colorize(`  Estimado se FULL    : ${snap.economy.estimated_full_tokens.toLocaleString('pt-BR')}`, 'white'));
+    console.log(colorize(`  Economia            : ${snap.economy.saved_tokens.toLocaleString('pt-BR')} tokens (${snap.economy.savings_pct}%)`, 'green'));
     console.log(colorize(`  ${snap.economy.note}`, 'cyan'));
   } else {
     console.log(colorize('💰 Economia (LITE vs FULL):', 'cyan'));
@@ -184,9 +184,15 @@ function showLive(metricsDir, statePath) {
   console.log(colorize('  Pressione Ctrl+C para sair', 'cyan'));
   console.log('');
 
-  let interval = setInterval(() => {
+  function renderLive() {
     const state = readState(statePath);
-    const snap = events.readSnapshot(metricsDir, 'total');
+    let snap = events.readSnapshot(metricsDir, 'total');
+
+    // Se snapshot está stale (JSONL mais novo), reconstrói
+    if (!snap && fs.existsSync(path.join(metricsDir, 'snapshots', 'total.json'))) {
+      const built = events.buildSnapshots(metricsDir);
+      snap = built.total;
+    }
 
     // Limpa terminal
     readline.cursorTo(process.stdout, 0, 3);
@@ -218,18 +224,24 @@ function showLive(metricsDir, statePath) {
       console.log(colorize(`  Tempo   : ${formatDuration(snap.time_spent_s)}`, 'white'));
 
       if (snap.tokens_available) {
-        console.log(colorize(`  Tokens  : ${snap.tokens.total.toLocaleString()} total`, 'white'));
+        console.log(colorize(`  Tokens  : ${snap.tokens.total.toLocaleString('pt-BR')} total`, 'white'));
       } else {
         console.log(colorize(`  Tokens  : indisponível (apenas subagentes)`, 'yellow'));
       }
 
       if (snap.economy?.available) {
-        console.log(colorize(`  Economia: ${snap.economy.saved_tokens.toLocaleString()} tokens (${snap.economy.savings_pct}%)`, 'green'));
+        console.log(colorize(`  Economia: ${snap.economy.saved_tokens.toLocaleString('pt-BR')} tokens (${snap.economy.savings_pct}%)`, 'green'));
       }
     } else {
       console.log(colorize('📋 Histórico: aguardando primeira tarefa...', 'yellow'));
     }
-  }, 1000);
+  }
+
+  // Primeiro render imediato (sem delay de 1s)
+  renderLive();
+
+  // Polling a cada 1s
+  let interval = setInterval(renderLive, 1000);
 
   // Handle Ctrl+C
   process.on('SIGINT', () => {

@@ -168,22 +168,25 @@ test('aggregates modes', () => {
 
 log('\n📁 calculateEconomy:', 'cyan');
 test('returns not available when only one mode present', () => {
-  const onlyFull = SAMPLE_EVENTS.filter(e => e.mode !== 'LITE');
-  const modes = { FULL: 1 };
-  const result = events.calculateEconomy([], [], modes);
+  const result = events.calculateEconomy(
+    { FULL: 100 },   // tokensByMode
+    { FULL: 1 },     // agentCountByMode
+    { FULL: 1 }      // tasksByMode
+  );
   assertEqual(result.available, false);
+  assert(result.note.includes('LITE'));
 });
 
 test('calculates economy with both modes', () => {
-  const modes = { FULL: 1, LITE: 1 };
   const result = events.calculateEconomy(
-    [SAMPLE_EVENTS[6]],  // tasks
-    [SAMPLE_EVENTS[3]],  // agents (with tokens)
-    modes
+    { LITE: 50, FULL: 200 },  // tokensByMode
+    { LITE: 2, FULL: 2 },     // agentCountByMode
+    { LITE: 1, FULL: 1 }      // tasksByMode
   );
   assert(result.available);
-  assert(result.saved_tokens >= 0);
-  assert(result.full_baseline_per_task > 0);
+  assert(result.saved_tokens > 0);
+  assert(result.full_baseline_per_agent === 100);  // 200 / 2
+  assert(result.lite_avg_per_agent === 25);         // 50 / 2
 });
 
 log('\n📁 buildSnapshots + readSnapshot:', 'cyan');

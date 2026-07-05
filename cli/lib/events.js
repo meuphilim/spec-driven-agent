@@ -125,20 +125,58 @@ function groupByWeek(events) {
 }
 
 /**
- * Agrega um conjunto de eventos em um snapshot.
+ * Processa eventos em ordem cronológica, rastreando o modo (LITE/FULL)
+ * ativo em cada momento a partir dos eventos session_start/session_end.
+ * Retorna evento com campo _mode adicional.
  * @param {object[]} events
+ * @returns {object[]} Eventos com _mode
+ */
+function tagEventsWithMode(events) {
+  let activeMode = 'FULL';  // default
+  // Garantir ordenação por timestamp
+  const sorted = [...events].sort((a, b) => {
+    if (!a.ts) return -1;
+    if (!b.ts) return 1;
+    return a.ts.localeCompare(b.ts);
+  });
+
+  return sorted.map(e => {
+    if (e.event === 'session_start' && e.mode) {
+      activeMode = e.mode;
+    } else if (e.event === 'session_end') {
+      activeMode = 'FULL';  // reset ao default após sessão
+    }
+    return { ...e, _mode: activeMode };
+  });
+}
+
+/**
+ * Agrega um conjunto de eventos em um snapshot.
+ * Processa eventos em ordem cronológica para rastrear modo LITE/FULL.
+ * @param {object[]} rawEvents
  * @returns {object} Snapshot no formato padronizado
  */
-function aggregateSnapshot(events) {
+function aggregateSnapshot(rawEvents) {
+  // Taggear eventos com modo ativo (ordem cronológica)
+  const events = tagEventsWithMode(rawEvents);
+
   const tasks = events.filter(e => e.event === 'task');
   const agents = events.filter(e => e.event === 'agent');
   const tools = events.filter(e => e.event === 'tool');
   const gates = events.filter(e => e.event === 'gate');
   const sessions = events.filter(e => e.event === 'session_start' || e.event === 'session_end');
 
-  // Tasks
+  // Tasks (totais)
   const taskSuccess = tasks.filter(t => t.success === true).length;
   const taskFailed = tasks.filter(t => t.success === false).length;
+
+  // Tasks por modo
+  const tasksByMode = {};
+  for (const t of tasks) {
+    const mode = t._mode || 'FULL';
+    if (!tasksByMode[mode]) tasksByMode[mode] = 0;
+    tasksByMode[mode]++;
+  }
 
   // Skills
   const skills = {};
@@ -156,6 +194,10 @@ function aggregateSnapshot(events) {
   let tokenCacheRead = 0;
   let hasTokenData = false;
 
+  // Tokens por modo (para economy)
+  const tokensByMode = { LITE: 0, FULL: 0 };
+  const agentCountByMode = { LITE: 0, FULL: 0 };
+
   for (const a of agents) {
     if (a.tokens && a.tokens.total != null) {
       tokenTotal += a.tokens.total;
@@ -164,6 +206,10 @@ function aggregateSnapshot(events) {
       tokenCacheWrite += a.tokens.cache_write || 0;
       tokenCacheRead += a.tokens.cache_read || 0;
       hasTokenData = true;
+
+      const mode = a._mode || 'FULL';
+      tokensByMode[mode] = (tokensByMode[mode] || 0) + a.tokens.total;
+      agentCountByMode[mode] = (agentCountByMode[mode] || 0) + 1;
     }
   }
 
@@ -175,7 +221,7 @@ function aggregateSnapshot(events) {
     if (a.model) models[a.model] = (models[a.model] || 0) + 1;
   }
 
-  // Modos
+  // Modos (contagem de sessões)
   const modes = {};
   for (const s of sessions) {
     if (s.mode) modes[s.mode] = (modes[s.mode] || 0) + 1;
@@ -193,8 +239,8 @@ function aggregateSnapshot(events) {
     timeSpentS += t.dur_s || 0;
   }
 
-  // Economy (LITE vs FULL)
-  const economy = calculateEconomy(tasks, agents, modes);
+  // Economy (LITE vs FULL) — com pools separados por modo
+  const economy = calculateEconomy(tokensByMode, agentCountByMode, tasksByMode);
 
   return {
     sessions: sessions.length / 2,  // cada sessão tem start + end
@@ -223,72 +269,59 @@ function aggregateSnapshot(events) {
 
 /**
  * Calcula economia de tokens LITE vs FULL.
- * Só calcula quando ambos os modos têm pelo menos 1 execução registrada.
- * @param {object[]} tasks
- * @param {object[]} agents
- * @param {object} modes
- * @returns {object|null}
+ * Processa pools separados por modo (rastreado cronologicamente).
+ * Só exibe quando ambos os modos têm pelo menos 1 execução com tokens.
+ * @param {object} tokensByMode - { LITE: number, FULL: number }
+ * @param {object} agentCountByMode - { LITE: number, FULL: number }
+ * @param {object} tasksByMode - { LITE: number, FULL: number }
+ * @returns {object}
  */
-function calculateEconomy(tasks, agents, modes) {
-  const hasLite = (modes.LITE || 0) > 0;
-  const hasFull = (modes.FULL || 0) > 0;
+function calculateEconomy(tokensByMode, agentCountByMode, tasksByMode) {
+  const liteTokens = tokensByMode.LITE || 0;
+  const fullTokens = tokensByMode.FULL || 0;
+  const liteAgentCount = agentCountByMode.LITE || 0;
+  const fullAgentCount = agentCountByMode.FULL || 0;
+  const liteTaskCount = tasksByMode.LITE || 0;
+  const fullTaskCount = tasksByMode.FULL || 0;
 
-  if (!hasLite || !hasFull) {
+  const hasLiteTokens = liteTokens > 0 && liteAgentCount > 0;
+  const hasFullTokens = fullTokens > 0 && fullAgentCount > 0;
+
+  if (!hasLiteTokens || !hasFullTokens) {
+    const missing = [];
+    if (!hasLiteTokens) missing.push('LITE');
+    if (!hasFullTokens) missing.push('FULL');
     return {
       available: false,
-      note: 'Economy comparison requires at least one LITE and one FULL session recorded.',
+      note: `No tokens recorded for mode(s): ${missing.join(', ')}. Execute at least one task with tokens in each mode to establish baseline.`,
     };
   }
 
-  // Calcular média de tokens FULL por tarefa como baseline
-  let fullTokensTotal = 0;
-  let fullTaskCount = 0;
+  // Baseline FULL: média de tokens por chamada de agente em modo FULL
+  const fullBaselinePerAgent = Math.round(fullTokens / fullAgentCount);
 
-  // Mapear agentes para tasks aproximadamente pelo timestamp
-  // (simplificação: média de tokens por agente nas sessões FULL)
-  for (const a of agents) {
-    if (a.tokens && a.tokens.total != null) {
-      fullTokensTotal += a.tokens.total;
-      fullTaskCount++;
-    }
-  }
+  // Tokens LITE reais
+  const liteAvgPerAgent = Math.round(liteTokens / liteAgentCount);
 
-  if (fullTaskCount === 0) {
-    return {
-      available: false,
-      note: 'No tokens recorded in FULL mode to establish baseline.',
-    };
-  }
-
-  const baselineFullTokens = Math.round(fullTokensTotal / fullTaskCount);
-
-  // Calcular tokens LITE reais
-  let liteTokensTotal = 0;
-  for (const a of agents) {
-    if (a.tokens && a.tokens.total != null) {
-      liteTokensTotal += a.tokens.total;
-    }
-  }
-
-  const liteTaskCount = tasks.length;
-  const liteAvgTokens = liteTaskCount > 0 ? Math.round(liteTokensTotal / liteTaskCount) : 0;
-
-  // Estimar economia: quantos tokens FULL equivaleriam às tarefas LITE?
-  const estimatedFullTokens = liteTaskCount * baselineFullTokens;
-  const savedTokens = Math.max(0, estimatedFullTokens - liteTokensTotal);
+  // Economia: se as chamadas LITE tivessem custado o baseline FULL
+  const estimatedFullTokens = liteAgentCount * fullBaselinePerAgent;
+  const savedTokens = Math.max(0, estimatedFullTokens - liteTokens);
   const savingsPct = estimatedFullTokens > 0
     ? Math.round((savedTokens / estimatedFullTokens) * 100)
     : 0;
 
   return {
     available: true,
-    lite_tokens: liteTokensTotal,
-    lite_avg_per_task: liteAvgTokens,
-    full_baseline_per_task: baselineFullTokens,
+    lite_tokens: liteTokens,
+    lite_agent_calls: liteAgentCount,
+    lite_avg_per_agent: liteAvgPerAgent,
+    lite_tasks: liteTaskCount,
+    full_baseline_per_agent: fullBaselinePerAgent,
+    full_agent_calls: fullAgentCount,
     estimated_full_tokens: estimatedFullTokens,
     saved_tokens: savedTokens,
     savings_pct: savingsPct,
-    note: 'LITE economy vs FULL calculated from real executions of each mode. Baseline: avg FULL tokens per task from historical agent data.',
+    note: 'LITE vs FULL calculated from real token data, separated by session mode (chronological tracking). Baseline: avg FULL tokens per agent call.',
   };
 }
 
@@ -339,7 +372,34 @@ function buildSnapshots(metricsDir) {
 }
 
 /**
+ * Verifica se snapshot total precisa ser reconstruído.
+ * Retorna true se snapshot está atualizado em relação aos JSONL.
+ * @param {string} metricsDir
+ * @returns {boolean}
+ */
+function isSnapshotFresh(metricsDir) {
+  const snapPath = path.join(metricsDir, SNAPSHOT_DIR, 'total.json');
+  if (!fs.existsSync(snapPath)) return false;
+
+  const jsonlFiles = listJsonlFiles(metricsDir);
+  if (jsonlFiles.length === 0) return true; // sem eventos, snapshot vazio é válido
+
+  try {
+    const snapMtime = fs.statSync(snapPath).mtimeMs;
+    for (const jf of jsonlFiles) {
+      if (fs.statSync(jf).mtimeMs > snapMtime) {
+        return false; // JSONL mais novo que snapshot → stale
+      }
+    }
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+/**
  * Lê snapshot pré-computado.
+ * Para 'total', verifica se há eventos mais recentes e retorna null se stale.
  * @param {string} metricsDir
  * @param {string} type - 'total' | 'daily' | 'weekly'
  * @param {string} key - para daily: '2026-07-05', para weekly: '2026-W27'
@@ -366,6 +426,11 @@ function readSnapshot(metricsDir, type, key) {
   const filePath = path.join(snapDir, fileName);
   if (!fs.existsSync(filePath)) return null;
 
+  // Freshness check: se JSONL mais novo, snapshot está obsoleto
+  if (type === 'total' && !isSnapshotFresh(metricsDir)) {
+    return null; // stale — caller deve rebuildar
+  }
+
   try {
     return JSON.parse(fs.readFileSync(filePath, 'utf8'));
   } catch (_) {
@@ -383,4 +448,5 @@ module.exports = {
   calculateEconomy,
   buildSnapshots,
   readSnapshot,
+  isSnapshotFresh,
 };

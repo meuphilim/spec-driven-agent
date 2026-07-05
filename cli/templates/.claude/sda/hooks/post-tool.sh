@@ -26,13 +26,13 @@ if [ "$TOOL_NAME" != "Agent" ]; then
 
   # Só incluir file se não estiver vazio
   if [ -n "$FILE_PATH" ] && [ "$FILE_PATH" != "null" ]; then
-    event_logger "{\"event\":\"tool\",\"tool\":\"$TOOL_NAME\",\"file\":\"$FILE_PATH\",\"dur_ms\":$DURATION_MS,\"effort\":\"$EFFORT\"}"
+    event_logger event=tool tool="$TOOL_NAME" file="$FILE_PATH" dur_ms=${DURATION_MS}@ effort="$EFFORT"
   elif [ -n "$COMMAND" ] && [ "$COMMAND" != "null" ]; then
     # Truncar command para não poluir o JSONL
     COMMAND_TRUNC=$(echo "$COMMAND" | head -c 80)
-    event_logger "{\"event\":\"tool\",\"tool\":\"$TOOL_NAME\",\"command\":\"$COMMAND_TRUNC\",\"dur_ms\":$DURATION_MS,\"effort\":\"$EFFORT\"}"
+    event_logger event=tool tool="$TOOL_NAME" command="$COMMAND_TRUNC" dur_ms=${DURATION_MS}@ effort="$EFFORT"
   else
-    event_logger "{\"event\":\"tool\",\"tool\":\"$TOOL_NAME\",\"dur_ms\":$DURATION_MS,\"effort\":\"$EFFORT\"}"
+    event_logger event=tool tool="$TOOL_NAME" dur_ms=${DURATION_MS}@ effort="$EFFORT"
   fi
 
 # ─── Agent/Subagent — contém dados de token ───────────────────────────────
@@ -50,10 +50,10 @@ else
     CACHE_WRITE=$(echo "$STDIN_JSON" | $JQ -r '.tool_response.usage.cache_creation_input_tokens // 0')
     CACHE_READ=$(echo "$STDIN_JSON" | $JQ -r '.tool_response.usage.cache_read_input_tokens // 0')
 
-    event_logger "{\"event\":\"agent\",\"agent_type\":\"$AGENT_TYPE\",\"model\":\"$RESOLVED_MODEL\",\"dur_ms\":$TOTAL_DURATION,\"effort\":\"$EFFORT\",\"tokens\":{\"total\":$TOTAL_TOKENS,\"input\":$INPUT_TOKENS,\"output\":$OUTPUT_TOKENS,\"cache_write\":$CACHE_WRITE,\"cache_read\":$CACHE_READ}}"
+    event_logger event=agent agent_type="$AGENT_TYPE" model="$RESOLVED_MODEL" dur_ms=${TOTAL_DURATION}@ effort="$EFFORT" tokens="{\"total\":$TOTAL_TOKENS,\"input\":$INPUT_TOKENS,\"output\":$OUTPUT_TOKENS,\"cache_write\":$CACHE_WRITE,\"cache_read\":$CACHE_READ}@"
   else
     # Subagente background ou sem dados de token
-    event_logger "{\"event\":\"agent\",\"agent_type\":\"$AGENT_TYPE\",\"model\":\"$RESOLVED_MODEL\",\"dur_ms\":$TOTAL_DURATION,\"effort\":\"$EFFORT\",\"tokens\":null}"
+    event_logger event=agent agent_type="$AGENT_TYPE" model="$RESOLVED_MODEL" dur_ms=${TOTAL_DURATION}@ effort="$EFFORT" tokens=null@
   fi
 fi
 

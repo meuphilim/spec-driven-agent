@@ -316,6 +316,7 @@ function calculateEconomy(tokensByMode, agentCountByMode, tasksByMode) {
     lite_agent_calls: liteAgentCount,
     lite_avg_per_agent: liteAvgPerAgent,
     lite_tasks: liteTaskCount,
+    full_tasks: fullTaskCount,
     full_baseline_per_agent: fullBaselinePerAgent,
     full_agent_calls: fullAgentCount,
     estimated_full_tokens: estimatedFullTokens,

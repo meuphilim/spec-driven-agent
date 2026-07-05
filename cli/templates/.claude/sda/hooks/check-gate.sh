@@ -18,5 +18,5 @@ echo "$STATUS"
 
 # Se aprovado, registrar evento
 if [ "$STATUS" = "approved" ]; then
-  event_logger "{\"event\":\"gate\",\"gate\":\"$GATE_NAME\",\"status\":\"approved\",\"spec\":\"$SPEC_NAME\"}"
+  event_logger event=gate gate="$GATE_NAME" status=approved spec="$SPEC_NAME"
 fi

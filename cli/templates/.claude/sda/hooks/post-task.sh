@@ -15,7 +15,7 @@ SUCCESS="${3:-true}"
 SPEC="${4:-unknown}"
 
 # ─── Evento task ───────────────────────────────────────────────────────────
-event_logger "{\"event\":\"task\",\"skill\":\"$SKILL\",\"spec\":\"$SPEC\",\"success\":$SUCCESS,\"dur_s\":$DURATION}"
+event_logger event=task skill="$SKILL" spec="$SPEC" success=${SUCCESS}@ dur_s=${DURATION}@
 
 # ─── Evento gate (aprovações) ─────────────────────────────────────────────
 # Se state.json existe, ler gates aprovados
@@ -24,9 +24,9 @@ if [ -f "$STATE_FILE" ]; then
   GATE_DESIGN=$($JQ -r '.gates.design // "none"' "$STATE_FILE")
   GATE_PLAN=$($JQ -r '.gates.plan // "none"' "$STATE_FILE")
   
-  [ "$GATE_SPEC" = "approved" ]   && event_logger "{\"event\":\"gate\",\"gate\":\"spec\",\"status\":\"approved\",\"spec\":\"$SPEC\"}"
-  [ "$GATE_DESIGN" = "approved" ] && event_logger "{\"event\":\"gate\",\"gate\":\"design\",\"status\":\"approved\",\"spec\":\"$SPEC\"}"
-  [ "$GATE_PLAN" = "approved" ]   && event_logger "{\"event\":\"gate\",\"gate\":\"plan\",\"status\":\"approved\",\"spec\":\"$SPEC\"}"
+  [ "$GATE_SPEC" = "approved" ]   && event_logger event=gate gate=spec status=approved spec="$SPEC"
+  [ "$GATE_DESIGN" = "approved" ] && event_logger event=gate gate=design status=approved spec="$SPEC"
+  [ "$GATE_PLAN" = "approved" ]   && event_logger event=gate gate=plan status=approved spec="$SPEC"
 fi
 
 # metrics.json NÃO é mais escrito — usar JSONL + snapshots

@@ -58,16 +58,59 @@ jsonl_write() {
   echo "$1" >> "$file"
 }
 
+# json_build — Constrói JSON seguro via jq com escaping automático
+# Uso: json_build key="string" num=42@ raw='{"a":1}@'
+#   @ suffix  → valor RAW (números, booleans, null, objetos aninhados)
+#   no suffix → string (escapada automaticamente por jq --arg)
+# Saída: stdout com JSON, ou vazio se falhar
+json_build() {
+  local jq_args=()
+  local parts=()
+
+  local key val
+  for arg in "$@"; do
+    key="${arg%%=*}"
+    val="${arg#*=}"
+
+    # Validar key (só alfanumérico + underscore)
+    if [[ ! "$key" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
+      echo "⚠️ json_build: invalid key '$key'" >&2
+      continue
+    fi
+
+    if [[ "$val" == @ ]]; then
+      continue  # vazio
+    elif [[ "$val" == *@ ]]; then
+      # RAW JSON (número, booleano, null, objeto)
+      val="${val%@}"
+      parts+=("$(printf '"%s": %s' "$key" "$val")")
+    else
+      # String segura — jq --arg escapa automaticamente
+      jq_args+=(--arg "$key" "$val")
+      parts+=("$(printf '"%s": $%s' "$key" "$key")")
+    fi
+  done
+
+  # Construir filtro jq
+  local IFS=", "
+  local jq_filter="{ ${parts[*]} }"
+
+  "$JQ" -n "${jq_args[@]}" "$jq_filter" 2>/dev/null || echo ""
+}
+
 # event_logger — Constrói e escreve evento padronizado no JSONL
 # Adiciona timestamp automaticamente.
-# Uso: event_logger '{"event":"tool","tool":"Read",...}'
+# Uso: event_logger key="value" num=42@ raw='{"a":1}@'
+#   (mesma sintaxe de json_build)
+# NOTA: Esta versão usa jq --arg, eliminando perda silenciosa
+# de eventos causada por aspas não escapadas em comandos/comentários.
+# Ex.: COMMAND_TRUNC com grep "foo" ou git commit -m "msg" agora funciona.
 event_logger() {
   local ts
   ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-  local payload="$1"
-  # Se payload já começa com {, insere ts no início
-  # Se payload está vazio, não escreve nada
-  if [ -n "$payload" ]; then
-    jsonl_write "{\"ts\":\"$ts\",$payload}"
+  local json
+  json=$(json_build ts="$ts" "$@")
+  if [ -n "$json" ]; then
+    jsonl_write "$json"
   fi
 }

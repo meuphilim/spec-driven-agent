@@ -67,7 +67,7 @@ $JQ '.turns.current += 1' "$STATE_FILE" > "$TMP" && mv "$TMP" "$STATE_FILE"
 
 # Escrever evento turn no JSONL
 CURRENT=$($JQ -r '.turns.current' "$STATE_FILE")
-event_logger "{\"event\":\"turn\",\"turn\":$CURRENT,\"phase\":\"$PHASE\",\"effort\":\"$EFFORT\"}"
+event_logger event=turn turn=${CURRENT}@ phase="$PHASE" effort="$EFFORT"
 
 # === ALERTA 80% ===
 MAX=$($JQ -r '.turns.max' "$STATE_FILE")

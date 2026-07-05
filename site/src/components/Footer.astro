@@ -8,42 +8,54 @@ const footerLinks = [
 ];
 ---
 
-<footer class="border-t border-white/5 py-12">
+<footer class="footer-surface py-12">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex flex-col md:flex-row items-center justify-between gap-6">
       <div class="flex items-center gap-2">
         <span class="text-accent-400 font-bold font-mono">&gt;_</span>
-        <span class="text-sm text-gray-400">
-          spec-driven-agent <span class="text-gray-600">v5.1.6</span>
+        <span class="text-sm" style="color: var(--text-secondary);">
+          spec-driven-agent <span style="color: var(--text-muted);">v5.1.6</span>
         </span>
       </div>
 
       <div class="flex items-center gap-6">
         {footerLinks.map((link) => (
           <a href={link.href} target="_blank" rel="noopener noreferrer"
-             class="text-sm text-gray-500 hover:text-gray-300 transition-colors">
+             class="footer-link text-sm transition-colors">
             {link.label}
           </a>
         ))}
       </div>
 
-      <div class="text-xs text-gray-600">
+      <div class="text-xs" style="color: var(--text-muted);">
         © {currentYear} · MIT License
       </div>
     </div>
 
-    <div class="mt-8 pt-6 border-t border-white/5 text-center">
-      <div class="inline-flex items-center gap-2 text-xs font-mono text-gray-600">
-        <span class="text-accent-400/60">Built with</span>
+    <div class="mt-8 pt-6 text-center" style="border-top: 1px solid var(--border-subtle);">
+      <div class="inline-flex items-center gap-2 text-xs font-mono" style="color: var(--text-muted);">
+        <span class="text-accent-500/60">Built with</span>
         <span>Astro</span>
-        <span class="text-gray-700">·</span>
+        <span style="color: var(--text-faint);">·</span>
         <span>Tailwind CSS</span>
-        <span class="text-gray-700">·</span>
-        <span class="text-accent-400/60">Zero JS framework</span>
+        <span style="color: var(--text-faint);">·</span>
+        <span class="text-accent-500/60">Zero JS framework</span>
       </div>
-      <div class="mt-2 text-xs text-gray-600/60">
-        Designed for Claude Code · Agentic Engineering
+      <div class="mt-2 text-xs" style="color: var(--text-faint);">
+        Designed for Meuphilim & Claude Code · Agentic Engineering
       </div>
     </div>
   </div>
 </footer>
+
+<style>
+  .footer-surface {
+    border-top: 1px solid var(--border-subtle);
+  }
+  .footer-link {
+    color: var(--text-muted);
+  }
+  .footer-link:hover {
+    color: var(--text-primary);
+  }
+</style>

@@ -1,74 +1,245 @@
 ---
 const phases = [
-  { step: '1', icon: '🏛️', label: 'Constitution', desc: 'Load project guardrails, stack, conventions.', color: 'text-accent-400', gate: false },
-  { step: '2', icon: '📋', label: 'Specify', desc: 'Generate spec with acceptance criteria.', color: 'text-blue-400', gate: true, gateLabel: 'SPEC GATE' },
-  { step: '3', icon: '🏗️', label: 'Design', desc: 'Architecture decisions, data flow, contracts.', color: 'text-purple-400', gate: true, gateLabel: 'DESIGN GATE' },
-  { step: '4', icon: '📐', label: 'Plan', desc: 'Atomic steps per file, rollback strategy.', color: 'text-yellow-400', gate: true, gateLabel: 'PLAN GATE' },
-  { step: '5', icon: '⚙️', label: 'Execute', desc: 'Implement each plan step, validate per pass.', color: 'text-green-400', gate: false },
-  { step: '6', icon: '✅', label: 'Validate', desc: 'Code review against spec criteria.', color: 'text-emerald-400', gate: true, gateLabel: 'VALIDATE' },
-  { step: '7', icon: '🪞', label: 'Reflect', desc: 'Auto-evaluation. Consolidate into knowledge base.', color: 'text-rose-400', gate: true, gateLabel: 'REFLECT GATE' },
+  {
+    num: '01',
+    key: 'CONSTITUTION',
+    label: 'Constitution',
+    desc: 'Load project guardrails, stack, and conventions before any work begins.',
+    color: '#84cc16',
+    gate: null,
+  },
+  {
+    num: '02',
+    key: 'SPECIFY',
+    label: 'Specify',
+    desc: 'Generate a spec file with acceptance criteria and scope boundaries.',
+    color: '#7aa2f7',
+    gate: 'SPEC GATE',
+  },
+  {
+    num: '03',
+    key: 'DESIGN',
+    label: 'Design',
+    desc: 'Architecture decisions, data flow, module contracts.',
+    color: '#bb9af7',
+    gate: 'DESIGN GATE',
+  },
+  {
+    num: '04',
+    key: 'PLAN',
+    label: 'Plan',
+    desc: 'Atomic steps per file, rollback strategy, impact analysis.',
+    color: '#e0af68',
+    gate: 'PLAN GATE',
+  },
+  {
+    num: '05',
+    key: 'EXECUTE',
+    label: 'Execute',
+    desc: 'Implement each plan step and validate inline per pass.',
+    color: '#9ece6a',
+    gate: null,
+  },
+  {
+    num: '06',
+    key: 'VALIDATE',
+    label: 'Validate',
+    desc: 'Code review against the spec acceptance criteria.',
+    color: '#2ac3de',
+    gate: 'VALIDATE GATE',
+  },
+  {
+    num: '07',
+    key: 'REFLECT',
+    label: 'Reflect',
+    desc: 'Auto-evaluation. Consolidate patterns into the knowledge base.',
+    color: '#f7768e',
+    gate: 'REFLECT GATE',
+  },
 ];
 ---
 
 <section id="how-it-works" class="py-20 md:py-28">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="text-center mb-16">
-      <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-gray-100">The SDD Cycle</h2>
-      <p class="mt-4 text-gray-400 max-w-2xl mx-auto">
-        Seven phases. Five GATEs. One orchestrated flow by <strong class="text-gray-200">Samantha Agent</strong>.
+
+    <!-- Header — left aligned -->
+    <div class="mb-16 max-w-2xl">
+      <span class="section-label">Workflow</span>
+      <h2 class="mt-3 text-3xl sm:text-4xl font-bold tracking-tight" style="color: var(--text-primary);">The SDD Cycle</h2>
+      <p class="mt-4" style="color: var(--text-secondary);">
+        Seven phases. Five GATEs. One orchestrated flow by
+        <strong style="color: var(--text-primary);">Samantha Agent</strong>.
       </p>
     </div>
 
-    <div class="hidden lg:block">
-      <div class="relative flex items-start justify-between">
-        <div class="absolute top-8 left-0 right-0 h-0.5 bg-gradient-to-r from-accent-500/40 via-white/10 to-accent-500/40" />
-        {phases.map((phase) => (
-          <div class="relative flex flex-col items-center text-center" style="flex: 0 0 auto; width: 13%;">
-            <div class="relative z-10 w-14 h-14 rounded-full bg-[#0a0a0a] border-2 border-white/10 flex items-center justify-center text-xl transition-all duration-300 hover:scale-110 hover:border-accent-500/50 group cursor-default">
-              <span>{phase.icon}</span>
-            </div>
-            <div class={`mt-3 text-xs font-semibold ${phase.color}`}>{phase.label}</div>
-            <div class="mt-1 text-[10px] text-gray-500 leading-relaxed px-1">{phase.desc}</div>
-            {phase.gate && (
-              <div class="mt-2 px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[9px] font-mono text-gray-500">{phase.gateLabel}</div>
-            )}
+    <!-- Phase table — 2-column list on desktop -->
+    <div class="cycle-grid">
+      {phases.map((phase, i) => (
+        <div class="cycle-row">
+          <!-- Left: number + line -->
+          <div class="cycle-meta">
+            <span class="cycle-num" style={`color: ${phase.color};`}>{phase.num}</span>
+            {i < phases.length - 1 && <span class="cycle-connector" />}
           </div>
-        ))}
-      </div>
-    </div>
 
-    <div class="lg:hidden space-y-4">
-      {phases.map((phase) => (
-        <div class="flex items-start gap-4 p-4 rounded-xl glass-card group hover:border-accent-500/20 transition-colors">
-          <div class="flex-shrink-0 w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-lg">{phase.icon}</div>
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2">
-              <span class={`text-sm font-semibold ${phase.color}`}>{phase.label}</span>
-              {phase.gate && <span class="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-mono text-gray-500">{phase.gateLabel}</span>}
+          <!-- Right: content -->
+          <div class="cycle-content">
+            <div class="cycle-top">
+              <span class="cycle-key" style={`color: ${phase.color};`}>{phase.key}</span>
+              {phase.gate && (
+                <span class="cycle-gate">{phase.gate}</span>
+              )}
             </div>
-            <p class="mt-0.5 text-xs text-gray-500">{phase.desc}</p>
+            <div class="cycle-label" style="color: var(--text-primary);">{phase.label}</div>
+            <p class="cycle-desc">{phase.desc}</p>
           </div>
-          <div class="flex-shrink-0 text-xs text-gray-600 font-mono">{phase.step}/7</div>
         </div>
       ))}
     </div>
 
-    <div class="mt-12 p-6 rounded-xl glass-card text-center">
-      <div class="inline-flex items-center gap-2 text-sm font-mono text-gray-400">
-        <span class="text-accent-400">CONSTITUTION</span>
-        <svg class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-        <span>SPECIFY</span>
-        <svg class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-        <span>DESIGN</span>
-        <svg class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-        <span>PLAN</span>
-        <svg class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-        <span>EXECUTE</span>
-        <svg class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-        <span>VALIDATE</span>
-        <svg class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-        <span class="text-rose-400">REFLECT</span>
+    <!-- Summary breadcrumb -->
+    <div class="mt-12 overflow-x-auto">
+      <div class="summary-bar">
+        {phases.map((p, i) => (
+          <>
+            <span class="summary-key" style={`color: ${p.color};`}>{p.key}</span>
+            {i < phases.length - 1 && (
+              <svg class="summary-arrow" viewBox="0 0 16 16" fill="none">
+                <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            )}
+          </>
+        ))}
       </div>
     </div>
+
   </div>
 </section>
+
+<style>
+  /* ── Grid: 2 columns on large, 1 column on small ── */
+  .cycle-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  @media (min-width: 768px) {
+    .cycle-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 0 4rem;
+    }
+  }
+
+  /* ── Each row ── */
+  .cycle-row {
+    display: grid;
+    grid-template-columns: 2.5rem 1fr;
+    gap: 0 1rem;
+    padding-bottom: 2rem;
+  }
+
+  /* ── Left meta column ── */
+  .cycle-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 0.1rem;
+  }
+
+  .cycle-num {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
+    line-height: 1.6;
+  }
+
+  .cycle-connector {
+    flex: 1;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--border-default) 0%, transparent 100%);
+    margin-top: 0.4rem;
+    min-height: 1.5rem;
+  }
+
+  /* ── Right content ── */
+  .cycle-content {
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-subtle);
+    margin-bottom: 0.25rem;
+  }
+
+  .cycle-row:last-child .cycle-content {
+    border-bottom: none;
+  }
+
+  .cycle-top {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.15rem;
+  }
+
+  .cycle-key {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .cycle-gate {
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    border: 1px solid var(--border-default);
+    background-color: var(--bg-muted);
+    padding: 0.1rem 0.4rem;
+    border-radius: 0.2rem;
+    white-space: nowrap;
+  }
+
+  .cycle-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+  }
+
+  .cycle-desc {
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: var(--text-secondary);
+    max-width: 42ch;
+    padding-bottom: 0.75rem;
+  }
+
+  /* ── Summary breadcrumb ── */
+  .summary-bar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border-subtle);
+    background-color: var(--bg-muted);
+    white-space: nowrap;
+  }
+
+  .summary-key {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  .summary-arrow {
+    width: 14px;
+    height: 14px;
+    color: var(--text-faint);
+    flex-shrink: 0;
+  }
+</style>

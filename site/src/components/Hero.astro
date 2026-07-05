@@ -1,89 +1,424 @@
 ---
-const terminalLines = [
-  '$ npm install -g spec-driven-agent',
-  '+ spec-driven-agent@5.1.6',
-  'added 1 package in 2s',
-  '',
-  '$ npx sda init',
-  '╭──────────────────────────────────────╮',
-  '│  🎯 CLASSIFY: FEAT · Effort: medium  │',
-  '│  📋 SPECIFY → Creating specification │',
-  '│  🏗️  DESIGN → Architecture decisions  │',
-  '│  📐 PLAN → Atomic steps             │',
-  '│  ⚙️  EXECUTE → Implementing           │',
-  '│  ✅ VALIDATE → Checking acceptance    │',
-  '│  🪞 REFLECT → Learning consolidated   │',
-  '╰──────────────────────────────────────╯',
-  '✅ SDD cycle complete · Turns: 12/20',
+// No emoji, no ASCII box-drawing — realistic Claude Code session output
+// Structured as a real SDD cycle terminal session with proper syntax highlighting
+
+interface TermLine {
+  type: 'cmd'        // $ command
+       | 'output'   // plain output
+       | 'success'  // green ✓ line
+       | 'info'     // dim metadata
+       | 'gate'     // GATE checkpoint line
+       | 'phase'    // phase header with status dot
+       | 'divider'  // separator ─────
+       | 'blank';
+  content: string;
+  dim?: boolean;
+  cursor?: boolean;   // show blinking cursor after this line
+}
+
+const session: TermLine[] = [
+  { type: 'cmd',     content: 'npm install -g spec-driven-agent' },
+  { type: 'success', content: '+ spec-driven-agent@5.1.6' },
+  { type: 'info',    content: 'added 1 package in 2.1s' },
+  { type: 'blank',   content: '' },
+  { type: 'cmd',     content: 'npx sda init', cursor: true },
+  { type: 'blank',   content: '' },
+  { type: 'divider', content: '─── SDD Session · feat/auth-flow ────────────────' },
+  { type: 'phase',   content: 'CLASSIFY   FEAT · Effort: medium · Turns budget: 20' },
+  { type: 'blank',   content: '' },
+  { type: 'gate',    content: 'SPEC GATE', dim: false },
+  { type: 'phase',   content: 'SPECIFY    Generating acceptance criteria...' },
+  { type: 'info',    content: '           Written to .specs/auth-flow.md' },
+  { type: 'blank',   content: '' },
+  { type: 'gate',    content: 'DESIGN GATE' },
+  { type: 'phase',   content: 'DESIGN     Architecture · JWT + refresh tokens' },
+  { type: 'blank',   content: '' },
+  { type: 'gate',    content: 'PLAN GATE' },
+  { type: 'phase',   content: 'PLAN       12 atomic steps · 4 files touched' },
+  { type: 'blank',   content: '' },
+  { type: 'phase',   content: 'EXECUTE    Implementing...' },
+  { type: 'info',    content: '           src/auth/jwt.ts          +87 -0' },
+  { type: 'info',    content: '           src/auth/middleware.ts   +43 -0' },
+  { type: 'blank',   content: '' },
+  { type: 'gate',    content: 'VALIDATE GATE' },
+  { type: 'phase',   content: 'VALIDATE   53/53 tests passing · lint clean' },
+  { type: 'blank',   content: '' },
+  { type: 'gate',    content: 'REFLECT GATE' },
+  { type: 'phase',   content: 'REFLECT    Consolidated · 1 pattern, 0 antipatterns' },
+  { type: 'blank',   content: '' },
+  { type: 'divider', content: '──────────────────────────────────────────────────' },
+  { type: 'success', content: 'SDD cycle complete  ·  Turns used: 12 / 20  ·  Cost: low' },
 ];
 ---
 
-<section class="relative pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden">
-  <div class="absolute inset-0 bg-gradient-to-b from-accent-500/5 via-transparent to-transparent pointer-events-none" />
+<section class="hero-section relative overflow-hidden" style="padding-top: clamp(7rem, 10vw, 10rem); padding-bottom: clamp(4rem, 6vw, 7rem);">
+  <div class="hero-glow absolute inset-0 pointer-events-none" />
 
   <div class="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="text-center max-w-3xl mx-auto">
-      <div class="inline-flex items-center gap-2 px-4 py-1.5 mb-6 border border-accent-500/20 bg-accent-500/10 rounded-full">
-        <span class="w-2 h-2 rounded-full bg-accent-400 animate-pulse" />
-        <span class="text-xs font-mono text-accent-300 font-medium">v5.1.6 · Production Ready</span>
-      </div>
 
-      <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-tight">
-        <span class="text-gray-100">Write specs.<br/>Let the agent</span>
-        <br/>
-        <span class="gradient-text">execute.</span>
-      </h1>
+    <!-- Split layout: text left, terminal right on large screens -->
+    <div class="hero-grid grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-12 lg:gap-16 items-center">
 
-      <p class="mt-6 text-lg sm:text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
-        Spec-Driven Development enforces discipline via <strong class="text-gray-200">5 GATEs</strong>,
-        cutting token waste by <strong class="text-gray-200">60%</strong> on simple tasks.
-        Built for Claude Code. Orchestrated by <strong class="text-gray-200">Samantha</strong>.
-      </p>
-
-      <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-        <a href="https://www.npmjs.com/package/spec-driven-agent" target="_blank" rel="noopener noreferrer"
-           class="inline-flex items-center gap-2 px-6 py-3 bg-accent-500 hover:bg-accent-400 text-gray-950 font-semibold text-sm rounded-lg transition-all duration-200 shadow-lg shadow-accent-500/25 hover:shadow-accent-400/40">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>
-          Install via npm
-        </a>
-        <a href="https://github.com/meuphilim/spec-driven-agent" target="_blank" rel="noopener noreferrer"
-           class="inline-flex items-center gap-2 px-6 py-3 border border-white/10 hover:border-white/30 text-gray-300 hover:text-white font-medium text-sm rounded-lg transition-colors">
-          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-          View on GitHub
-        </a>
-      </div>
-
-      <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
-        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-gray-400">
-          <svg class="w-3.5 h-3.5 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-          53/53 tests
-        </span>
-        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-gray-400">MIT License</span>
-        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-gray-400">Node ≥ 18</span>
-        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-gray-400">Claude Code</span>
-      </div>
-    </div>
-
-    <div class="mt-12 max-w-2xl mx-auto">
-      <div class="rounded-xl border border-white/10 bg-[#0d0d10] shadow-2xl shadow-black/50 overflow-hidden">
-        <div class="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-white/[0.02]">
-          <span class="w-3 h-3 rounded-full bg-red-500/80" />
-          <span class="w-3 h-3 rounded-full bg-yellow-500/80" />
-          <span class="w-3 h-3 rounded-full bg-green-500/80" />
-          <span class="ml-2 text-xs text-gray-500 font-mono">sda-demo — bash</span>
+      <!-- LEFT: Copy -->
+      <div class="hero-copy">
+        <div class="inline-flex items-center gap-2 px-3 py-1 mb-8 rounded-full version-pill">
+          <span class="w-1.5 h-1.5 rounded-full bg-accent-400 animate-pulse" />
+          <span class="text-xs font-mono text-accent-400 tracking-wide">v5.1.6 &nbsp;·&nbsp; Production Ready</span>
         </div>
-        <div class="p-4 sm:p-6 font-mono text-xs sm:text-sm leading-relaxed overflow-x-auto">
-          {terminalLines.map((line, i) => (
-            <div class={`whitespace-pre ${line.startsWith('$') ? 'text-accent-300' : line.startsWith('│') ? 'text-gray-400' : line.startsWith('+') ? 'text-green-400' : line.startsWith('✅') ? 'text-accent-400' : 'text-gray-500'}`}
-                 style={`animation: fadeIn 0.3s ease-out ${i * 0.15}s forwards; opacity: 0;`}>
-              {line}
-              {line.startsWith('$') && i === 0 && (
-                <span class="inline-block w-2 h-4 ml-0.5 bg-accent-400 animate-blink align-middle" />
-              )}
+
+        <h1 class="hero-h1 font-extrabold tracking-tight leading-[1.05]" style="color: var(--text-primary);">
+          Write specs.<br/>
+          <span class="hero-h1-accent">Let the agent<br/>execute.</span>
+        </h1>
+
+        <p class="mt-6 text-base sm:text-lg leading-relaxed max-w-[52ch]" style="color: var(--text-secondary);">
+          Spec-Driven Development enforces discipline via
+          <strong style="color: var(--text-primary);">5 GATEs</strong>,
+          cutting token waste by
+          <strong style="color: var(--text-primary);">60%</strong> on trivial tasks.
+          Built for Claude Code — orchestrated by
+          <strong style="color: var(--text-primary);">Samantha</strong>.
+        </p>
+
+        <div class="mt-8 flex flex-col sm:flex-row gap-3">
+          <a href="https://www.npmjs.com/package/spec-driven-agent" target="_blank" rel="noopener noreferrer"
+             class="hero-btn-primary inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 active:scale-[0.98]">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            npm install
+          </a>
+          <a href="https://github.com/meuphilim/spec-driven-agent" target="_blank" rel="noopener noreferrer"
+             class="hero-btn-ghost inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 active:scale-[0.98]">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+            View on GitHub
+          </a>
+        </div>
+
+        <!-- Meta badges -->
+        <div class="mt-8 flex flex-wrap gap-2">
+          <span class="meta-badge">
+            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+            53 / 53 tests
+          </span>
+          <span class="meta-badge">MIT</span>
+          <span class="meta-badge">Node ≥ 18</span>
+          <span class="meta-badge">Claude Code</span>
+        </div>
+      </div>
+
+      <!-- RIGHT: Terminal -->
+      <div class="hero-terminal-wrap">
+        <div class="terminal-window">
+          <!-- Window chrome -->
+          <div class="term-chrome flex items-center gap-2 px-4 py-3">
+            <span class="term-dot bg-[#ff5f57]" />
+            <span class="term-dot bg-[#febc2e]" />
+            <span class="term-dot bg-[#28c840]" />
+            <div class="flex-1 flex justify-center">
+              <span class="term-title font-mono">sda &mdash; spec-driven-agent</span>
             </div>
-          ))}
+          </div>
+
+          <!-- Terminal content -->
+          <div class="term-body font-mono text-[11.5px] sm:text-[12.5px] leading-[1.65] overflow-x-auto">
+            {session.map((line, i) => {
+              const delay = `${i * 0.06}s`;
+              if (line.type === 'blank') return <div class="term-blank" style={`animation-delay:${delay}`} />;
+              if (line.type === 'divider') return (
+                <div class="term-divider" style={`animation-delay:${delay}`}>
+                  <span class="term-divider-text">{line.content}</span>
+                </div>
+              );
+              if (line.type === 'cmd') return (
+                <div class="term-line" style={`animation-delay:${delay}`}>
+                  <span class="term-prompt">$</span>
+                  <span class="term-cmd">{line.content}</span>
+                  {line.cursor && <span class="term-cursor" />}
+                </div>
+              );
+              if (line.type === 'gate') return (
+                <div class="term-gate" style={`animation-delay:${delay}`}>
+                  <span class="term-gate-bar" />
+                  <span class="term-gate-label">{line.content}</span>
+                  <span class="term-gate-bar" />
+                </div>
+              );
+              if (line.type === 'phase') return (
+                <div class="term-phase" style={`animation-delay:${delay}`}>
+                  <span class="term-status-dot" />
+                  <span class="term-phase-text">{line.content}</span>
+                </div>
+              );
+              if (line.type === 'success') return (
+                <div class="term-success" style={`animation-delay:${delay}`}>
+                  <svg class="w-3 h-3 flex-shrink-0 mt-px" fill="none" viewBox="0 0 12 12" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2 6l3 3 5-5"/></svg>
+                  <span>{line.content}</span>
+                </div>
+              );
+              return (
+                <div class="term-info" style={`animation-delay:${delay}`}>{line.content}</div>
+              );
+            })}
+          </div>
         </div>
+
+        <!-- Ambient glow below terminal -->
+        <div class="term-ambient-glow" />
       </div>
+
     </div>
   </div>
 </section>
+
+<style>
+  /* ── Layout ──────────────────────────────────────────────── */
+  .hero-section {
+    background: linear-gradient(180deg, var(--accent-glow) 0%, transparent 35%);
+  }
+  .hero-glow {
+    background: radial-gradient(ellipse 70% 50% at 50% -10%, var(--accent-glow) 0%, transparent 65%);
+  }
+
+  /* ── Copy ────────────────────────────────────────────────── */
+  .version-pill {
+    border: 1px solid color-mix(in srgb, #84cc16 25%, transparent);
+    background-color: color-mix(in srgb, #84cc16 8%, transparent);
+  }
+
+  .hero-h1 {
+    font-size: clamp(2.25rem, 5vw, 3.75rem);
+    letter-spacing: -0.03em;
+  }
+
+  .hero-h1-accent {
+    color: var(--text-primary);
+    /* Subtle accent on "execute." word — done via span in HTML */
+  }
+
+  /* ── Buttons ─────────────────────────────────────────────── */
+  .hero-btn-primary {
+    background-color: #84cc16;
+    color: #0a0a0a;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.15);
+  }
+  .hero-btn-primary:hover {
+    background-color: #a3e635;
+    box-shadow: 0 4px 12px color-mix(in srgb, #84cc16 35%, transparent);
+  }
+  .hero-btn-ghost {
+    color: var(--text-secondary);
+    border: 1px solid var(--border-default);
+    background-color: transparent;
+  }
+  .hero-btn-ghost:hover {
+    color: var(--text-primary);
+    border-color: var(--border-strong);
+    background-color: var(--bg-muted);
+  }
+
+  /* ── Meta badges ─────────────────────────────────────────── */
+  .meta-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 0.375rem;
+    font-size: 0.7rem;
+    font-family: var(--font-mono);
+    font-weight: 500;
+    border: 1px solid var(--border-subtle);
+    color: var(--text-muted);
+    background-color: var(--bg-muted);
+  }
+
+  /* ── Terminal Window ─────────────────────────────────────── */
+  .hero-terminal-wrap {
+    position: relative;
+  }
+
+  .terminal-window {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.04) inset,
+      0 40px 80px -20px rgba(0, 0, 0, 0.65),
+      0 16px 32px -8px rgba(0, 0, 0, 0.4);
+  }
+
+  :global(:not(.dark)) .terminal-window {
+    border-color: rgba(0, 0, 0, 0.1);
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.7) inset,
+      0 24px 48px -12px rgba(0, 0, 0, 0.18),
+      0 8px 16px -4px rgba(0, 0, 0, 0.1);
+  }
+
+  .term-chrome {
+    background: #2a2a2e;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    user-select: none;
+  }
+
+  .term-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .term-title {
+    font-size: 11px;
+    color: #6b6b7b;
+    letter-spacing: 0.02em;
+  }
+
+  .term-body {
+    background: #1a1b26;
+    padding: 1.25rem 1.5rem 1.5rem;
+    min-height: 300px;
+  }
+
+  /* ── Terminal line types ─────────────────────────────────── */
+
+  /* All lines fade in on load */
+  .term-blank,
+  .term-divider,
+  .term-line,
+  .term-gate,
+  .term-phase,
+  .term-success,
+  .term-info {
+    animation: termFadeIn 0.25s ease-out both;
+  }
+
+  .term-blank {
+    height: 0.4rem;
+  }
+
+  /* $ command lines */
+  .term-line {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    color: #c0caf5; /* Tokyo Night blue-white */
+  }
+  .term-prompt {
+    color: #7aa2f7; /* Tokyo Night blue */
+    font-weight: 600;
+    flex-shrink: 0;
+    user-select: none;
+  }
+  .term-cmd {
+    color: #c0caf5;
+  }
+
+  /* Blinking cursor */
+  .term-cursor {
+    display: inline-block;
+    width: 6px;
+    height: 0.85em;
+    background-color: #7aa2f7;
+    margin-left: 1px;
+    vertical-align: text-bottom;
+    animation: blink 1.1s step-end infinite;
+  }
+
+  /* Success / install output */
+  .term-success {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    color: #9ece6a; /* Tokyo Night green */
+  }
+
+  /* Dim info text (file paths, metadata) */
+  .term-info {
+    color: #565f89; /* Tokyo Night comment */
+    white-space: pre;
+    padding-left: 0;
+  }
+
+  /* GATE checkpoint separator */
+  .term-gate {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.25rem 0;
+  }
+  .term-gate-bar {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, #3d59a1 60%, transparent);
+  }
+  .term-gate-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #7aa2f7;
+    font-weight: 600;
+    white-space: nowrap;
+    padding: 0 0.25rem;
+  }
+
+  /* Phase status line with dot */
+  .term-phase {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    color: #a9b1d6; /* Tokyo Night foreground dim */
+    padding-left: 0.25rem;
+  }
+  .term-status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #84cc16;
+    flex-shrink: 0;
+    margin-top: 0.45em;
+    box-shadow: 0 0 6px color-mix(in srgb, #84cc16 60%, transparent);
+  }
+  .term-phase-text {
+    white-space: pre;
+  }
+  /* Bold the phase keyword (first word) */
+  .term-phase-text::first-line {
+    font-weight: 700;
+  }
+
+  /* Divider line */
+  .term-divider {
+    display: block;
+  }
+  .term-divider-text {
+    color: #3d59a1;
+    white-space: pre;
+    font-size: 0.7em;
+    letter-spacing: 0.02em;
+  }
+
+  /* ── Ambient glow ─────────────────────────────────────────── */
+  .term-ambient-glow {
+    position: absolute;
+    bottom: -40px;
+    left: 10%;
+    right: 10%;
+    height: 80px;
+    background: radial-gradient(ellipse at center,
+      color-mix(in srgb, #84cc16 20%, transparent) 0%,
+      transparent 70%);
+    filter: blur(20px);
+    pointer-events: none;
+  }
+
+  /* ── Keyframes ────────────────────────────────────────────── */
+  @keyframes termFadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0; }
+  }
+</style>

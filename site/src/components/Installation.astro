@@ -12,8 +12,8 @@ const installSteps = [
   },
   {
     title: 'Start your first session',
-    cmd: 'npx sda session "Add user authentication"',
-    note: 'Samantha orchestrates all 7 phases',
+    cmd: '/context',
+    note: 'Samantha maps the project and orchestrates all 7 phases from there',
   },
 ];
 
@@ -29,25 +29,25 @@ const requirements = [
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="grid md:grid-cols-2 gap-12 lg:gap-16 items-start">
       <div>
-        <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-gray-100">
+        <h2 class="text-3xl sm:text-4xl font-bold tracking-tight" style="color: var(--text-primary);">
           Get started in <span class="gradient-text">seconds</span>
         </h2>
-        <p class="mt-4 text-gray-400 leading-relaxed">
+        <p class="mt-4 leading-relaxed" style="color: var(--text-secondary);">
           Install globally, init in your project, and let Samantha guide your first SDD cycle.
         </p>
 
         <div class="mt-10 space-y-6">
           {installSteps.map((step, i) => (
             <div class="flex gap-4">
-              <div class="flex-shrink-0 w-8 h-8 rounded-full bg-accent-500/10 border border-accent-500/20 flex items-center justify-center text-sm font-mono font-bold text-accent-400">
+              <div class="step-num flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-mono font-bold text-accent-500">
                 {i + 1}
               </div>
               <div class="flex-1 min-w-0">
-                <div class="text-sm font-medium text-gray-200">{step.title}</div>
-                <div class="mt-2 p-3 rounded-lg bg-[#0d0d10] border border-white/5 overflow-x-auto">
-                  <code class="text-xs sm:text-sm font-mono text-accent-300">$ {step.cmd}</code>
+                <div class="text-sm font-medium" style="color: var(--text-primary);">{step.title}</div>
+                <div class="code-block mt-2">
+                  <code class="text-xs sm:text-sm font-mono text-accent-400">$ {step.cmd}</code>
                 </div>
-                <div class="mt-1 text-xs text-gray-500">{step.note}</div>
+                <div class="mt-1 text-xs" style="color: var(--text-muted);">{step.note}</div>
               </div>
             </div>
           ))}
@@ -55,25 +55,25 @@ const requirements = [
       </div>
 
       <div class="relative">
-        <div class="absolute inset-0 bg-gradient-to-l from-accent-500/5 to-transparent rounded-2xl" />
+        <div class="absolute inset-0 bg-gradient-to-l from-accent-500/5 to-transparent rounded-2xl pointer-events-none" />
         <div class="relative glass-card p-8 sm:p-10">
-          <h3 class="text-sm font-semibold uppercase tracking-wider text-accent-400 mb-8 font-mono">Requirements</h3>
+          <h3 class="section-label mb-8">Requirements</h3>
           <div class="space-y-4">
             {requirements.map((req) => (
-              <div class="flex items-center justify-between py-3 border-b border-white/5 last:border-0">
-                <span class="text-sm text-gray-300 flex items-center gap-2">
+              <div class="req-row flex items-center justify-between py-3" style="border-bottom: 1px solid var(--border-subtle);">
+                <span class="text-sm flex items-center gap-2" style="color: var(--text-primary);">
                   <span>{req.icon}</span>
                   {req.label}
                 </span>
-                <span class="text-sm font-mono text-gray-500">{req.value}</span>
+                <span class="text-sm font-mono" style="color: var(--text-secondary);">{req.value}</span>
               </div>
             ))}
           </div>
 
-          <div class="mt-8 pt-6 border-t border-white/10">
-            <div class="rounded-lg bg-accent-500/5 border border-accent-500/10 p-4">
-              <h4 class="text-xs font-semibold uppercase tracking-wider text-accent-400 font-mono mb-2">Quick test</h4>
-              <code class="text-xs font-mono text-gray-300">$ npx sda --version<br/># → 5.1.6</code>
+          <div class="mt-8 pt-6" style="border-top: 1px solid var(--border-subtle);">
+            <div class="quick-test-box rounded-lg p-4">
+              <h4 class="section-label mb-2">Quick test</h4>
+              <code class="text-xs font-mono" style="color: var(--text-primary);">$ npx sda --version<br/># → 5.1.6</code>
             </div>
           </div>
         </div>
@@ -81,3 +81,17 @@ const requirements = [
     </div>
   </div>
 </section>
+
+<style>
+  .step-num {
+    background-color: color-mix(in srgb, #84cc16 10%, transparent);
+    border: 1px solid color-mix(in srgb, #84cc16 20%, transparent);
+  }
+  .req-row:last-child {
+    border-bottom: none !important;
+  }
+  .quick-test-box {
+    background-color: color-mix(in srgb, #84cc16 5%, var(--bg-muted));
+    border: 1px solid color-mix(in srgb, #84cc16 12%, transparent);
+  }
+</style>

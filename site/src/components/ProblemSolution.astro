@@ -34,23 +34,23 @@ const solutionHighlights = [
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="grid md:grid-cols-2 gap-12 lg:gap-16 items-center">
       <div>
-        <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-gray-100">
+        <h2 class="text-3xl sm:text-4xl font-bold tracking-tight" style="color: var(--text-primary);">
           The problem with<br />
           <span class="gradient-text">AI agents</span>
         </h2>
-        <p class="mt-4 text-gray-400 leading-relaxed">
+        <p class="mt-4 leading-relaxed" style="color: var(--text-secondary);">
           LLM agents are powerful but undisciplined. They jump to code without specs,
           lose context between sessions, and waste tokens on trivial tasks.
-          <strong class="text-gray-200">SDD brings engineering rigor to agentic development.</strong>
+          <strong style="color: var(--text-primary);">SDD brings engineering rigor to agentic development.</strong>
         </p>
 
         <div class="mt-10 space-y-6">
           {problems.map((item) => (
             <div class="flex gap-4">
-              <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-accent-500/10 border border-accent-500/20 flex items-center justify-center text-accent-400" set:html={item.icon} />
+              <div class="problem-icon flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center text-accent-400" set:html={item.icon} />
               <div>
-                <div class="text-sm text-red-400/80 font-mono">✗ {item.problem}</div>
-                <div class="text-sm text-green-400/80 font-mono mt-1">✓ {item.solution}</div>
+                <div class="text-sm font-mono problem-text">✗ {item.problem}</div>
+                <div class="text-sm font-mono mt-1 solution-text">✓ {item.solution}</div>
               </div>
             </div>
           ))}
@@ -58,19 +58,19 @@ const solutionHighlights = [
       </div>
 
       <div class="relative">
-        <div class="absolute inset-0 bg-gradient-to-r from-accent-500/5 to-transparent rounded-2xl" />
-        <div class="relative glass-card p-8 sm:p-10 border-accent-500/10">
-          <h3 class="text-sm font-semibold uppercase tracking-wider text-accent-400 mb-8 font-mono">By the numbers</h3>
+        <div class="absolute inset-0 bg-gradient-to-r from-accent-500/5 to-transparent rounded-2xl pointer-events-none" />
+        <div class="relative glass-card p-8 sm:p-10">
+          <h3 class="section-label mb-8">By the numbers</h3>
           <div class="grid grid-cols-2 gap-8">
             {solutionHighlights.map((stat) => (
               <div>
-                <div class="text-3xl sm:text-4xl font-extrabold text-gray-100">{stat.value}</div>
-                <div class="mt-1 text-sm text-gray-400">{stat.label}</div>
+                <div class="text-3xl sm:text-4xl font-extrabold" style="color: var(--text-primary);">{stat.value}</div>
+                <div class="mt-1 text-sm" style="color: var(--text-secondary);">{stat.label}</div>
               </div>
             ))}
           </div>
-          <div class="mt-8 pt-6 border-t border-white/10">
-            <div class="flex items-center gap-2 text-sm text-gray-500">
+          <div class="mt-8 pt-6" style="border-top: 1px solid var(--border-subtle);">
+            <div class="flex items-center gap-2 text-sm" style="color: var(--text-muted);">
               <span class="w-2 h-2 rounded-full bg-accent-400" />
               And growing — v5.2 planned with visual metrics dashboard
             </div>
@@ -80,3 +80,26 @@ const solutionHighlights = [
     </div>
   </div>
 </section>
+
+<style>
+  .problem-icon {
+    background-color: color-mix(in srgb, #84cc16 10%, transparent);
+    border: 1px solid color-mix(in srgb, #84cc16 20%, transparent);
+  }
+  .problem-text {
+    color: #ef4444;
+    opacity: 0.8;
+  }
+  .solution-text {
+    color: #22c55e;
+    opacity: 0.85;
+  }
+  :global(:not(.dark)) .problem-text {
+    color: #dc2626;
+    opacity: 0.9;
+  }
+  :global(:not(.dark)) .solution-text {
+    color: #16a34a;
+    opacity: 0.9;
+  }
+</style>

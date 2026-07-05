@@ -6,66 +6,70 @@ interface Command {
 }
 
 const commands: Command[] = [
-  { cmd: 'npx sda init', desc: 'Initialize SDD in your project', badge: 'setup' },
-  { cmd: 'npx sda session "feat: ..."', desc: 'Start a new SDD session', badge: 'core' },
-  { cmd: 'npx sda task "add login page"', desc: 'Quick task (LITE mode auto)', badge: 'core' },
-  { cmd: 'sda /spec', desc: 'Generate specification with acceptance criteria', badge: 'phase' },
-  { cmd: 'sda /design', desc: 'Architecture design phase', badge: 'phase' },
-  { cmd: 'sda /plan', desc: 'Generate implementation plan', badge: 'phase' },
-  { cmd: 'sda /implement', desc: 'Execute plan step by step', badge: 'execute' },
-  { cmd: 'sda /review', desc: 'Code review against spec', badge: 'validate' },
-  { cmd: 'sda /reflect', desc: 'Auto-evaluation and knowledge consolidation', badge: 'reflect' },
-  { cmd: 'sda /status', desc: 'Show current session state', badge: 'info' },
-  { cmd: 'sda /context', desc: 'Load project constitution', badge: 'info' },
-  { cmd: 'sda /debug', desc: 'Investigate bugs systematically', badge: 'debug' },
-  { cmd: 'sda /estimate', desc: 'Estimate effort for ambiguous tasks', badge: 'plan' },
-  { cmd: 'sda /socrates', desc: 'Challenge assumptions before building', badge: 'design' },
-  { cmd: 'sda /learn', desc: 'Register pattern/heuristic/antipattern', badge: 'reflect' },
+  { cmd: 'npx sda init', desc: 'Initialize the framework in your project', badge: 'setup' },
+  { cmd: 'npx sda update', desc: 'Update the framework to the latest version', badge: 'setup' },
+  { cmd: 'npx sda status', desc: 'Show installation status', badge: 'info' },
+  { cmd: 'npx sda metrics', desc: 'Metrics dashboard', badge: 'info' },
+  { cmd: '/context', desc: 'Map the project and load guardrails', badge: 'phase' },
+  { cmd: '/socrates', desc: 'Collect missing context before building', badge: 'design' },
+  { cmd: '/spec', desc: 'Create the specification', badge: 'phase' },
+  { cmd: '/design', desc: 'Architecture decisions', badge: 'phase' },
+  { cmd: '/plan', desc: 'Generate the atomic plan', badge: 'plan' },
+  { cmd: '/implement', desc: 'Execute the implementation', badge: 'execute' },
+  { cmd: '/fix', desc: 'Fix a bug', badge: 'execute' },
+  { cmd: '/refactor', desc: 'Restructure existing code', badge: 'execute' },
+  { cmd: '/debug', desc: 'Investigate an issue systematically', badge: 'debug' },
+  { cmd: '/review', desc: 'Code review against the spec', badge: 'validate' },
+  { cmd: '/reflect', desc: 'Auto-evaluation', badge: 'reflect' },
+  { cmd: '/learn', desc: 'Consolidate knowledge (pattern/heuristic/antipattern)', badge: 'reflect' },
+  { cmd: '/status', desc: 'Show current session state', badge: 'info' },
 ];
 
-const badgeColors: Record<string, string> = {
-  setup: 'bg-gray-500/10 text-gray-400 border-gray-500/20',
-  core: 'bg-accent-500/10 text-accent-300 border-accent-500/20',
-  phase: 'bg-blue-500/10 text-blue-300 border-blue-500/20',
-  execute: 'bg-green-500/10 text-green-300 border-green-500/20',
-  validate: 'bg-purple-500/10 text-purple-300 border-purple-500/20',
-  reflect: 'bg-rose-500/10 text-rose-300 border-rose-500/20',
-  info: 'bg-yellow-500/10 text-yellow-300 border-yellow-500/20',
-  debug: 'bg-red-500/10 text-red-300 border-red-500/20',
-  plan: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20',
-  design: 'bg-violet-500/10 text-violet-300 border-violet-500/20',
+// badge label → [bg-color, text-color] in dark / light mode using CSS vars approach
+const badgeStyles: Record<string, string> = {
+  setup:    'badge-setup',
+  phase:    'badge-phase',
+  execute:  'badge-execute',
+  validate: 'badge-validate',
+  reflect:  'badge-reflect',
+  info:     'badge-info',
+  debug:    'badge-debug',
+  plan:     'badge-plan',
+  design:   'badge-design',
 };
 ---
 
 <section id="commands" class="py-20 md:py-28">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="text-center mb-16">
-      <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-gray-100">All <span class="gradient-text">commands</span> at a glance</h2>
-      <p class="mt-4 text-gray-400 max-w-2xl mx-auto">
+      <h2 class="text-3xl sm:text-4xl font-bold tracking-tight" style="color: var(--text-primary);">
+        All <span class="gradient-text">commands</span> at a glance
+      </h2>
+      <p class="mt-4 max-w-2xl mx-auto" style="color: var(--text-secondary);">
         From init to reflection — every SDD phase has a dedicated command.
       </p>
     </div>
 
-    <div class="max-w-3xl mx-auto overflow-hidden rounded-xl border border-white/10 bg-white/[0.02]">
+    <div class="max-w-3xl mx-auto overflow-hidden rounded-xl cmd-table-wrap">
       <div class="overflow-x-auto">
         <table class="w-full">
           <thead>
-            <tr class="border-b border-white/5">
-              <th class="text-left px-4 sm:px-6 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 font-mono">Command</th>
-              <th class="text-left px-4 sm:px-6 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 font-mono hidden sm:table-cell">Description</th>
-              <th class="text-right px-4 sm:px-6 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 font-mono">Phase</th>
+            <tr class="cmd-header-row">
+              <th class="text-left px-4 sm:px-6 py-3 text-xs font-semibold uppercase tracking-wider font-mono" style="color: var(--text-muted);">Command</th>
+              <th class="text-left px-4 sm:px-6 py-3 text-xs font-semibold uppercase tracking-wider font-mono hidden sm:table-cell" style="color: var(--text-muted);">Description</th>
+              <th class="text-right px-4 sm:px-6 py-3 text-xs font-semibold uppercase tracking-wider font-mono" style="color: var(--text-muted);">Phase</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-white/5">
+          <tbody class="cmd-tbody">
             {commands.map((cmd) => (
-              <tr class="hover:bg-white/[0.02] transition-colors">
+              <tr class="cmd-row">
                 <td class="px-4 sm:px-6 py-3">
-                  <code class="text-xs sm:text-sm font-mono text-accent-300 whitespace-nowrap">{cmd.cmd}</code>
+                  <code class="text-xs sm:text-sm font-mono text-accent-500 whitespace-nowrap">{cmd.cmd}</code>
                 </td>
-                <td class="px-4 sm:px-6 py-3 text-sm text-gray-400 hidden sm:table-cell">{cmd.desc}</td>
+                <td class="px-4 sm:px-6 py-3 text-sm hidden sm:table-cell" style="color: var(--text-secondary);">{cmd.desc}</td>
                 <td class="px-4 sm:px-6 py-3 text-right">
                   {cmd.badge && (
-                    <span class={`inline-block px-2 py-0.5 rounded-full text-[10px] font-mono border ${badgeColors[cmd.badge] || 'bg-gray-500/10 text-gray-400 border-gray-500/20'}`}>
+                    <span class={`cmd-badge ${badgeStyles[cmd.badge] || 'badge-setup'} inline-block px-2 py-0.5 rounded-full text-[10px] font-mono`}>
                       {cmd.badge}
                     </span>
                   )}
@@ -78,3 +82,46 @@ const badgeColors: Record<string, string> = {
     </div>
   </div>
 </section>
+
+<style>
+  .cmd-table-wrap {
+    background-color: var(--bg-muted);
+    border: 1px solid var(--border-default);
+  }
+  .cmd-header-row {
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .cmd-tbody tr {
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .cmd-tbody tr:last-child {
+    border-bottom: none;
+  }
+  .cmd-row:hover {
+    background-color: var(--glass-bg);
+  }
+  /* Badge styles */
+  .cmd-badge {
+    border: 1px solid transparent;
+  }
+  .badge-setup   { background: color-mix(in srgb, #6b7280 12%, transparent); color: #9ca3af; border-color: color-mix(in srgb, #6b7280 20%, transparent); }
+  .badge-phase   { background: color-mix(in srgb, #3b82f6 12%, transparent); color: #60a5fa; border-color: color-mix(in srgb, #3b82f6 20%, transparent); }
+  .badge-execute { background: color-mix(in srgb, #22c55e 12%, transparent); color: #4ade80; border-color: color-mix(in srgb, #22c55e 20%, transparent); }
+  .badge-validate{ background: color-mix(in srgb, #a855f7 12%, transparent); color: #c084fc; border-color: color-mix(in srgb, #a855f7 20%, transparent); }
+  .badge-reflect { background: color-mix(in srgb, #f43f5e 12%, transparent); color: #fb7185; border-color: color-mix(in srgb, #f43f5e 20%, transparent); }
+  .badge-info    { background: color-mix(in srgb, #eab308 12%, transparent); color: #facc15; border-color: color-mix(in srgb, #eab308 20%, transparent); }
+  .badge-debug   { background: color-mix(in srgb, #ef4444 12%, transparent); color: #f87171; border-color: color-mix(in srgb, #ef4444 20%, transparent); }
+  .badge-plan    { background: color-mix(in srgb, #10b981 12%, transparent); color: #34d399; border-color: color-mix(in srgb, #10b981 20%, transparent); }
+  .badge-design  { background: color-mix(in srgb, #8b5cf6 12%, transparent); color: #a78bfa; border-color: color-mix(in srgb, #8b5cf6 20%, transparent); }
+
+  /* In light mode, darken the badge text colors for readability */
+  :global(:not(.dark)) .badge-setup   { color: #374151; }
+  :global(:not(.dark)) .badge-phase   { color: #1d4ed8; }
+  :global(:not(.dark)) .badge-execute { color: #15803d; }
+  :global(:not(.dark)) .badge-validate{ color: #7e22ce; }
+  :global(:not(.dark)) .badge-reflect { color: #be123c; }
+  :global(:not(.dark)) .badge-info    { color: #92400e; }
+  :global(:not(.dark)) .badge-debug   { color: #b91c1c; }
+  :global(:not(.dark)) .badge-plan    { color: #065f46; }
+  :global(:not(.dark)) .badge-design  { color: #5b21b6; }
+</style>

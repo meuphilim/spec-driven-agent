@@ -2,18 +2,23 @@ import { defineConfig } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
 
-// On Vercel: BASE_PATH is not set → serve from root '/'
-// On GitHub Pages: BASE_PATH='/spec-driven-agent/' is set via workflow env
-const isVercel = process.env.VERCEL === '1';
-const base = isVercel ? '/' : (process.env.BASE_PATH || '/spec-driven-agent/');
-const siteUrl = isVercel
-  ? (process.env.VERCEL_PROJECT_PRODUCTION_URL
-      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-      : 'https://spec-driven-agent.vercel.app')
-  : 'https://meuphilim.github.io';
+// Auto-detect the deploy target so the same codebase works on GitHub Pages
+// (subpath, fixed domain) and Vercel (root path, dynamic domain) without
+// requiring manual env var setup on either platform.
+const isVercel = Boolean(process.env.VERCEL);
+
+const base = process.env.BASE_PATH ?? (isVercel ? '/' : '/spec-driven-agent/');
+
+const site =
+  process.env.SITE_URL ??
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : 'https://meuphilim.github.io');
 
 export default defineConfig({
-  site: siteUrl,
+  site,
   base,
   output: 'static',
   integrations: [sitemap()],

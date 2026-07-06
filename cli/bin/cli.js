@@ -232,6 +232,9 @@ function init(targetDir) {
     const claudeSettingsPath = path.join(destDir, '.claude', 'settings.json');
     const hooksCfg = {
       hooks: {
+        SessionStart: [
+          { command: 'node', args: ['.claude/sda/hooks/auto-init.js'] }
+        ],
         PreToolUse: [
           { command: 'node', args: ['.claude/sda/hooks/pre-tool.js'] }
         ],

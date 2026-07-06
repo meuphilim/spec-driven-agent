@@ -1,34 +1,40 @@
 ---
 // LiveHeader.astro — Estado da sessão ativa em tempo real
 // Atualizado via SSE (cliente em sse.js). Fase ganha cor.
-// O cliente SSE atualiza o className da fase para o badge correto.
 ---
 
-<div class="metric-card" id="live-header">
-  <div class="section-title">Sess&atilde;o Ativa</div>
+<div class="metric-card card-enter" id="live-header">
+  <div class="section-title">Sessão Ativa</div>
 
   <div id="live-no-session" style="display: none;">
-    <p class="metric-sub">
-      Nenhuma sess&atilde;o ativa. Aguardando...
-    </p>
+    <div class="empty-state" style="padding: 1.25rem 0.5rem;">
+      <div class="empty-state-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--text-faint);">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 8v4l3 3"/>
+        </svg>
+      </div>
+      <p class="empty-state-title" style="font-size: 0.85rem;">Aguardando sessão</p>
+      <p class="empty-state-text">Inicie uma tarefa com <code style="background: var(--bg-muted); padding: 0.1rem 0.3rem; border-radius: 4px; font-size: 0.7rem;">sda</code> para ver dados ao vivo.</p>
+    </div>
   </div>
 
-  <div id="live-active" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
-    <div>
+  <div id="live-active" class="live-header-grid">
+    <div class="live-stat-item">
       <div class="metric-label">Fase</div>
       <div>
-        <span class="phase-badge phase-constitution" id="live-phase-badge">Constitui&ccedil;&atilde;o</span>
+        <span class="phase-badge phase-constitution" id="live-phase-badge">Constituição</span>
       </div>
     </div>
-    <div>
+    <div class="live-stat-item">
       <div class="metric-label">Turno</div>
-      <div class="metric-value" id="live-turn">&mdash;</div>
+      <div class="metric-value" style="font-size: 1.5rem;" id="live-turn">&mdash;</div>
     </div>
-    <div>
+    <div class="live-stat-item">
       <div class="metric-label">Spec</div>
       <div class="metric-sub" id="live-spec">&mdash;</div>
     </div>
-    <div>
+    <div class="live-stat-item">
       <div class="metric-label">GATEs</div>
       <div class="metric-sub" id="live-gates">&mdash;</div>
     </div>

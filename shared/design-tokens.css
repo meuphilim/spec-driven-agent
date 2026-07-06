@@ -46,12 +46,14 @@
   --text-invert:    #ffffff;
 
   /* Nav */
-  --nav-bg:         rgba(255,255,255,0.9);
-  --nav-border:     rgba(0,0,0,0.08);
+  --nav-bg:         rgba(255,255,255,0.88);
+  --nav-border:     rgba(0,0,0,0.07);
 
-  /* Glass card */
+  /* Glass card — Liquid Glass */
   --glass-bg:       rgba(255,255,255,0.7);
   --glass-border:   rgba(0,0,0,0.08);
+  --glass-refract:  rgba(255,255,255,0.6);
+  --glass-shadow:   inset 0 1px 0 rgba(255,255,255,0.6);
 
   /* Terminal */
   --term-bg:        #1e1e2e;
@@ -60,43 +62,57 @@
   /* Accent glows */
   --accent-glow:    rgba(132,204,22,0.12);
   --accent-glow-sm: rgba(132,204,22,0.06);
+
+  /* Transitions */
+  --ease-out-expo:  cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out:    cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-slow: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* ─── CSS Custom Properties — Dark ─────────────────────────── */
+/* ─── CSS Custom Properties — Dark (Pure Zinc) ──────────────── */
 .dark {
-  /* Backgrounds */
-  --bg-page:       #0a0a0a;
-  --bg-subtle:     #111111;
-  --bg-muted:      #161616;
-  --bg-elevated:   #0d0d10;
-  --bg-overlay:    rgba(10,10,10,0.85);
-  --bg-code:       #0d0d10;
+  /* Backgrounds — Zinc puros sem tom azulado */
+  --bg-page:       #09090b;
+  --bg-subtle:     #0f0f11;
+  --bg-muted:      #141416;
+  --bg-elevated:   #111113;
+  --bg-overlay:    rgba(9,9,11,0.88);
+  --bg-code:       #0c0c0e;
 
   /* Borders */
-  --border-default: rgba(255,255,255,0.1);
+  --border-default: rgba(255,255,255,0.09);
   --border-subtle:  rgba(255,255,255,0.05);
-  --border-strong:  rgba(255,255,255,0.18);
+  --border-strong:  rgba(255,255,255,0.16);
 
   /* Text */
-  --text-primary:   #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted:     #64748b;
-  --text-faint:     #334155;
-  --text-invert:    #0a0a0a;
+  --text-primary:   #fafafa;
+  --text-secondary: #a1a1aa;
+  --text-muted:     #71717a;
+  --text-faint:     #3f3f46;
+  --text-invert:    #09090b;
 
   /* Nav */
-  --nav-bg:         rgba(10,10,10,0.85);
-  --nav-border:     rgba(255,255,255,0.08);
+  --nav-bg:         rgba(9,9,11,0.82);
+  --nav-border:     rgba(255,255,255,0.07);
 
-  /* Glass card */
-  --glass-bg:       rgba(255,255,255,0.04);
+  /* Glass card — Liquid Glass refraction */
+  --glass-bg:       rgba(255,255,255,0.03);
   --glass-border:   rgba(255,255,255,0.08);
+  --glass-refract:  rgba(255,255,255,0.06);
+  --glass-shadow:   inset 0 1px 0 rgba(255,255,255,0.05);
 
   /* Terminal */
-  --term-bg:        #0d0d10;
-  --term-border:    rgba(255,255,255,0.06);
+  --term-bg:        #0c0c0e;
+  --term-border:    rgba(255,255,255,0.05);
 
   /* Accent glows */
   --accent-glow:    rgba(132,204,22,0.08);
   --accent-glow-sm: rgba(132,204,22,0.04);
+
+  /* Transitions */
+  --ease-out-expo:  cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out:    cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-slow: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }

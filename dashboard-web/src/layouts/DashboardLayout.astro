@@ -1,6 +1,6 @@
 ---
 // DashboardLayout.astro — Layout principal do dashboard web
-// Tema escuro fixo, navbar refinada, grid responsivo 2-col
+// Tema escuro fixo, navbar refinada com Liquid Glass, Bento Grid assimétrico
 import "../styles/global.css";
 ---
 
@@ -10,11 +10,12 @@ import "../styles/global.css";
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="dark" />
+    <meta name="description" content="Dashboard de métricas em tempo real do Spec-Driven Agent. Zero telemetria, dados locais." />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>Dashboard &mdash; Spec-Driven Agent</title>
+    <title>Dashboard — Spec-Driven Agent</title>
   </head>
   <body class="dark">
-    <!-- Navbar -->
+    <!-- Navbar — Liquid Glass -->
     <header class="navbar">
       <span class="navbar-brand">sda</span>
       <span class="navbar-divider"></span>
@@ -22,33 +23,74 @@ import "../styles/global.css";
       <span class="navbar-spacer"></span>
       <span class="navbar-indicator" id="live-indicator">
         <span class="live-dot"></span>
-        AO VIVO
+        ao vivo
       </span>
       <span class="navbar-badge">v5.2.0</span>
     </header>
 
-    <!-- Main content -->
-    <main style="
-      max-width: 1200px; margin: 0 auto;
-      padding: 1.5rem;
-      display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
-    ">
+    <!-- Main content — Bento Grid assimétrico -->
+    <main id="dash-main">
       <slot />
     </main>
 
     <!-- Footer -->
-    <footer style="
-      text-align: center; padding: 1.5rem 2rem 2.5rem;
-      font-family: var(--font-mono); font-size: 0.65rem;
-      color: var(--text-faint);
-      letter-spacing: 0.05em;
-    ">
-      Spec-Driven Agent &middot; Dados locais &middot; Zero telemetria
+    <footer id="dash-footer">
+      <span>Spec-Driven Agent</span>
+      <span class="footer-dot"></span>
+      <span>Dados locais</span>
+      <span class="footer-dot"></span>
+      <span>Zero telemetria</span>
     </footer>
 
     <style>
-      @media (max-width: 768px) {
-        main { grid-template-columns: 1fr !important; }
+      #dash-main {
+        max-width: 1320px;
+        margin: 0 auto;
+        padding: 1.5rem 1.5rem 0;
+        display: grid;
+        /* Bento assimétrico: coluna principal maior, painel lateral menor */
+        grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+        gap: 1rem;
+        align-items: start;
+      }
+
+      #dash-footer {
+        max-width: 1320px;
+        margin: 0 auto;
+        padding: 1.5rem 1.5rem 2.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-family: var(--font-mono);
+        font-size: 0.6rem;
+        color: var(--text-faint);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .footer-dot {
+        width: 2px;
+        height: 2px;
+        border-radius: 50%;
+        background-color: var(--text-faint);
+        opacity: 0.4;
+      }
+
+      @media (max-width: 900px) {
+        #dash-main {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 600px) {
+        #dash-main {
+          padding: 1rem 1rem 0;
+          gap: 0.75rem;
+        }
+
+        #dash-footer {
+          padding: 1rem 1rem 2rem;
+        }
       }
     </style>
   </body>

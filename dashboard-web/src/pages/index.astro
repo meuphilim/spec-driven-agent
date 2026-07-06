@@ -1,27 +1,27 @@
 ---
 // index.astro — Página única do dashboard
-// Fetch dos dados no build (static) + hidratação cliente via SSE
+// Layout Bento assimétrico: coluna principal (TokenChart + HistoryPanel + AgentsTable)
+// Painel lateral (LiveHeader + EconomyCard)
 import DashboardLayout from "../layouts/DashboardLayout.astro";
 import LiveHeader from "../components/LiveHeader.astro";
 import HistoryPanel from "../components/HistoryPanel.astro";
 import EconomyCard from "../components/EconomyCard.astro";
 import AgentsTable from "../components/AgentsTable.astro";
 import TokenChart from "../components/TokenChart.astro";
-import EmptyState from "../components/EmptyState.astro";
 ---
 
 <DashboardLayout>
-  <!-- Coluna da esquerda (ou única em mobile) -->
-  <section style="display: flex; flex-direction: column; gap: 1rem;">
-    <LiveHeader />
+  <!-- Coluna principal — dados ricos e histórico -->
+  <section class="main-col">
+    <TokenChart />
     <HistoryPanel />
     <AgentsTable />
   </section>
 
-  <!-- Coluna da direita -->
-  <section style="display: flex; flex-direction: column; gap: 1rem;">
+  <!-- Painel lateral — sessão ativa e economia -->
+  <section class="side-col">
+    <LiveHeader />
     <EconomyCard />
-    <TokenChart />
   </section>
 </DashboardLayout>
 
@@ -29,3 +29,27 @@ import EmptyState from "../components/EmptyState.astro";
 <script>
   import "../lib/sse.js";
 </script>
+
+<style>
+  .main-col,
+  .side-col {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  /* Painel lateral fica sticky em telas grandes */
+  .side-col {
+    position: sticky;
+    top: calc(52px + 1.5rem); /* altura da navbar + padding */
+    align-self: start;
+  }
+
+  @media (max-width: 900px) {
+    /* Em mobile, side-col vem primeiro (sessão ativa é prioritária) */
+    .side-col {
+      position: static;
+      order: -1;
+    }
+  }
+</style>

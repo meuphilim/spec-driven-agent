@@ -2,7 +2,8 @@
 /**
  * events-compact.js — Rotação e compactação de eventos JSONL
  *
- * Mantém eventos brutos por 90 dias. Após esse período:
+ * Mantém eventos brutos por 90 dias (formato mensal: events-YYYY-MM.jsonl).
+ * Após esse período:
  *   - Lê todas as linhas do mês
  *   - Agrega em snapshot mensal (monthly-YYYY-MM.snapshot.json)
  *   - Remove o JSONL bruto
@@ -44,15 +45,16 @@ function main() {
 
   console.log(`🔍 Compaction: compactando eventos anteriores a ${cutoffStr}`);
 
-  // ─── Para cada arquivo JSONL com data no nome ───
+  // ─── Para cada JSONL mensal (events-YYYY-MM.jsonl) ───
   const files = fs.readdirSync(METRICS_DIR)
-    .filter(f => /^events-\d{4}-\d{2}-\d{2}\.jsonl$/.test(f));
+    .filter(f => /^events-\d{4}-\d{2}\.jsonl$/.test(f));
 
   for (const file of files) {
-    const fileDate = file.slice(7, 17); // events-YYYY-MM-DD.jsonl → YYYY-MM-DD
+    const monthKey = file.slice(7, 14); // events-YYYY-MM.jsonl → YYYY-MM
+    const monthStart = monthKey + '-01'; // primeiro dia do mês para comparação
 
-    if (fileDate < cutoffStr) {
-      const monthKey = fileDate.slice(0, 7); // YYYY-MM
+    // Compacta se o mês inteiro está antes do cutoff
+    if (monthStart < cutoffStr) {
       const snapshotFile = path.join(METRICS_DIR, `monthly-${monthKey}.snapshot.json`);
       const filePath = path.join(METRICS_DIR, file);
 

@@ -154,6 +154,7 @@ function formatSessionState(state) {
   return {
     session_active: true,
     phase: state.phase || '—',
+    mode: state.mode || 'FULL',
     turn: state.turns?.current || 0,
     max_turns: state.turns?.max || 40,
     spec: state.active_spec || '—',

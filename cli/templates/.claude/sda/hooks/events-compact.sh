@@ -1,11 +1,13 @@
 #!/bin/bash
 # events-compact.sh — Rotação e compactação de eventos JSONL
 #
-# Mantém eventos brutos por 90 dias. Após esse período:
+# Mantém eventos brutos por 90 dias (formato mensal: events-YYYY-MM.jsonl).
+# Após esse período:
 #   - Lê todas as linhas do mês
 #   - Agrega em snapshot mensal (monthly-YYYY-MM.snapshot.json)
 #   - Remove o JSONL bruto
 #
+# ATENÇÃO: script legado (bash). O .js correspondente é o ativo.
 # Execução: 1x/dia (controlado por touch file em .last-compact)
 # Uso: bash hooks/events-compact.sh
 
@@ -46,20 +48,19 @@ echo "🔍 Compaction: compactando eventos anteriores a $CUTOFF"
 for f in "$METRICS_DIR"/events-*.jsonl; do
   [ -f "$f" ] || continue
 
-  # Extrair data do nome do arquivo
+  # Extrair data do nome do arquivo (formato mensal)
   BASENAME=$(basename "$f")
-  FILE_DATE="${BASENAME#events-}"
-  FILE_DATE="${FILE_DATE%.jsonl}"
+  MONTH_KEY="${BASENAME#events-}"
+  MONTH_KEY="${MONTH_KEY%.jsonl}"
 
-  # Verificar se é data válida
-  if [[ ! "$FILE_DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+  # Verificar se é mês válido (YYYY-MM)
+  if [[ ! "$MONTH_KEY" =~ ^[0-9]{4}-[0-9]{2}$ ]]; then
     continue
   fi
 
-  # Comparar datas (string comparison works for ISO dates)
-  if [[ "$FILE_DATE" < "$CUTOFF" ]]; then
-    # Extrair mês para o snapshot mensal
-    MONTH_KEY="${FILE_DATE:0:7}"  # YYYY-MM
+  # Compacta se o mês inteiro está antes do cutoff (compara YYYY-MM-01 com cutoff)
+  MONTH_START="${MONTH_KEY}-01"
+  if [[ "$MONTH_START" < "$CUTOFF" ]]; then
     SNAPSHOT_FILE="$METRICS_DIR/monthly-${MONTH_KEY}.snapshot.json"
 
     echo "  Compactando: $BASENAME → monthly-${MONTH_KEY}.snapshot.json"

@@ -482,10 +482,10 @@ function getSdaMetricsDir() {
   return path.join(process.cwd(), '.claude', 'sda', 'metrics');
 }
 
-function hooksInit(project) {
+function hooksInit(project, mode) {
   // Valida nome do projeto sem resolver como path absoluto
   if (!project || typeof project !== 'string' || project.trim().length === 0) {
-    logError('Usage: sda hooks init <project-name>');
+    logError('Usage: sda hooks init <project-name> [FULL|LITE]');
     process.exit(1);
   }
   // Mesma validação de sanitizePath mas sem path.resolve
@@ -494,6 +494,7 @@ function hooksInit(project) {
     process.exit(1);
   }
   const sanitized = project.trim();
+  const sessionMode = (mode || '').toUpperCase() === 'LITE' ? 'LITE' : 'FULL';
 
   const hooksDir = getSdaHooksDir();
   if (!fs.existsSync(hooksDir)) {
@@ -517,6 +518,7 @@ function hooksInit(project) {
       project: sanitized,
       started_at: now,
       phase: 'init',
+      mode: sessionMode,
       classify: {},
       turns: { current: 0, max: 40, limit_80_warned: false },
       gates: { spec: 'none', design: 'none', plan: 'none', validate: 'none', reflect: 'none' },
@@ -536,7 +538,7 @@ function hooksInit(project) {
       session_id: sessionId,
       project: sanitized,
       model: 'unknown',
-      mode: 'FULL'
+      mode: sessionMode
     };
     fs.mkdirSync(path.dirname(jsonlFile), { recursive: true });
     fs.appendFileSync(jsonlFile, JSON.stringify(event) + '\n');
@@ -563,6 +565,7 @@ function hooksStatus() {
     log(`  Session  : ${s.session_id || '—'}`,                             'white');
     log(`  Project  : ${s.project || '—'}`,                                'white');
     log(`  Phase    : ${s.phase}`,                                         'white');
+    log(`  Mode     : ${s.mode || 'FULL'}`,                                'white');
     log(`  Turns    : ${s.turns?.current}/${s.turns?.max}`,                'white');
     log(`  GATEs    : spec=${s.gates?.spec}, design=${s.gates?.design}, plan=${s.gates?.plan}, validate=${s.gates?.validate}, reflect=${s.gates?.reflect}`, 'white');
     log(`  Spec     : ${s.active_spec || 'none'}`,                         'white');
@@ -634,7 +637,7 @@ function showHelp() {
     log('  status               Show framework and session status', 'white');
     log('  metrics              Show usage metrics (tasks, turns, success rate)', 'white');
     log('  dashboard --web [p]  Start web dashboard on port (default 3333)', 'white');
-    log('  hooks init <proj>    Initialize a new session', 'white');
+    log('  hooks init <proj> [mode]  Initialize a new session (mode: FULL|LITE)', 'white');
     log('  hooks status         Show current session state', 'white');
     log('  hooks validate       Validate gate consistency', 'white');
     log('  help                 Show this message', 'white');
@@ -754,7 +757,7 @@ function main() {
     case 'help':     showHelp();       break;
     case 'hooks': {
       const sub = args[1];
-      if      (sub === 'init')     hooksInit(args[2]);
+      if      (sub === 'init')     hooksInit(args[2], args[3]);
       else if (sub === 'status')   hooksStatus();
       else if (sub === 'validate') hooksValidate();
       else {

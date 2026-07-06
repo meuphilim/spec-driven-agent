@@ -317,8 +317,9 @@ function init(targetDir) {
     log('  .opencode/hooks.json       ← hooks registrados (OpenCode)', 'white');
     log('');
     logInfo('Next steps:');
-    log('  1. Run `sda hooks init <project-name>` to start a session', 'white');
-    log('  2. Open project in Claude Code/OpenCode and use /context to begin', 'white');
+    log('  1. Open project in Claude Code/OpenCode — sessão inicia automaticamente!', 'white');
+    log('  2. Use /context para carregar constitution e começar', 'white');
+    log('  (ou rode manualmente: sda hooks init <project-name>)', 'white');
     log('');
     logInfo('Documentation: https://github.com/meuphilim/spec-driven-agent');
     log('');

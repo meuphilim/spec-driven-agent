@@ -229,12 +229,12 @@ function init(targetDir) {
     logSuccess('.claude/sda/hooks/ (Node.js + shell)');
 
     // ── Helper: monta entrada de hook no formato Claude Code ──────────────
-    function makeHookEntry(command) {
+    function makeHookEntry(command, options = {}) {
+      const handler = { type: 'command', command: command };
+      if (options.timeout) handler.timeout = options.timeout;
       return {
-        matcher: '',
-        hooks: [
-          { type: 'command', command: command }
-        ]
+        matcher: options.matcher !== undefined ? options.matcher : '',
+        hooks: [ handler ]
       };
     }
 
@@ -242,10 +242,11 @@ function init(targetDir) {
     const claudeSettingsPath = path.join(destDir, '.claude', 'settings.json');
     const hooksCfg = {
       hooks: {
-        SessionStart: [ makeHookEntry('node .claude/sda/hooks/auto-init.js') ],
-        PreToolUse:   [ makeHookEntry('node .claude/sda/hooks/pre-tool.js') ],
-        PostToolUse:  [ makeHookEntry('node .claude/sda/hooks/post-tool.js') ],
-        Stop:         [ makeHookEntry('node .claude/sda/hooks/stop.js') ]
+        SessionStart: [ makeHookEntry('node .claude/sda/hooks/auto-init.js', { timeout: 15 }) ],
+        PreToolUse:   [ makeHookEntry('node .claude/sda/hooks/pre-tool.js', { timeout: 5 }) ],
+        PostToolUse:  [ makeHookEntry('node .claude/sda/hooks/post-tool.js', { timeout: 5 }) ],
+        SubagentStop: [ makeHookEntry('node .claude/sda/hooks/subagent-stop.js', { timeout: 5 }) ],
+        Stop:         [ makeHookEntry('node .claude/sda/hooks/stop.js', { timeout: 5 }) ]
       }
     };
     // Só criar se não existir (nunca sobrescrever config do usuário)
@@ -314,7 +315,7 @@ function init(targetDir) {
     log('  .claude/sda/knowledge/     ← patterns, heuristics, antipatterns', 'white');
     log('  .claude/sda/specs/         ← task specifications', 'white');
     log('  .claude/sda/sessions/      ← session history', 'white');
-    log('  .claude/sda/hooks/         ← 7 scripts (Node.js + shell)', 'white');
+    log('  .claude/sda/hooks/         ← 6 scripts (Node.js)', 'white');
     log('  .claude/sda/agents/        ← Samantha agent', 'white');
     log('  .claude/settings.json      ← hooks registrados (Claude Code)', 'white');
     log('  .opencode/hooks.json       ← hooks registrados (OpenCode)', 'white');

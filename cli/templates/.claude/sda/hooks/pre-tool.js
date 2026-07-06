@@ -13,6 +13,29 @@
 
 const { readStdinJson, readState, writeState, appendEvent, getStateFile } = require('./_utils.js');
 
+/**
+ * Gera contexto acionável para Claude sobre como destravar o bloqueio.
+ * @param {string} phase
+ * @param {object} gates
+ * @returns {string}
+ */
+function getBlockContext(phase, gates) {
+  const ctx = [];
+  ctx.push(`Fase atual: ${phase}`);
+
+  if (gates.spec !== 'approved' && gates.spec !== 'skipped') {
+    ctx.push('Crie uma spec com /spec e obtenha aprovacao antes de continuar.');
+  }
+  if (gates.design !== 'approved' && gates.design !== 'skipped') {
+    ctx.push('Documente o design com /design e obtenha aprovacao antes de implementar.');
+  }
+  if (gates.plan !== 'approved') {
+    ctx.push('Crie um plano com /plan e obtenha confirmacao antes de executar.');
+  }
+
+  return ctx.join(' ');
+}
+
 function main() {
   const payload = readStdinJson();
   const toolName = payload.tool_name || process.argv[2] || 'unknown';
@@ -71,8 +94,18 @@ function main() {
   }
 
   if (blockReasons.length > 0) {
-    console.error('⛔ BLOQUEADO: ' + blockReasons.join(' | '));
-    process.exit(2);
+    // Retorna JSON com permissionDecision (formato oficial Claude Code)
+    // Em vez de exit(2) + stderr, que não dá contexto a Claude
+    const decision = {
+      hookSpecificOutput: {
+        hookEventName: 'PreToolUse',
+        permissionDecision: 'deny',
+        permissionDecisionReason: blockReasons.join(' | '),
+        additionalContext: getBlockContext(phase, gates)
+      }
+    };
+    console.log(JSON.stringify(decision));
+    process.exit(0);
   }
 
   // === LOG DO TURN ===

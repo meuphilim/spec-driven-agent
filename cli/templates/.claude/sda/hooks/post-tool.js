@@ -9,7 +9,7 @@
 
 'use strict';
 
-const { readStdinJson, appendEvent, appendHistory, getStateFile } = require('./_utils.js');
+const { readStdinJson, readState, writeState, appendEvent, appendHistory } = require('./_utils.js');
 const fs = require('fs');
 
 function main() {
@@ -20,17 +20,39 @@ function main() {
   const effort = payload.effort?.level || process.argv[4] || 'unknown';
 
   // Se state.json não existe, ignorar
-  if (!fs.existsSync(getStateFile())) {
+  const stateFile = getStateFile();
+  if (!fs.existsSync(stateFile)) {
     process.exit(0);
+  }
+
+  // ─── Auto-detecção de mode via effort.level ───
+  // No primeiro PostToolUse da sessão, detecta se o esforço é "low" (LITE)
+  // e atualiza state.mode se ainda não foi definido explicitamente
+  try {
+    const state = readState();
+    if (state && state.session_id) {
+      const currentMode = state.mode || 'FULL';
+      if (effort === 'low' && currentMode === 'FULL') {
+        state.mode = 'LITE';
+        writeState(state);
+        appendEvent({
+          event: 'mode_change',
+          mode: 'LITE',
+          effort: effort,
+          previous_mode: 'FULL'
+        });
+      }
+    }
+  } catch (_) {
+    // Ignora erro na detecção de mode — não crítico
   }
 
   const toolInput = payload.tool_input || {};
 
   // ─── Subagent tools (carregam dados de token) ───
-  // Claude Code: Agent, Subagent, Task
-  // OpenCode: Task, task, Subagent
-  // NOTA: TaskCreate/TaskUpdate são TODOs, NÃO subagentes
-  const SUBAGENT_TOOLS = new Set(['Agent', 'Subagent', 'Task', 'task']);
+  // Claude Code: Agent
+  // NOTA: apenas Claude Code é suportado neste hook
+  const SUBAGENT_TOOLS = new Set(['Agent', 'Subagent']);
   const isSubagent = SUBAGENT_TOOLS.has(toolName);
 
   if (!isSubagent) {
@@ -54,12 +76,25 @@ function main() {
 
     appendEvent(event);
   } else {
-    // ─── Agent/Task — contém dados de token do subagente ───
+    // ─── Agent — contém dados de token do subagente ───
     const toolResponse = payload.tool_response || {};
+    const agentStatus = toolResponse.status || '';
 
-    // Extrair tipo de agente: tool_input.subagent_type (Task) ou payload.subagent_type
+    // Só captura tokens quando o subagente completou (status "completed")
+    // Em "async_launched", o subagente ainda está rodando — tokens não disponíveis
+    if (agentStatus === 'async_launched') {
+      appendEvent({
+        event: 'agent_launch',
+        agent_id: toolResponse.agentId || '',
+        agent_type: toolInput.subagent_type || 'general',
+        effort: effort
+      });
+      appendHistory(`${toolName}:async_launched`);
+      process.exit(0);
+    }
+
+    // Extrair tipo de agente
     let agentType = toolInput.subagent_type || payload.subagent_type || '';
-    // Para Task tool sem subagent_type explícito, inferir do description
     if (!agentType && toolInput.description) {
       agentType = toolInput.description.includes('explore') ? 'explore' : 'general';
     }

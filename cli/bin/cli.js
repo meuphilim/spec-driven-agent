@@ -437,12 +437,22 @@ function getSdaHooksDir() {
   return path.join(process.cwd(), '.claude', 'sda', 'hooks');
 }
 
+function getSdaMetricsDir() {
+  return path.join(process.cwd(), '.claude', 'sda', 'metrics');
+}
+
 function hooksInit(project) {
-  const sanitized = sanitizePath(project);
-  if (!sanitized) {
+  // Valida nome do projeto sem resolver como path absoluto
+  if (!project || typeof project !== 'string' || project.trim().length === 0) {
     logError('Usage: sda hooks init <project-name>');
     process.exit(1);
   }
+  // Mesma validação de sanitizePath mas sem path.resolve
+  if (/[;&|`$(){}!<>#*?\[\]]/.test(project)) {
+    logError(`Invalid project name: "${project}"`);
+    process.exit(1);
+  }
+  const sanitized = project.trim();
 
   const hooksDir = getSdaHooksDir();
   if (!fs.existsSync(hooksDir)) {
@@ -451,10 +461,46 @@ function hooksInit(project) {
     process.exit(1);
   }
 
+  const metricsDir = getSdaMetricsDir();
+
   log('\n🔧 Initializing session...', 'bright');
+
   try {
-    const { execFileSync } = require('child_process');
-    execFileSync('bash', [path.join(hooksDir, 'init-session.sh'), sanitized], { stdio: 'inherit' });
+    const sessionId = new Date().toISOString().slice(0, 10) + '-' + sanitized;
+    const stateFile = path.join(hooksDir, 'state.json');
+    const now = new Date().toISOString();
+
+    // state.json (antes usava bash + jq, agora é Node.js puro)
+    const state = {
+      session_id: sessionId,
+      project: sanitized,
+      started_at: now,
+      phase: 'init',
+      classify: {},
+      turns: { current: 0, max: 40, limit_80_warned: false },
+      gates: { spec: 'none', design: 'none', plan: 'none', validate: 'none', reflect: 'none' },
+      active_spec: null,
+      scope_keywords: [],
+      session_file: null,
+      intentional_stop: false
+    };
+    fs.writeFileSync(stateFile, JSON.stringify(state, null, 2) + '\n');
+
+    // Evento session_start no JSONL
+    const month = new Date().toISOString().slice(0, 7); // YYYY-MM
+    const jsonlFile = path.join(metricsDir, `events-${month}.jsonl`);
+    const event = {
+      ts: now,
+      event: 'session_start',
+      session_id: sessionId,
+      project: sanitized,
+      model: 'unknown',
+      mode: 'FULL'
+    };
+    fs.mkdirSync(path.dirname(jsonlFile), { recursive: true });
+    fs.appendFileSync(jsonlFile, JSON.stringify(event) + '\n');
+
+    log(`✅ Sessão inicializada: ${sessionId}`, 'green');
   } catch (error) {
     logError(`Failed to initialize session: ${error.message}`);
     process.exit(1);

@@ -33,7 +33,10 @@ function copyRecursive(src, dest) {
     process.exit(1);
   }
 
-  // Cria destino se não existir
+  // Limpa destino antes de copiar (evita acumular assets obsoletos)
+  if (fs.existsSync(dest)) {
+    fs.rmSync(dest, { recursive: true, force: true });
+  }
   fs.mkdirSync(dest, { recursive: true });
 
   const entries = fs.readdirSync(src, { withFileTypes: true });

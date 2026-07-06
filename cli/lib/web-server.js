@@ -16,7 +16,7 @@
  *   - Bind 127.0.0.1 only (nunca exposto em rede)
  *   - Porta auto-incremento se ocupada (até +10)
  *   - SSE polling a cada 1s, só envia se state.json mudou
- *   - Access-Control-Allow-Origin: null (só local)
+ *   - Sem CORS (front-end e API são same-origin)
  */
 
 'use strict';
@@ -88,7 +88,7 @@ function handleSnapshot(res, metricsDir) {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
       empty: true,
-      message: 'No metrics data yet. Metrics appear after the first task completes.',
+      message: 'Nenhum dado de métricas ainda. As métricas aparecem após a primeira tarefa ser concluída.',
     }));
     return;
   }
@@ -107,7 +107,6 @@ function handleLiveSSE(res, statePath) {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
     'Connection': 'keep-alive',
-    'Access-Control-Allow-Origin': 'null',
   });
 
   let lastStateJson = '';
@@ -233,8 +232,8 @@ async function createServer(metricsDir, statePath, webDistDir, port = 3333) {
   }
 
   const requestHandler = (req, res) => {
-    // CORS headers (só local)
-    res.setHeader('Access-Control-Allow-Origin', 'null');
+    // Sem CORS — front-end e API são same-origin
+    // bind exclusivo em 127.0.0.1
 
     const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
     const pathname = url.pathname;

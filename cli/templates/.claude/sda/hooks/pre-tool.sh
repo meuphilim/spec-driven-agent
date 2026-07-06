@@ -14,6 +14,17 @@ STDIN_JSON=$(stdin_read)
 TOOL_NAME=$(echo "$STDIN_JSON" | $JQ -r '.tool_name // "'${1:-unknown}'"')
 EFFORT=$(echo "$STDIN_JSON" | $JQ -r '.effort.level // "unknown"')
 
+# ESCAPE HATCH: SDA_BYPASS_GATE
+if [ "${SDA_BYPASS_GATE:-}" = "true" ] || [ "${SDA_BYPASS_GATE:-}" = "1" ]; then
+  exit 0
+fi
+
+# WHITELIST: se o target da tool for state.json, permite sem gate
+TARGET_FILE=$(echo "$STDIN_JSON" | $JQ -r '.tool_input.filePath // .tool_input.path // ""')
+case "$TARGET_FILE" in
+  *state.json|*state.json) exit 0 ;;
+esac
+
 # Se state.json não existe, ignorar (primeira tool da sessão)
 [ ! -f "$STATE_FILE" ] && exit 0
 

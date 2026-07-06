@@ -95,7 +95,7 @@ json_build() {
   local IFS=", "
   local jq_filter="{ ${parts[*]} }"
 
-  "$JQ" -n "${jq_args[@]}" "$jq_filter" 2>/dev/null || echo ""
+  "$JQ" -c -n "${jq_args[@]}" "$jq_filter" 2>/dev/null || echo ""
 }
 
 # event_logger — Constrói e escreve evento padronizado no JSONL

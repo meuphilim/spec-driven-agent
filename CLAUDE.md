@@ -269,21 +269,26 @@ Toda sessão segue este padrão de output estruturado:
 
 ## SUBAGENTS (M6)
 
-Use subagents para manter o contexto principal leve:
+Use subagents (`task` tool) para manter o contexto principal leve e gerar métricas no dashboard:
 
-| Caso | Quando usar |
-|---|---|
-| Pesquisa longa | Leitura de >5 arquivos para mapear o projeto |
-| Análise paralela | Investigar 2+ hipóteses de debug simultaneamente |
-| Tarefa isolada | Geração de docs ou testes sem dependência do estado atual |
+| Caso | Quando usar | Tipo |
+|---|---|---|
+| Pesquisa longa | Mapear >5 arquivos, investigar código | `explore` |
+| Análise paralela | Investigar 2+ hipóteses de debug simultaneamente | `explore` |
+| Tarefa isolada | Geração de docs, testes ou scripts sem dependência do estado atual | `general` |
 
 **Protocolo:**
 ```
-1. Definir escopo exato do subagent (entrada + saída esperada)
-2. Subagent executa isoladamente
-3. Resultado retorna como contexto resumido para o agente principal
+1. Definir escopo exato no prompt (entrada + saída esperada)
+2. Subagent executa isoladamente via task (explore ou general)
+3. Resultado retorna como contexto resumido
 4. Agente principal nunca perde o fio do fluxo principal
 ```
+
+**Rastreamento:** o `post-tool.js` reconhece `Task` como subagent e captura:
+- Tokens consumidos (dashboard → "Tokens por Categoria")
+- Tipo e modelo do agente (dashboard → "Agentes & Modelos")
+- Tools usadas dentro do subagente
 
 Não use subagents para: tarefas que precisam do estado de sessão atual, decisões que requerem aprovação do usuário, ou escopo indefinido.
 

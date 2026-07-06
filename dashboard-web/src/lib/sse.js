@@ -60,6 +60,7 @@
   }
 
   function connect() {
+    let eventSource;
     try {
       eventSource = new EventSource('/api/live');
     } catch (e) {

@@ -28,6 +28,22 @@ function main() {
   const phase = state.phase || 'init';
   const gates = state.gates || {};
 
+  // === ESCAPE HATCH: SDA_BYPASS_GATE ===
+  // Define SDA_BYPASS_GATE=true no ambiente para desabilitar todas as validações
+  // Útil para emergências (ex.: deadlock) e debugging
+  if (process.env.SDA_BYPASS_GATE === 'true' || process.env.SDA_BYPASS_GATE === '1') {
+    process.exit(0);
+  }
+
+  // === WHITELIST: state.json pode sempre ser editado ===
+  // Previne deadlock: editar state.json para aprovar gates não deve ser bloqueado
+  // Detecta tanto caminhos com / (Unix) quanto \\ (Windows)
+  const toolInput = payload.tool_input || {};
+  const targetPath = (toolInput.filePath || toolInput.path || '').replace(/\\/g, '/');
+  if (targetPath.endsWith('/state.json') || targetPath.endsWith('state.json')) {
+    process.exit(0);
+  }
+
   // === VALIDAÇÃO DE GATES ===
   const blockReasons = [];
 

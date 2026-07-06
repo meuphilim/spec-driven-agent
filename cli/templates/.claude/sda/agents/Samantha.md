@@ -92,6 +92,30 @@ Invoca a skill correta em cada fase, verifica os GATEs de transição e garante 
 | Validate | Reflect | Review concluído + critérios verificados |
 | Reflect | — | Sessão registrada em `.sessions/` |
 
+## Orquestração de Subagentes (M6)
+
+Use subagents (Task tool) para delegar trabalho isolado e gerar métricas no dashboard:
+
+| Quando | O que delegar | Tipo de subagent |
+|---|---|---|
+| Pesquisa longa | Mapear >5 arquivos, investigar código | `explore` |
+| Análise paralela | 2+ hipóteses de debug simultâneas | `explore` |
+| Tarefa isolada | Geração de docs, testes, scripts sem dependência do estado atual | `general` |
+
+**Protocolo de delegação:**
+1. Defina escopo exato no prompt do subagent (entrada + saída esperada)
+2. Subagent executa isoladamente com `task` (tipo explore ou general)
+3. Resultado retorna como contexto resumido
+4. **Sempre capture e reporte** o resultado — não perca o fio do fluxo principal
+
+**Rastreamento:** o hook PostToolUse captura automaticamente:
+- `event: "agent"` no JSONL com tipo do agente e modelo
+- Tokens consumidos pelo subagente (total, input, output, cache)
+- Tools utilizadas dentro do subagente
+- Tudo isso aparece no dashboard em "Agentes & Modelos" e "Tokens por Categoria"
+
+**Restrições:** NÃO use subagents para tarefas que precisam do estado de sessão atual, decisões que requerem aprovação do usuário, ou escopo indefinido.
+
 ## Reference Files (consulte sob demanda)
 
 | File | When to load |

@@ -26,7 +26,14 @@ function main() {
 
   const toolInput = payload.tool_input || {};
 
-  if (toolName !== 'Agent' && toolName !== 'Subagent') {
+  // ─── Subagent tools (carregam dados de token) ───
+  // Claude Code: Agent, Subagent, Task
+  // OpenCode: Task, task, Subagent
+  // NOTA: TaskCreate/TaskUpdate são TODOs, NÃO subagentes
+  const SUBAGENT_TOOLS = new Set(['Agent', 'Subagent', 'Task', 'task']);
+  const isSubagent = SUBAGENT_TOOLS.has(toolName);
+
+  if (!isSubagent) {
     // ─── Tool comum (Read, Write, Edit, Bash, etc.) ───
     const filePath = toolInput.file_path || '';
     const command = toolInput.command || '';
@@ -47,32 +54,45 @@ function main() {
 
     appendEvent(event);
   } else {
-    // ─── Agent/Subagent — contém dados de token ───
+    // ─── Agent/Task — contém dados de token do subagente ───
     const toolResponse = payload.tool_response || {};
-    const agentType = toolInput.subagent_type || payload.subagent_type || 'general';
-    const responseStatus = toolResponse.status || 'completed';
-    const resolvedModel = toolResponse.resolvedModel || '';
-    const totalTokens = toolResponse.totalTokens;
+
+    // Extrair tipo de agente: tool_input.subagent_type (Task) ou payload.subagent_type
+    let agentType = toolInput.subagent_type || payload.subagent_type || '';
+    // Para Task tool sem subagent_type explícito, inferir do description
+    if (!agentType && toolInput.description) {
+      agentType = toolInput.description.includes('explore') ? 'explore' : 'general';
+    }
+    agentType = agentType || 'general';
+
+    const resolvedModel = toolResponse.resolvedModel || toolResponse.model || '';
+    const totalTokens = toolResponse.totalTokens || toolResponse.total_tokens;
 
     const event = {
       event: 'agent',
       agent_type: agentType,
       model: resolvedModel,
-      dur_ms: toolResponse.totalDurationMs || durationMs,
-      effort: effort
+      dur_ms: toolResponse.totalDurationMs || toolResponse.duration_ms || durationMs,
+      effort: effort,
+      tool_use_id: payload.tool_use_id || ''
     };
 
     if (totalTokens != null && totalTokens !== '') {
-      const usage = toolResponse.usage || {};
+      const usage = toolResponse.usage || toolResponse.token_usage || {};
       event.tokens = {
-        total: totalTokens,
-        input: usage.input_tokens || 0,
-        output: usage.output_tokens || 0,
-        cache_write: usage.cache_creation_input_tokens || 0,
-        cache_read: usage.cache_read_input_tokens || 0
+        total: parseInt(totalTokens, 10) || 0,
+        input: parseInt(usage.input_tokens || usage.input || 0, 10),
+        output: parseInt(usage.output_tokens || usage.output || 0, 10),
+        cache_write: parseInt(usage.cache_creation_input_tokens || usage.cache_write || 0, 10),
+        cache_read: parseInt(usage.cache_read_input_tokens || usage.cache_read || 0, 10)
       };
     } else {
       event.tokens = null;
+    }
+
+    // Contagem de tools usadas dentro do subagente
+    if (toolInput.tools && Array.isArray(toolInput.tools)) {
+      event.tool_count = toolInput.tools.length;
     }
 
     appendEvent(event);

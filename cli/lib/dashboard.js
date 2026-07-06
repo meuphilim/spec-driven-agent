@@ -62,7 +62,7 @@ function showSummary(metricsDir, days = 0) {
   }
 
   if (!snap || snap.tasks.total === 0) {
-    console.log(colorize('\n📊 No metrics data yet', 'yellow'));
+    console.log(colorize('\n📊 Nenhum dado de métricas ainda', 'yellow'));
     console.log(colorize('ℹ️  Metrics appear after the first task completes.', 'cyan'));
     console.log('');
     return;
@@ -164,7 +164,7 @@ function showJson(metricsDir, days = 0) {
  */
 function buildSnapshots(metricsDir) {
   if (!fs.existsSync(metricsDir)) {
-    console.log(colorize('📁 No metrics directory found. Run some tasks first.', 'yellow'));
+    console.log(colorize('📁 Diretório de métricas não encontrado. Execute algumas tarefas primeiro.', 'yellow'));
     return;
   }
   const result = events.buildSnapshots(metricsDir);

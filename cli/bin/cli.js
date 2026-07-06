@@ -25,6 +25,7 @@
 
 const fs   = require('fs');
 const path = require('path');
+const { exec } = require('child_process');
 
 const VERSION = require('../package.json').version;
 const { sanitizePath } = require('../lib/sanitize');
@@ -569,6 +570,27 @@ function showHelp() {
   log('');
 }
 
+// ─── Browser helper ───────────────────────────────────────────────────────────
+
+/**
+ * Tenta abrir o navegador padrão com a URL fornecida.
+ * Cross-platform: Windows (start), macOS (open), Linux (xdg-open).
+ * Falha silenciosamente se não for possível (sem travar o servidor).
+ * @param {string} url
+ */
+function openBrowser(url) {
+  const cmd = process.platform === 'win32' ? 'start ""' :
+              process.platform === 'darwin' ? 'open' :
+              'xdg-open';
+
+  exec(`${cmd} ${url}`, (err) => {
+    if (err) {
+      // Silencia o erro — o servidor continua rodando
+      // O usuário já viu a URL no terminal
+    }
+  });
+}
+
 // ─── Web Dashboard ────────────────────────────────────────────────────────────
 
 /**
@@ -590,6 +612,9 @@ async function startWebDashboard(port) {
     console.log(`  \x1b[36mServidor rodando em:\x1b[0m  \x1b[1m${url}\x1b[0m`);
     console.log(`  \x1b[36mPressione Ctrl+C para encerrar\x1b[0m`);
     console.log('');
+
+    // Tenta abrir o navegador automaticamente
+    openBrowser(url);
 
     // Keep-alive (Ctrl+C encerra)
     process.on('SIGINT', () => {

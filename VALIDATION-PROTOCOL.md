@@ -1,5 +1,7 @@
 # Protocolo de Validação — Modo LITE + Knowledge Base
 
+> 🌐 Read this documentation in [English](VALIDATION-PROTOCOL_en.md).
+
 **Objetivo:** Validar eficácia do Modo LITE e da Knowledge Base em uso real.
 
 ---

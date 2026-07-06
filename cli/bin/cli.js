@@ -647,10 +647,15 @@ function main() {
       // --days N
       const daysIdx = args.indexOf('--days');
       const days = (daysIdx >= 0 && args[daysIdx + 1]) ? parseInt(args[daysIdx + 1], 10) : 0;
-      // --web [port]
+      // --web [port] ou --web --port N
       const webIdx = args.indexOf('--web');
       if (webIdx >= 0) {
-        const port = args[webIdx + 1] && !args[webIdx + 1].startsWith('--') ? parseInt(args[webIdx + 1], 10) : 3333;
+        const portIdx = args.indexOf('--port');
+        const port = portIdx >= 0 && args[portIdx + 1]
+          ? parseInt(args[portIdx + 1], 10)
+          : (args[webIdx + 1] && !args[webIdx + 1].startsWith('--')
+            ? parseInt(args[webIdx + 1], 10)
+            : 3333);
         startWebDashboard(port);
         break;
       }

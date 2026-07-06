@@ -1,5 +1,7 @@
 # Metrics — Event Log & Snapshots
 
+> 🌐 Read this documentation in [English](README_en.md).
+
 Este diretório armazena dados de telemetria local do Spec-Driven Agent.
 
 ## Formato

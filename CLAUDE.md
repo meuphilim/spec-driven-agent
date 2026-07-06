@@ -1,5 +1,7 @@
 # CLAUDE.md — Spec-Driven Development (SDD) + Samantha Evolution Framework
 
+> 🌐 Read this documentation in [English](CLAUDE_en.md).
+
 > **Princípio:** nenhuma linha de código sem spec aprovada. Toda sessão gera conhecimento.
 > **Orquestrador:** `@.claude/sda/agents/Samantha.md` gerencia o ciclo SDD completo.
 

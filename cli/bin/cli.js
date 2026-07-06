@@ -228,22 +228,24 @@ function init(targetDir) {
 
     logSuccess('.claude/sda/hooks/ (Node.js + shell)');
 
+    // ── Helper: monta entrada de hook no formato Claude Code ──────────────
+    function makeHookEntry(command) {
+      return {
+        matcher: '',
+        hooks: [
+          { type: 'command', command: command }
+        ]
+      };
+    }
+
     // ── Auto-configurar hooks no Claude Code (settings.json) ──────────────
     const claudeSettingsPath = path.join(destDir, '.claude', 'settings.json');
     const hooksCfg = {
       hooks: {
-        SessionStart: [
-          { command: 'node', args: ['.claude/sda/hooks/auto-init.js'] }
-        ],
-        PreToolUse: [
-          { command: 'node', args: ['.claude/sda/hooks/pre-tool.js'] }
-        ],
-        PostToolUse: [
-          { command: 'node', args: ['.claude/sda/hooks/post-tool.js'] }
-        ],
-        Stop: [
-          { command: 'node', args: ['.claude/sda/hooks/stop.js'] }
-        ]
+        SessionStart: [ makeHookEntry('node .claude/sda/hooks/auto-init.js') ],
+        PreToolUse:   [ makeHookEntry('node .claude/sda/hooks/pre-tool.js') ],
+        PostToolUse:  [ makeHookEntry('node .claude/sda/hooks/post-tool.js') ],
+        Stop:         [ makeHookEntry('node .claude/sda/hooks/stop.js') ]
       }
     };
     // Só criar se não existir (nunca sobrescrever config do usuário)
@@ -261,6 +263,7 @@ function init(targetDir) {
       if (!fs.existsSync(opencodeHooksDir)) {
         fs.mkdirSync(opencodeHooksDir, { recursive: true });
       }
+      // OpenCode usa o mesmo formato (matcher + hooks) via opencode-claude-hooks
       fs.writeFileSync(opencodeHooksPath, JSON.stringify(hooksCfg.hooks, null, 2) + '\n');
       logSuccess('.opencode/hooks.json (hooks registrados)');
     } else {

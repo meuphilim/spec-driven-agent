@@ -1,0 +1,26 @@
+{
+  "PreToolUse": [
+    {
+      "command": "node",
+      "args": [
+        ".claude/sda/hooks/pre-tool.js"
+      ]
+    }
+  ],
+  "PostToolUse": [
+    {
+      "command": "node",
+      "args": [
+        ".claude/sda/hooks/post-tool.js"
+      ]
+    }
+  ],
+  "Stop": [
+    {
+      "command": "node",
+      "args": [
+        ".claude/sda/hooks/stop.js"
+      ]
+    }
+  ]
+}

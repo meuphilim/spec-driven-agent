@@ -228,6 +228,42 @@ function init(targetDir) {
 
     logSuccess('.claude/sda/hooks/ (7 scripts)');
 
+    // ── Auto-configurar hooks no Claude Code (settings.json) ──────────────
+    const claudeSettingsPath = path.join(destDir, '.claude', 'settings.json');
+    const hooksCfg = {
+      hooks: {
+        PreToolUse: [
+          { command: 'node', args: ['.claude/sda/hooks/pre-tool.js'] }
+        ],
+        PostToolUse: [
+          { command: 'node', args: ['.claude/sda/hooks/post-tool.js'] }
+        ],
+        Stop: [
+          { command: 'node', args: ['.claude/sda/hooks/stop.js'] }
+        ]
+      }
+    };
+    // Só criar se não existir (nunca sobrescrever config do usuário)
+    if (!fs.existsSync(claudeSettingsPath)) {
+      fs.writeFileSync(claudeSettingsPath, JSON.stringify(hooksCfg, null, 2) + '\n');
+      logSuccess('.claude/settings.json (hooks registrados)');
+    } else {
+      logInfo('.claude/settings.json already exists — skipped');
+    }
+
+    // ── Auto-configurar hooks no OpenCode (opencode/hooks.json) ──────────
+    const opencodeHooksDir = path.join(destDir, '.opencode');
+    const opencodeHooksPath = path.join(opencodeHooksDir, 'hooks.json');
+    if (!fs.existsSync(opencodeHooksPath)) {
+      if (!fs.existsSync(opencodeHooksDir)) {
+        fs.mkdirSync(opencodeHooksDir, { recursive: true });
+      }
+      fs.writeFileSync(opencodeHooksPath, JSON.stringify(hooksCfg.hooks, null, 2) + '\n');
+      logSuccess('.opencode/hooks.json (hooks registrados)');
+    } else {
+      logInfo('.opencode/hooks.json already exists — skipped');
+    }
+
     // agents (backup existing, then install fresh)
     const agentsDest = path.join(sdaRoot, 'agents');
     if (fs.existsSync(agentsDest)) {
@@ -272,16 +308,14 @@ function init(targetDir) {
     log('  .claude/sda/knowledge/     ← patterns, heuristics, antipatterns', 'white');
     log('  .claude/sda/specs/         ← task specifications', 'white');
     log('  .claude/sda/sessions/      ← session history', 'white');
-    log('  .claude/sda/hooks/         ← 7 bash scripts', 'white');
+    log('  .claude/sda/hooks/         ← 7 scripts (Node.js + shell)', 'white');
     log('  .claude/sda/agents/        ← Samantha agent', 'white');
+    log('  .claude/settings.json      ← hooks registrados (Claude Code)', 'white');
+    log('  .opencode/hooks.json       ← hooks registrados (OpenCode)', 'white');
     log('');
     logInfo('Next steps:');
-    log('  1. Register hooks in Claude Code settings.json:', 'white');
-    log('     PreToolUse  → bash .claude/sda/hooks/pre-tool.sh', 'white');
-    log('     PostToolUse → bash .claude/sda/hooks/post-tool.sh', 'white');
-    log('     Stop        → bash .claude/sda/hooks/stop.sh', 'white');
-    log('  2. Run `sda hooks init <project-name>` to start a session', 'white');
-    log('  3. Open project in Claude Code and use /context to begin', 'white');
+    log('  1. Run `sda hooks init <project-name>` to start a session', 'white');
+    log('  2. Open project in Claude Code/OpenCode and use /context to begin', 'white');
     log('');
     logInfo('Documentation: https://github.com/meuphilim/spec-driven-agent');
     log('');

@@ -1,101 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
-@theme {
-  --font-sans: 'Outfit', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
-  --color-accent-50: #f7fee7;
-  --color-accent-100: #ecfccb;
-  --color-accent-200: #d9f99d;
-  --color-accent-300: #bef264;
-  --color-accent-400: #a3e635;
-  --color-accent-500: #84cc16;
-  --color-accent-600: #65a30d;
-  --color-accent-700: #4d7c0f;
-  --color-accent-800: #3f6212;
-  --color-accent-900: #365314;
-  --color-accent-950: #1a2e05;
-  --animate-blink: blink 1s step-end infinite;
-}
-
-@custom-variant dark (&:where(.dark, .dark *));
-
-/* ─── Design tokens ──────────────────────────────────────────── */
-:root {
-  /* Backgrounds */
-  --bg-page:       #ffffff;
-  --bg-subtle:     #f8fafc;
-  --bg-muted:      #f1f5f9;
-  --bg-elevated:   #ffffff;
-  --bg-overlay:    rgba(255,255,255,0.85);
-  --bg-code:       #1e1e2e;
-
-  /* Borders */
-  --border-default: rgba(0,0,0,0.08);
-  --border-subtle:  rgba(0,0,0,0.05);
-  --border-strong:  rgba(0,0,0,0.15);
-
-  /* Text */
-  --text-primary:   #0f172a;
-  --text-secondary: #475569;
-  --text-muted:     #94a3b8;
-  --text-faint:     #cbd5e1;
-  --text-invert:    #ffffff;
-
-  /* Nav */
-  --nav-bg:         rgba(255,255,255,0.9);
-  --nav-border:     rgba(0,0,0,0.08);
-
-  /* Glass card */
-  --glass-bg:       rgba(255,255,255,0.7);
-  --glass-border:   rgba(0,0,0,0.08);
-
-  /* Terminal */
-  --term-bg:        #1e1e2e;
-  --term-border:    rgba(0,0,0,0.1);
-
-  /* Accent glows */
-  --accent-glow:    rgba(132,204,22,0.12);
-  --accent-glow-sm: rgba(132,204,22,0.06);
-}
-
-.dark {
-  /* Backgrounds */
-  --bg-page:       #0a0a0a;
-  --bg-subtle:     #111111;
-  --bg-muted:      #161616;
-  --bg-elevated:   #0d0d10;
-  --bg-overlay:    rgba(10,10,10,0.85);
-  --bg-code:       #0d0d10;
-
-  /* Borders */
-  --border-default: rgba(255,255,255,0.1);
-  --border-subtle:  rgba(255,255,255,0.05);
-  --border-strong:  rgba(255,255,255,0.18);
-
-  /* Text */
-  --text-primary:   #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted:     #64748b;
-  --text-faint:     #334155;
-  --text-invert:    #0a0a0a;
-
-  /* Nav */
-  --nav-bg:         rgba(10,10,10,0.85);
-  --nav-border:     rgba(255,255,255,0.08);
-
-  /* Glass card */
-  --glass-bg:       rgba(255,255,255,0.04);
-  --glass-border:   rgba(255,255,255,0.08);
-
-  /* Terminal */
-  --term-bg:        #0d0d10;
-  --term-border:    rgba(255,255,255,0.06);
-
-  /* Accent glows */
-  --accent-glow:    rgba(132,204,22,0.08);
-  --accent-glow-sm: rgba(132,204,22,0.04);
-}
+/* ─── Design tokens compartilhados ────────────────────────── */
+@import "../../../shared/design-tokens.css";
 
 /* ─── Base ───────────────────────────────────────────────────── */
 @layer base {
@@ -123,7 +30,7 @@
   }
 }
 
-/* ─── Components ─────────────────────────────────────────────── */
+/* ─── Site-specific Components ──────────────────────────────── */
 @layer components {
   /* Glass card using CSS vars — works in both themes */
   .glass-card {

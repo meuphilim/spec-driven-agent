@@ -44,10 +44,17 @@ etc/*.bak-*
 site/node_modules/
 site/dist/
 
+# Dashboard web (isolated — build only in CI)
+dashboard-web/node_modules/
+dashboard-web/dist/
+
 # Build output
 dist/
 build/
 out/
+
+# Web dashboard assets (gerado só no CI pelo release.yml)
+cli/web-dist/
 
 # Coverage
 coverage/

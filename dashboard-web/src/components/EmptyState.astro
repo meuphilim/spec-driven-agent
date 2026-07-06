@@ -1,0 +1,19 @@
+---
+// EmptyState.astro — Exibido quando não há dados de métricas
+// Versão refinada: ilustração + call to action
+// Usado como fallback quando o snapshot está vazio na página
+---
+
+<div class="metric-card">
+  <div class="section-title">Dashboard</div>
+
+  <div class="empty-state">
+    <div class="empty-state-icon">&#x1F4CA;</div>
+    <div class="empty-state-title">Nenhum dado de m&eacute;tricas</div>
+    <div class="empty-state-text">
+      M&eacute;tricas aparecem ap&oacute;s a primeira tarefa ser conclu&iacute;da.
+      Execute <code style="color: var(--text-secondary);">sda dashboard</code> no terminal
+      ap&oacute;s algumas tarefas para ver os dados.
+    </div>
+  </div>
+</div>

@@ -147,6 +147,14 @@ jobs:
       - name: Upgrade npm for OIDC support
         run: npm install -g npm@latest
 
+      - name: Build web dashboard assets
+        run: |
+          cd dashboard-web
+          npm ci
+          npm run build
+          cd ..
+          node scripts/copy-web-dist.js
+
       - name: Publish to npm (trusted publishing / OIDC)
         run: |
           cd cli

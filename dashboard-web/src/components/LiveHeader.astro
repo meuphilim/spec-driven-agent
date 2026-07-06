@@ -1,0 +1,36 @@
+---
+// LiveHeader.astro — Estado da sessão ativa em tempo real
+// Atualizado via SSE (cliente em sse.js). Fase ganha cor.
+// O cliente SSE atualiza o className da fase para o badge correto.
+---
+
+<div class="metric-card" id="live-header">
+  <div class="section-title">Sess&atilde;o Ativa</div>
+
+  <div id="live-no-session" style="display: none;">
+    <p class="metric-sub">
+      Nenhuma sess&atilde;o ativa. Aguardando...
+    </p>
+  </div>
+
+  <div id="live-active" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+    <div>
+      <div class="metric-label">Fase</div>
+      <div>
+        <span class="phase-badge phase-constitution" id="live-phase-badge">Constitui&ccedil;&atilde;o</span>
+      </div>
+    </div>
+    <div>
+      <div class="metric-label">Turno</div>
+      <div class="metric-value" id="live-turn">&mdash;</div>
+    </div>
+    <div>
+      <div class="metric-label">Spec</div>
+      <div class="metric-sub" id="live-spec">&mdash;</div>
+    </div>
+    <div>
+      <div class="metric-label">GATEs</div>
+      <div class="metric-sub" id="live-gates">&mdash;</div>
+    </div>
+  </div>
+</div>

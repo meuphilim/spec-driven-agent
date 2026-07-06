@@ -1,0 +1,84 @@
+---
+// EconomyCard.astro — Economia LITE vs FULL com barra de progresso
+// Dados do snapshot (/api/snapshot), fetch no cliente
+---
+
+<div class="metric-card">
+  <div class="section-title">Economia LITE vs FULL</div>
+
+  <div id="economy-content">
+    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+      <span class="skeleton-text"></span>
+      <span class="skeleton-text short"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+(async function() {
+  const el = document.getElementById('economy-content');
+  if (!el) return;
+
+  try {
+    const res = await fetch('/api/snapshot');
+    const snap = await res.json();
+    const econ = snap.economy;
+
+    if (!econ || !econ.available) {
+      el.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">&#x1F4B0;</div>
+          <div class="empty-state-title">Economia indispon&iacute;vel</div>
+          <div class="empty-state-text">${econ ? econ.note : 'Execute tarefas em ambos os modos (LITE e FULL) para gerar baseline.'}</div>
+        </div>`;
+      return;
+    }
+
+    // Calcula a % de economia para a barra
+    const savingsPct = Math.min(econ.savings_pct || 0, 100);
+
+    el.innerHTML = `
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+        <div>
+          <div class="metric-label">Tokens LITE</div>
+          <div class="metric-value">${econ.lite_tokens.toLocaleString('pt-BR')}</div>
+          <div class="metric-sub" style="margin-top: 0.15rem;">
+            ${econ.lite_tasks} tarefas &middot; ${econ.lite_agent_calls} chamadas
+          </div>
+        </div>
+        <div>
+          <div class="metric-label">Baseline FULL</div>
+          <div class="metric-value">${econ.full_baseline_per_agent.toLocaleString('pt-BR')}</div>
+          <div class="metric-sub" style="margin-top: 0.15rem;">
+            ${econ.full_tasks} tarefas &middot; ${econ.full_agent_calls} chamadas &middot; m&eacute;dia/agent
+          </div>
+        </div>
+      </div>
+
+      <div class="economy-bar">
+        <div class="economy-row">
+          <span class="economy-label">Estimado se FULL</span>
+          <span class="economy-value">${econ.estimated_full_tokens.toLocaleString('pt-BR')} tokens</span>
+        </div>
+        <div class="economy-row" style="margin-top: 0.35rem;">
+          <span class="economy-saved-label">Economia</span>
+          <span class="economy-saved-value">${econ.saved_tokens.toLocaleString('pt-BR')} tokens (${econ.savings_pct}%)</span>
+        </div>
+        <div class="economy-progress">
+          <div class="economy-progress-fill" style="width: ${savingsPct}%;"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-top: 0.25rem; font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-faint);">
+          <span>0%</span>
+          <span>${econ.savings_pct}% economizado</span>
+          <span>100%</span>
+        </div>
+      </div>
+    `;
+
+  } catch (e) {
+    el.innerHTML = `<p style="color: #ef4444; font-family: var(--font-mono); font-size: 0.8rem; padding: 0.5rem 0;">
+      Erro ao carregar economia.
+    </p>`;
+  }
+})();
+</script>

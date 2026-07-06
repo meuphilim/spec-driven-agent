@@ -29,6 +29,7 @@ const path = require('path');
 const VERSION = require('../package.json').version;
 const { sanitizePath } = require('../lib/sanitize');
 const { dashboard } = require('../lib/dashboard');
+const { createServer } = require('../lib/web-server');
 
 // Marca scripts .sh como executáveis usando fs.chmodSync (sem shell,
 // portanto sem risco de injeção de comando via path). No-op silencioso
@@ -544,6 +545,7 @@ function showHelp() {
     log('  update               Update CLAUDE.md, skills, knowledge, hooks, agents', 'white');
     log('  status               Show framework and session status', 'white');
     log('  metrics              Show usage metrics (tasks, turns, success rate)', 'white');
+    log('  dashboard --web [p]  Start web dashboard on port (default 3333)', 'white');
     log('  hooks init <proj>    Initialize a new session', 'white');
     log('  hooks status         Show current session state', 'white');
     log('  hooks validate       Validate gate consistency', 'white');
@@ -567,6 +569,39 @@ function showHelp() {
   log('');
 }
 
+// ─── Web Dashboard ────────────────────────────────────────────────────────────
+
+/**
+ * Inicia o servidor HTTP do dashboard web.
+ * @param {number} port - Porta inicial (auto-incrementa se ocupada)
+ */
+async function startWebDashboard(port) {
+  const cwd = process.cwd();
+  const metricsDir = path.join(cwd, '.claude', 'sda', 'metrics');
+  const statePath = path.join(cwd, '.claude', 'sda', 'hooks', 'state.json');
+  const webDistDir = path.join(__dirname, '..', 'web-dist');
+
+  console.log('');
+  console.log('\x1b[1m📊 Dashboard Web\x1b[0m');
+  console.log('');
+
+  try {
+    const { url } = await createServer(metricsDir, statePath, webDistDir, port);
+    console.log(`  \x1b[36mServidor rodando em:\x1b[0m  \x1b[1m${url}\x1b[0m`);
+    console.log(`  \x1b[36mPressione Ctrl+C para encerrar\x1b[0m`);
+    console.log('');
+
+    // Keep-alive (Ctrl+C encerra)
+    process.on('SIGINT', () => {
+      console.log('\n\x1b[32m✅ Dashboard web encerrado.\x1b[0m');
+      process.exit(0);
+    });
+  } catch (err) {
+    console.error(`\x1b[31m❌ ${err.message}\x1b[0m`);
+    process.exit(1);
+  }
+}
+
 // ─── main ─────────────────────────────────────────────────────────────────────
 
 function main() {
@@ -587,6 +622,13 @@ function main() {
       // --days N
       const daysIdx = args.indexOf('--days');
       const days = (daysIdx >= 0 && args[daysIdx + 1]) ? parseInt(args[daysIdx + 1], 10) : 0;
+      // --web [port]
+      const webIdx = args.indexOf('--web');
+      if (webIdx >= 0) {
+        const port = args[webIdx + 1] && !args[webIdx + 1].startsWith('--') ? parseInt(args[webIdx + 1], 10) : 3333;
+        startWebDashboard(port);
+        break;
+      }
       // Extrair subcomando ignorando flags
       const subcmd = sub && !sub.startsWith('--') ? sub : 'summary';
       dashboard(subcmd, process.cwd(), days);

@@ -1,0 +1,22 @@
+{
+  "name": "sda-dashboard-web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Dashboard web for Spec-Driven Agent metrics",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "astro": "^5.0.0",
+    "tailwindcss": "^4.0.0",
+    "chart.js": "^4.4.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

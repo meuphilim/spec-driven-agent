@@ -10,6 +10,7 @@
   "scripts": {
     "test": "node test.js",
     "lint": "echo 'No lint configured'",
+    "build:web": "cd ../dashboard-web && npm ci && npm run build && cd ../cli && node ../scripts/copy-web-dist.js",
     "prepublishOnly": "node -e \"require('fs').copyFileSync('../README.md','README.md');require('fs').copyFileSync('../LICENSE','LICENSE')\""
   },
   "keywords": [
@@ -49,6 +50,7 @@
     "bin/",
     "lib/",
     "templates/",
+    "web-dist/",
     "index.js",
     "README.md",
     "LICENSE"

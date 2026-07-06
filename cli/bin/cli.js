@@ -226,7 +226,7 @@ function init(targetDir) {
     // Make scripts executable (Unix / WSL / Git Bash)
     makeScriptsExecutable(hooksDest);
 
-    logSuccess('.claude/sda/hooks/ (7 scripts)');
+    logSuccess('.claude/sda/hooks/ (Node.js + shell)');
 
     // ── Auto-configurar hooks no Claude Code (settings.json) ──────────────
     const claudeSettingsPath = path.join(destDir, '.claude', 'settings.json');

@@ -9,7 +9,7 @@
 
 'use strict';
 
-const { readStdinJson, readState, writeState, appendEvent, appendHistory } = require('./_utils.js');
+const { readStdinJson, readState, writeState, appendEvent, appendHistory, getStateFile } = require('./_utils.js');
 const fs = require('fs');
 
 function main() {

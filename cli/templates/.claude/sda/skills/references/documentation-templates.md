@@ -92,6 +92,9 @@ Use NextAuth with the Prisma adapter and database-backed sessions.
 
 Why ADRs matter: six months later nobody remembers *why* database sessions were chosen over JWT. The code doesn't explain itself — the ADR does.
 
+### SDD Integration
+No `docs/adr/` directory exists yet — the SDD framework provides the `/adr` skill for lifecycle management: `/adr create`, `/adr list`, `/adr NNNN`, `/adr search <term>`, `/adr status NNNN <status>`. ADR creation is triggered at the DESIGN phase. For the skill definition, see `.claude/sda/skills/adr.md`.
+
 ---
 
 ## 3. CHANGELOG Format (Keep a Changelog + SemVer)

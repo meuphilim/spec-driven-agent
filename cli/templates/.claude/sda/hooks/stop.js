@@ -9,7 +9,7 @@
 
 'use strict';
 
-const { readState, appendEvent, saveSessionFile, getStateFile } = require('./_utils.js');
+const { readState, writeState, appendEvent, saveSessionFile, getStateFile } = require('./_utils.js');
 const fs = require('fs');
 
 function main() {
@@ -30,6 +30,22 @@ function main() {
     console.log(`⚠️ SESSÃO INTERROMPIDA — Fase: ${phase} (turn ${current})`);
     console.log('📋 Execute /reflect antes de encerrar');
   }
+
+  // ─── Task event (auto-tracked a cada Stop para o dashboard) ───
+  const now = new Date();
+  const prevTs = state._last_stop_ts ? new Date(state._last_stop_ts).getTime() : null;
+  const dur_s = prevTs ? Math.round((now.getTime() - prevTs) / 1000) : 0;
+
+  appendEvent({
+    event: 'task',
+    skill: phase,
+    spec: state.active_spec || '—',
+    success: true,
+    dur_s: dur_s
+  });
+
+  state._last_stop_ts = now.toISOString();
+  writeState(state);
 
   // Escrever evento session_end no JSONL
   appendEvent({

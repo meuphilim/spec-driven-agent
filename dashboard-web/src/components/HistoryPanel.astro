@@ -24,7 +24,13 @@
     const res = await fetch('/api/snapshot');
     const snap = await res.json();
 
-    if (snap.empty || !snap.tasks || snap.tasks.total === 0) {
+    const hasAnyData = snap && !snap.empty && (
+      (snap.tasks && snap.tasks.total > 0) ||
+      (snap.sessions || 0) > 0 ||
+      Object.keys(snap.skills || {}).length > 0
+    );
+
+    if (!hasAnyData) {
       el.innerHTML = `
         <div class="empty-state" style="padding: 2rem 0.5rem;">
           <div class="empty-state-icon">

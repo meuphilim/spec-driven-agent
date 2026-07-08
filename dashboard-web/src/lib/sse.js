@@ -12,6 +12,7 @@
   const SPEC_EL       = document.getElementById('live-spec');
   const GATES_EL      = document.getElementById('live-gates');
   const NO_SESSION    = document.getElementById('live-no-session');
+  const LIVE_ACTIVE   = document.getElementById('live-active');
 
   // Mapeia fase → classe CSS do badge
   const PHASE_CLASSES = {
@@ -74,6 +75,7 @@
 
         if (!data.session_active) {
           if (NO_SESSION) NO_SESSION.style.display = 'block';
+          if (LIVE_ACTIVE) LIVE_ACTIVE.style.display = 'none';
           updateIndicator(false);
           updatePhase(null);
           if (TURN_EL)  TURN_EL.textContent = '—';
@@ -83,6 +85,7 @@
         }
 
         if (NO_SESSION) NO_SESSION.style.display = 'none';
+        if (LIVE_ACTIVE) LIVE_ACTIVE.style.display = '';
         updateIndicator(true);
 
         // Fase com badge colorido
@@ -116,6 +119,7 @@
       // Reconecta automaticamente (EventSource faz isso nativamente)
       updateIndicator(false);
       if (NO_SESSION) NO_SESSION.style.display = 'block';
+      if (LIVE_ACTIVE) LIVE_ACTIVE.style.display = 'none';
     };
   }
 

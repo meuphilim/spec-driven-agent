@@ -102,9 +102,9 @@ async function main() {
     assert('GET /api/live is text/event-stream', liveResp.headers['content-type'] && liveResp.headers['content-type'].startsWith('text/event-stream'));
     assert('GET /api/live has SSE data', liveResp.body.startsWith('data: '));
 
-    // 5. CORS headers
+    // 5. No CORS headers (intencional — same-origin, bind 127.0.0.1)
     const corsResp = await fetch(url + '/api/snapshot');
-    assert('CORS header present', corsResp.headers['access-control-allow-origin'] === 'null');
+    assert('No CORS headers (same-origin)', !corsResp.headers['access-control-allow-origin']);
 
     // 6. 404 for unknown file
     const notFoundResp = await fetch(url + '/nonexistent-file.xyz');

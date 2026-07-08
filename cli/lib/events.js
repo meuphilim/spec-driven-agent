@@ -15,6 +15,7 @@
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
+const pricing = require('./pricing');
 
 const SNAPSHOT_DIR = 'snapshots';
 
@@ -216,10 +217,29 @@ function aggregateSnapshot(rawEvents) {
   // Agentes/modelos
   const agentTypes = {};
   const models = {};
+  // Custo estimado em USD por modelo (só quando o evento tem tokens e model).
+  const costByModel = {};
+  let costTotalUsd = 0;
+  let costHasEstimate = false;
   for (const a of agents) {
     if (a.agent_type) agentTypes[a.agent_type] = (agentTypes[a.agent_type] || 0) + 1;
     if (a.model) models[a.model] = (models[a.model] || 0) + 1;
+
+    if (a.model && a.tokens) {
+      const { usd, estimated } = pricing.costFor(a.model, {
+        input: a.tokens.input,
+        output: a.tokens.output,
+        cache_write: a.tokens.cache_write,
+        cache_read: a.tokens.cache_read,
+      });
+      if (usd != null) {
+        costByModel[a.model] = Math.round(((costByModel[a.model] || 0) + usd) * 1e6) / 1e6;
+        costTotalUsd += usd;
+        if (estimated) costHasEstimate = true;
+      }
+    }
   }
+  costTotalUsd = Math.round(costTotalUsd * 1e6) / 1e6;
 
   // Modos (contagem de sessões)
   const modes = {};
@@ -261,6 +281,11 @@ function aggregateSnapshot(rawEvents) {
     skills,
     agents: agentTypes,
     models,
+    cost: {
+      total_usd: costTotalUsd,
+      by_model: costByModel,
+      has_estimate: costHasEstimate, // true se algum $ veio de fallback por tier, não da tabela exata
+    },
     time_spent_s: timeSpentS,
     gates: gateStats,
     economy,
@@ -389,7 +414,7 @@ function isSnapshotFresh(metricsDir) {
     const snapMtime = fs.statSync(snapPath).mtimeMs;
     for (const jf of jsonlFiles) {
       if (fs.statSync(jf).mtimeMs > snapMtime) {
-        return false; // JSONL mais novo que snapshot → stale
+        return false; // JSONL mais novo que snapshot -> stale
       }
     }
     return true;
@@ -439,6 +464,26 @@ function readSnapshot(metricsDir, type, key) {
   }
 }
 
+/**
+ * Indica se o snapshot tem QUALQUER dado útil pra exibir — não só tasks
+ * concluídas. `tasks` só populam ao final de uma tarefa (post-task.js);
+ * `agents`/`tokens`/`sessions` já existem durante a sessão. Usar apenas
+ * `tasks.total` como gate de "vazio" esconde tokens/agentes/custo reais
+ * enquanto a primeira tarefa ainda não terminou.
+ * @param {object|null} snap
+ * @returns {boolean}
+ */
+function hasData(snap) {
+  if (!snap) return false;
+  return (
+    (snap.tasks?.total || 0) > 0 ||
+    (snap.sessions || 0) > 0 ||
+    Object.keys(snap.agents || {}).length > 0 ||
+    Object.keys(snap.models || {}).length > 0 ||
+    (snap.tokens?.total || 0) > 0
+  );
+}
+
 module.exports = {
   readJsonlFile,
   listJsonlFiles,
@@ -450,4 +495,5 @@ module.exports = {
   buildSnapshots,
   readSnapshot,
   isSnapshotFresh,
+  hasData,
 };

@@ -84,7 +84,7 @@ function handleSnapshot(res, metricsDir) {
     }
   }
 
-  if (!snap || !snap.tasks || snap.tasks.total === 0) {
+  if (!events.hasData(snap)) {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
       empty: true,
@@ -173,9 +173,20 @@ function formatSessionState(state) {
  * @param {string} urlPath
  * @param {string} webDistDir
  */
-function handleStatic(res, urlPath, webDistDir) {
-  // Sanitize: prevenir path traversal
-  const safePath = path.normalize(urlPath).replace(/^[/\\]?(\.\.)[/\\]/, '');
+function handleStatic(res, rawUrlPath, rawWebDistDir) {
+  // Normaliza webDistDir para separadores nativos (crítico no Windows:
+  // rawWebDistDir pode vir com / (ex: 'D:/...') mas path.join(path, sub)
+  // produz \, fazendo startsWith falhar).
+  const webDistDir = path.resolve(rawWebDistDir);
+
+  // Sanitize: prevenir path traversal. No Windows, path.normalize('/')
+  // retorna '\\' (raiz do drive), então removemos qualquer leading / ou \.
+  let safePath = path.normalize(rawUrlPath).replace(/^[/\\]+/, '');
+  if (safePath.startsWith('..') || safePath.includes('..' + path.sep)) {
+    res.writeHead(403);
+    res.end('Forbidden');
+    return;
+  }
   const filePath = path.join(webDistDir, safePath);
 
   // Verifica se está dentro de webDistDir
@@ -186,7 +197,7 @@ function handleStatic(res, urlPath, webDistDir) {
   }
 
   if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
-    // Fallback: tenta index.html (para SPA-like)
+    // Fallback: index.html
     const fallback = path.join(filePath, 'index.html');
     if (fs.existsSync(fallback)) {
       const ext = path.extname(fallback);

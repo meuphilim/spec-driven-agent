@@ -173,7 +173,7 @@ test('showSummary handles no data gracefully', () => {
 
   console.log = originalLog;
 
-  assert(output.includes('No metrics'), 'Should say no metrics');
+  assert(output.includes('Nenhum dado'), 'Should say no metrics');
 
   fs.rmSync(emptyDir, { recursive: true, force: true });
 });

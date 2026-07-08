@@ -61,7 +61,7 @@ function showSummary(metricsDir, days = 0) {
     snap = built.total;
   }
 
-  if (!snap || snap.tasks.total === 0) {
+  if (!events.hasData(snap)) {
     console.log(colorize('\n📊 Nenhum dado de métricas ainda', 'yellow'));
     console.log(colorize('ℹ️  Metrics appear after the first task completes.', 'cyan'));
     console.log('');
@@ -89,6 +89,10 @@ function showSummary(metricsDir, days = 0) {
     console.log(colorize(`  Output           : ${snap.tokens.output.toLocaleString('pt-BR')}`, 'white'));
     if (snap.tokens.cache_write > 0) console.log(colorize(`  Cache write      : ${snap.tokens.cache_write.toLocaleString('pt-BR')}`, 'white'));
     if (snap.tokens.cache_read > 0)  console.log(colorize(`  Cache read       : ${snap.tokens.cache_read.toLocaleString('pt-BR')}`, 'white'));
+    if (snap.cost && snap.cost.total_usd > 0) {
+      const tilde = snap.cost.has_estimate ? '~' : '';
+      console.log(colorize(`  Custo estimado   : ${tilde}$${snap.cost.total_usd.toFixed(4)}`, 'yellow'));
+    }
   } else {
     console.log(colorize(`  Indisponível     : Dados de token só estão disponíveis`, 'yellow'));
     console.log(colorize(`                     para chamadas de subagentes (Agent tool).`, 'yellow'));
@@ -218,7 +222,7 @@ function showLive(metricsDir, statePath) {
     console.log('');
 
     // Abaixo — histórico
-    if (snap && snap.tasks.total > 0) {
+    if (events.hasData(snap)) {
       console.log(colorize('📋 Histórico:', 'cyan'));
       console.log(colorize(`  Tarefas : ${snap.tasks.total} (${snap.tasks.success} ✅ / ${snap.tasks.failed} ❌)`, 'white'));
       console.log(colorize(`  Tempo   : ${formatDuration(snap.time_spent_s)}`, 'white'));

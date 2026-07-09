@@ -4,6 +4,12 @@
  * Camada de dados do Dashboard de Métricas. Desacoplada do TUI:
  * todas as funções recebem (basedir, ...) e retornam objetos JS puros.
  *
+ * Suporta cache incremental: na maioria das chamadas apenas linhas novas
+ * dos JSONL são lidas e mescladas no snapshot existente, evitando re-ler
+ * todo o histórico. O cache é armazenado em _cache_files (contagem de
+ * linhas por arquivo) e _cache_state (estado de mode tracking) dentro de
+ * total.json.
+ *
  * Uso:
  *   const events = require('./events');
  *   const snap = events.buildSnapshots('/path/to/metrics');
@@ -83,6 +89,307 @@ function readEvents(metricsDir, days = 0) {
   }
 
   return allEvents;
+}
+
+/**
+ * Lê apenas eventos novos desde o último cache, comparando linha a linha
+ * por arquivo. Retorna os novos eventos + mapa atualizado de cache.
+ * @param {string} metricsDir
+ * @param {object} cacheFiles - { 'events-2026-07.jsonl': 150, ... }
+ * @returns {{ events: object[], cacheFiles: object, hasNewData: boolean }}
+ */
+function readEventsSince(metricsDir, cacheFiles) {
+  const allFiles = listJsonlFiles(metricsDir);
+  const newCacheFiles = { ...(cacheFiles || {}) };
+  const allNewEvents = [];
+  let hasNewData = false;
+
+  for (const filePath of allFiles) {
+    const fileName = path.basename(filePath);
+    const cachedLines = newCacheFiles[fileName] || 0;
+
+    if (!fs.existsSync(filePath)) continue;
+    const content = fs.readFileSync(filePath, 'utf8');
+    const lines = content.split('\n').filter(l => l.trim());
+    const totalLines = lines.length;
+
+    newCacheFiles[fileName] = totalLines;
+
+    if (totalLines <= cachedLines) continue;
+
+    hasNewData = true;
+    const newLines = lines.slice(cachedLines);
+    for (const line of newLines) {
+      try {
+        allNewEvents.push(JSON.parse(line));
+      } catch (_) { /* skip malformed */ }
+    }
+  }
+
+  // Remove arquivos que foram rotacionados/compactados
+  const currentFilenames = new Set(allFiles.map(f => path.basename(f)));
+  for (const key of Object.keys(newCacheFiles)) {
+    if (!currentFilenames.has(key)) delete newCacheFiles[key];
+  }
+
+  return { events: allNewEvents, cacheFiles: newCacheFiles, hasNewData };
+}
+
+/**
+ * Extrai o cache_state final de um array completo de eventos.
+ * Usado na primeira build (sem cache) para inicializar o estado incremental.
+ * @param {object[]} events
+ * @returns {object}
+ */
+function extractCacheState(events) {
+  const tagged = tagEventsWithMode(events);
+  const state = {
+    activeMode: 'FULL',
+    tokensByMode: { LITE: 0, FULL: 0 },
+    agentCountByMode: { LITE: 0, FULL: 0 },
+    tasksByMode: { LITE: 0, FULL: 0 },
+    openSessionCount: 0,
+    completedSessions: 0,
+  };
+  for (const e of tagged) {
+    if (e.event === 'session_start' && e.mode) {
+      state.activeMode = e.mode;
+    } else if (e.event === 'session_end') {
+      state.activeMode = 'FULL';
+    }
+    if (e.event === 'session_start') {
+      state.openSessionCount++;
+    } else if (e.event === 'session_end') {
+      if (state.openSessionCount > 0) {
+        state.openSessionCount--;
+        state.completedSessions++;
+      }
+    }
+    if (e.event === 'agent' && e.tokens && e.tokens.total != null) {
+      const m = e._mode || 'FULL';
+      state.tokensByMode[m] = (state.tokensByMode[m] || 0) + e.tokens.total;
+      state.agentCountByMode[m] = (state.agentCountByMode[m] || 0) + 1;
+    }
+    if (e.event === 'task') {
+      const m = e._mode || 'FULL';
+      state.tasksByMode[m] = (state.tasksByMode[m] || 0) + 1;
+    }
+  }
+  return state;
+}
+
+/**
+ * Agrega um lote de eventos delta (novos), partindo de um estado de modo
+ * conhecido do cache anterior. Retorna totais parciais para merge.
+ * @param {object[]} events - novos eventos (podem estar fora de ordem)
+ * @param {object} initialState - { activeMode, tokensByMode, ... }
+ * @returns {object}
+ */
+function aggregateDelta(events, initialState) {
+  let activeMode = (initialState && initialState.activeMode) || 'FULL';
+  const sorted = [...events].sort((a, b) => (a.ts || '').localeCompare(b.ts || ''));
+
+  const delta = {
+    tasks: [],
+    taskSuccess: 0,
+    taskFailed: 0,
+    agents: [],
+    tokens: { total: 0, input: 0, output: 0, cache_write: 0, cache_read: 0 },
+    hasTokenData: false,
+    skills: {},
+    agentTypes: {},
+    models: {},
+    costByModel: {},
+    costTotalUsd: 0,
+    costHasEstimate: false,
+    completedSessions: 0,
+    modes: {},
+    gates: {},
+    timeSpentS: 0,
+    tokensByMode: { LITE: 0, FULL: 0 },
+    agentCountByMode: { LITE: 0, FULL: 0 },
+    tasksByMode: { LITE: 0, FULL: 0 },
+    finalActiveMode: 'FULL',
+    finalOpenSessionCount: (initialState && initialState.openSessionCount) || 0,
+  };
+
+  for (const e of sorted) {
+    // Mode tracking
+    if (e.event === 'session_start' && e.mode) {
+      activeMode = e.mode;
+    } else if (e.event === 'session_end') {
+      activeMode = 'FULL';
+    }
+    e._mode = activeMode;
+
+    // Session tracking with carry-over from cache
+    if (e.event === 'session_start') {
+      delta.finalOpenSessionCount++;
+    } else if (e.event === 'session_end') {
+      if (delta.finalOpenSessionCount > 0) {
+        delta.finalOpenSessionCount--;
+        delta.completedSessions++;
+      }
+    }
+
+    if (e.event === 'task') {
+      delta.tasks.push(e);
+      if (e.success === true) delta.taskSuccess++;
+      if (e.success === false) delta.taskFailed++;
+      if (e.skill) delta.skills[e.skill] = (delta.skills[e.skill] || 0) + 1;
+      if (e.dur_s) delta.timeSpentS += e.dur_s;
+      delta.tasksByMode[activeMode] = (delta.tasksByMode[activeMode] || 0) + 1;
+    }
+
+    if (e.event === 'agent') {
+      delta.agents.push(e);
+      if (e.agent_type) delta.agentTypes[e.agent_type] = (delta.agentTypes[e.agent_type] || 0) + 1;
+      if (e.model) delta.models[e.model] = (delta.models[e.model] || 0) + 1;
+
+      if (e.tokens && e.tokens.total != null) {
+        delta.tokens.total += e.tokens.total;
+        delta.tokens.input += e.tokens.input || 0;
+        delta.tokens.output += e.tokens.output || 0;
+        delta.tokens.cache_write += e.tokens.cache_write || 0;
+        delta.tokens.cache_read += e.tokens.cache_read || 0;
+        delta.hasTokenData = true;
+
+        delta.tokensByMode[activeMode] = (delta.tokensByMode[activeMode] || 0) + e.tokens.total;
+        delta.agentCountByMode[activeMode] = (delta.agentCountByMode[activeMode] || 0) + 1;
+      }
+
+      if (e.model && e.tokens) {
+        const { usd, estimated } = pricing.costFor(e.model, {
+          input: e.tokens.input,
+          output: e.tokens.output,
+          cache_write: e.tokens.cache_write,
+          cache_read: e.tokens.cache_read,
+        });
+        if (usd != null) {
+          delta.costByModel[e.model] = Math.round(((delta.costByModel[e.model] || 0) + usd) * 1e6) / 1e6;
+          delta.costTotalUsd += usd;
+          if (estimated) delta.costHasEstimate = true;
+        }
+      }
+    }
+
+    if (e.event === 'session_start') {
+      if (e.mode) delta.modes[e.mode] = (delta.modes[e.mode] || 0) + 1;
+    }
+
+    if (e.event === 'gate' && e.gate) {
+      delta.gates[e.gate] = (delta.gates[e.gate] || 0) + 1;
+    }
+  }
+
+  delta.finalActiveMode = activeMode;
+  delta.costTotalUsd = Math.round(delta.costTotalUsd * 1e6) / 1e6;
+
+  return delta;
+}
+
+/**
+ * Mescla um delta de novos eventos em um snapshot total existente.
+ * Atualiza campos aditivos e recalcula economy.
+ * @param {object} snap - snapshot existente (deve ter _cache_files e _cache_state)
+ * @param {object} delta - resultado de aggregateDelta()
+ * @returns {object} novo snapshot mesclado
+ */
+function mergeSnapshot(snap, delta) {
+  const prev = snap._cache_state || {
+    activeMode: 'FULL',
+    tokensByMode: { LITE: 0, FULL: 0 },
+    agentCountByMode: { LITE: 0, FULL: 0 },
+    tasksByMode: { LITE: 0, FULL: 0 },
+  };
+
+  // Mesclar campos aditivos
+  const merged = {
+    ...snap,
+    sessions: (snap.sessions || 0) + delta.completedSessions,
+    tasks: {
+      total: (snap.tasks ? snap.tasks.total : 0) + delta.tasks.length,
+      success: (snap.tasks ? snap.tasks.success : 0) + delta.taskSuccess,
+      failed: (snap.tasks ? snap.tasks.failed : 0) + delta.taskFailed,
+    },
+    tokens: {
+      total: (snap.tokens ? snap.tokens.total : 0) + delta.tokens.total,
+      input: (snap.tokens ? snap.tokens.input : 0) + delta.tokens.input,
+      output: (snap.tokens ? snap.tokens.output : 0) + delta.tokens.output,
+      cache_write: (snap.tokens ? snap.tokens.cache_write : 0) + delta.tokens.cache_write,
+      cache_read: (snap.tokens ? snap.tokens.cache_read : 0) + delta.tokens.cache_read,
+    },
+    tokens_available: (snap.tokens_available || false) || delta.hasTokenData,
+    time_spent_s: (snap.time_spent_s || 0) + delta.timeSpentS,
+  };
+
+  // Skills
+  merged.skills = { ...(snap.skills || {}) };
+  for (const [skill, count] of Object.entries(delta.skills)) {
+    merged.skills[skill] = (merged.skills[skill] || 0) + count;
+  }
+
+  // Agentes
+  merged.agents = { ...(snap.agents || {}) };
+  for (const [type, count] of Object.entries(delta.agentTypes)) {
+    merged.agents[type] = (merged.agents[type] || 0) + count;
+  }
+
+  // Modelos
+  merged.models = { ...(snap.models || {}) };
+  for (const [model, count] of Object.entries(delta.models)) {
+    merged.models[model] = (merged.models[model] || 0) + count;
+  }
+
+  // Modos
+  merged.modes = { ...(snap.modes || {}) };
+  for (const [mode, count] of Object.entries(delta.modes)) {
+    merged.modes[mode] = (merged.modes[mode] || 0) + count;
+  }
+
+  // Gates
+  merged.gates = { ...(snap.gates || {}) };
+  for (const [gate, count] of Object.entries(delta.gates)) {
+    merged.gates[gate] = (merged.gates[gate] || 0) + count;
+  }
+
+  // Custo
+  merged.cost = { ...(snap.cost || {}) };
+  merged.cost.total_usd = Math.round(((snap.cost ? snap.cost.total_usd : 0) + delta.costTotalUsd) * 1e6) / 1e6;
+  merged.cost.by_model = { ...(snap.cost ? snap.cost.by_model : {}) };
+  for (const [model, cost] of Object.entries(delta.costByModel)) {
+    merged.cost.by_model[model] = Math.round(((merged.cost.by_model[model] || 0) + cost) * 1e6) / 1e6;
+  }
+  merged.cost.has_estimate = (snap.cost ? snap.cost.has_estimate : false) || delta.costHasEstimate;
+
+  // Recalcular economy do estado mesclado
+  const newState = {
+    activeMode: delta.finalActiveMode,
+    tokensByMode: {
+      LITE: (prev.tokensByMode ? prev.tokensByMode.LITE : 0) + (delta.tokensByMode.LITE || 0),
+      FULL: (prev.tokensByMode ? prev.tokensByMode.FULL : 0) + (delta.tokensByMode.FULL || 0),
+    },
+    agentCountByMode: {
+      LITE: (prev.agentCountByMode ? prev.agentCountByMode.LITE : 0) + (delta.agentCountByMode.LITE || 0),
+      FULL: (prev.agentCountByMode ? prev.agentCountByMode.FULL : 0) + (delta.agentCountByMode.FULL || 0),
+    },
+    tasksByMode: {
+      LITE: (prev.tasksByMode ? prev.tasksByMode.LITE : 0) + (delta.tasksByMode.LITE || 0),
+      FULL: (prev.tasksByMode ? prev.tasksByMode.FULL : 0) + (delta.tasksByMode.FULL || 0),
+    },
+    openSessionCount: delta.finalOpenSessionCount,
+    completedSessions: (prev.completedSessions || 0) + delta.completedSessions,
+  };
+
+  merged.economy = calculateEconomy(
+    newState.tokensByMode,
+    newState.agentCountByMode,
+    newState.tasksByMode
+  );
+
+  merged._cache_state = newState;
+
+  return merged;
 }
 
 // ─── Aggregation ────────────────────────────────────────────────────────────
@@ -262,8 +569,11 @@ function aggregateSnapshot(rawEvents) {
   // Economy (LITE vs FULL) — com pools separados por modo
   const economy = calculateEconomy(tokensByMode, agentCountByMode, tasksByMode);
 
+  // Sessions: conta pares start+end completos
+  let sessionStarts = sessions.filter(e => e.event === 'session_start').length;
+  let sessionEnds = sessions.filter(e => e.event === 'session_end').length;
   return {
-    sessions: sessions.length / 2,  // cada sessão tem start + end
+    sessions: Math.min(sessionStarts, sessionEnds),
     tasks: {
       total: tasks.length,
       success: taskSuccess,
@@ -354,38 +664,80 @@ function calculateEconomy(tokensByMode, agentCountByMode, tasksByMode) {
 // ─── Snapshot Build & Read ──────────────────────────────────────────────────
 
 /**
- * Reconstrói snapshots do zero lendo todos os JSONL.
- * Gera: daily, weekly, total.
+ * Reconstrói snapshots usando cache incremental sempre que possível.
+ * Lê apenas linhas novas dos JSONL e mescla no snapshot total existente.
+ * Daily/weekly: rebuild total quando há dados novos, leitura de disco quando não.
+ * Primeira build (sem cache): full read + full aggregation.
  * @param {string} metricsDir
  * @returns {object} { daily: {}, weekly: {}, total: {} }
  */
 function buildSnapshots(metricsDir) {
-  const allEvents = readEvents(metricsDir, 0);
+  const totalSnapPath = path.join(metricsDir, SNAPSHOT_DIR, 'total.json');
+  const snapDir = path.join(metricsDir, SNAPSHOT_DIR);
 
-  // Total
-  const total = aggregateSnapshot(allEvents);
+  let cacheFiles = {};
+  let oldTotal = null;
 
-  // Daily
-  const byDay = groupByDay(allEvents);
-  const daily = {};
-  for (const [day, evts] of Object.entries(byDay)) {
-    daily[day] = aggregateSnapshot(evts);
+  // Tentar ler cache existente
+  if (fs.existsSync(totalSnapPath)) {
+    try {
+      oldTotal = JSON.parse(fs.readFileSync(totalSnapPath, 'utf8'));
+      cacheFiles = oldTotal._cache_files || {};
+    } catch (_) { /* fall through to full rebuild */ }
   }
 
-  // Weekly
-  const byWeek = groupByWeek(allEvents);
-  const weekly = {};
-  for (const [week, evts] of Object.entries(byWeek)) {
-    weekly[week] = aggregateSnapshot(evts);
+  // Ler apenas eventos novos desde o último cache
+  const { events: newEvents, cacheFiles: newCacheFiles, hasNewData } = readEventsSince(metricsDir, cacheFiles);
+
+  // ─── Total ──────────────────────────────────────────────────────────────────
+  let total;
+
+  if (oldTotal && oldTotal._cache_state && !hasNewData) {
+    // Fast path: nada mudou, usar cache
+    total = oldTotal;
+    total._cache_files = newCacheFiles; // atualiza rotação/compaction
+  } else if (oldTotal && oldTotal._cache_state && hasNewData) {
+    // Incremental: mesclar novos eventos no snapshot existente
+    const delta = aggregateDelta(newEvents, oldTotal._cache_state);
+    total = mergeSnapshot(oldTotal, delta);
+    total._cache_files = newCacheFiles;
+  } else {
+    // Full rebuild (sem cache ou cache corrompido)
+    const allEvents = readEvents(metricsDir, 0);
+    total = aggregateSnapshot(allEvents);
+    total._cache_files = newCacheFiles;
+    total._cache_state = extractCacheState(allEvents);
+  }
+
+  // ─── Daily + Weekly ─────────────────────────────────────────────────────────
+  let daily, weekly;
+
+  if (!hasNewData && oldTotal) {
+    // Fast path: ler snapshots diários/semanais do disco
+    daily = readDailySnapshots(snapDir);
+    weekly = readWeeklySnapshots(snapDir);
+  } else {
+    // Rebuild: ler eventos completos e reagrupar
+    const allEvents = readEvents(metricsDir, 0);
+
+    const byDay = groupByDay(allEvents);
+    daily = {};
+    for (const [day, evts] of Object.entries(byDay)) {
+      daily[day] = aggregateSnapshot(evts);
+    }
+
+    const byWeek = groupByWeek(allEvents);
+    weekly = {};
+    for (const [week, evts] of Object.entries(byWeek)) {
+      weekly[week] = aggregateSnapshot(evts);
+    }
   }
 
   const result = { daily, weekly, total };
 
   // Salvar snapshots no disco
-  const snapDir = path.join(metricsDir, SNAPSHOT_DIR);
   fs.mkdirSync(snapDir, { recursive: true });
-
-  fs.writeFileSync(path.join(snapDir, 'total.json'), JSON.stringify(total, null, 2));
+  fs.writeFileSync(totalSnapPath, JSON.stringify(total, null, 2));
 
   for (const [day, snap] of Object.entries(daily)) {
     fs.writeFileSync(path.join(snapDir, `daily-${day}.json`), JSON.stringify(snap, null, 2));
@@ -395,6 +747,42 @@ function buildSnapshots(metricsDir) {
   }
 
   return result;
+}
+
+/**
+ * Lê snapshots diários do disco.
+ * @param {string} snapDir
+ * @returns {object}
+ */
+function readDailySnapshots(snapDir) {
+  const daily = {};
+  if (!fs.existsSync(snapDir)) return daily;
+  const files = fs.readdirSync(snapDir).filter(f => f.startsWith('daily-') && f.endsWith('.json'));
+  for (const f of files) {
+    try {
+      const day = f.slice(6, -5); // 'daily-2026-07-05.json' → '2026-07-05'
+      daily[day] = JSON.parse(fs.readFileSync(path.join(snapDir, f), 'utf8'));
+    } catch (_) { /* skip corrupt */ }
+  }
+  return daily;
+}
+
+/**
+ * Lê snapshots semanais do disco.
+ * @param {string} snapDir
+ * @returns {object}
+ */
+function readWeeklySnapshots(snapDir) {
+  const weekly = {};
+  if (!fs.existsSync(snapDir)) return weekly;
+  const files = fs.readdirSync(snapDir).filter(f => f.startsWith('weekly-') && f.endsWith('.json'));
+  for (const f of files) {
+    try {
+      const week = f.slice(7, -5); // 'weekly-2026-W27.json' → '2026-W27'
+      weekly[week] = JSON.parse(fs.readFileSync(path.join(snapDir, f), 'utf8'));
+    } catch (_) { /* skip corrupt */ }
+  }
+  return weekly;
 }
 
 /**
@@ -488,6 +876,10 @@ module.exports = {
   readJsonlFile,
   listJsonlFiles,
   readEvents,
+  readEventsSince,
+  extractCacheState,
+  aggregateDelta,
+  mergeSnapshot,
   groupByDay,
   groupByWeek,
   aggregateSnapshot,

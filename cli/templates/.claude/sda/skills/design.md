@@ -56,3 +56,28 @@ Após gerar, produza este bloco e **pare**:
 ```
 
 **Sem "design ok" explícito → não avance para `/plan`.**
+
+---
+
+## EXECUÇÃO
+
+Delegar ao subagente `architect` com modelo explícito:
+
+```markdown
+Agent({
+  subagent_type: "architect",
+  model: "sonnet",
+  prompt: `Analise a spec em .claude/sda/specs/[nome].md e produza o DESIGN seguindo o template da skill design.md.
+
+Requisitos:
+- Preencher template: Decisões de Arquitetura, Fluxo de Dados, Contratos/Interfaces, Estrutura de Componentes, Questões em Aberto
+- Basear-se APENAS na spec aprovada — não reabrir decisões
+- Documentar alternativas descartadas com motivo
+- Se faltar informação, declarar em "Questões em Aberto" (não assumir)
+- Mudança pequena pode pular esta fase — sinalizar se for o caso
+- Usar português para comentários, inglês para termos técnicos
+- Retornar o design completo no formato do template`
+})
+```
+
+> **Atenção:** Use explicitamente `model: "sonnet"` no Agent call. O frontmatter `model:` do subagente é ignorado pelo Claude Code (bug #44385). A saída do architect é apresentada ao usuário por Samantha, que gerencia o DESIGN GATE.

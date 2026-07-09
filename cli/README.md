@@ -27,6 +27,7 @@ O **Spec-Driven Development Framework (SDD)** implementa o ciclo completo de des
 - **Eficiência** — Modo Lite reduz 60% tokens em tarefas simples
 - **Reprodutível** — fluxo idêntico para qualquer tarefa
 - **Samantha Agent** — Orquestradora SDD, gerencia transições entre fases
+- **Architect Agent** — Subagente Sonnet para Design/Plan/Review (model escalation)
 - **15 Skills** — 14 skills + 1 agente orquestrador
 - **8 Reference Guides** — Boas práticas completas
 - **Ponytail** — Filosofia YAGNI integrada

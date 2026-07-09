@@ -155,8 +155,8 @@ function runTests() {
     
     // Verify skills copied
     const skills = fs.readdirSync(path.join(sdaDir, 'skills')).filter(f => f.endsWith('.md'));
-    if (skills.length !== 15) {
-      throw new Error(`Expected 15 skills, got ${skills.length}`);
+    if (skills.length !== 16) {
+      throw new Error(`Expected 16 skills, got ${skills.length}`);
     }
     
     // Verify references copied

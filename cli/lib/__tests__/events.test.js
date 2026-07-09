@@ -218,6 +218,99 @@ test('builds and reads snapshots from JSONL files', () => {
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });
 
+log('\n📁 incremental cache equivalence:', 'cyan');
+test('incremental merge equals full aggregate', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'events-incr-'));
+  const filePath = path.join(tmpDir, 'events-2026-07.jsonl');
+
+  // Batch 1: primeiros 6 eventos (apenas 1 task, 1 agent com tokens)
+  const batch1 = SAMPLE_EVENTS.slice(0, 6);
+  fs.writeFileSync(filePath, batch1.map(e => JSON.stringify(e)).join('\n'));
+
+  // Build inicial: cria cache incremental
+  const snap1 = events.buildSnapshots(tmpDir);
+  assert(snap1.total._cache_files, 'should have _cache_files after build');
+  assert(snap1.total._cache_state, 'should have _cache_state after build');
+  assertEqual(snap1.total.tasks.total, 1, 'batch 1 should have 1 task');
+
+  // Batch 2: append demais eventos (5 restantes)
+  const batch2 = SAMPLE_EVENTS.slice(6);
+  const existing = fs.readFileSync(filePath, 'utf8').trim();
+  fs.writeFileSync(filePath, existing + '\n' + batch2.map(e => JSON.stringify(e)).join('\n'));
+
+  // Baseline: full aggregation de TODOS os eventos
+  const allEvents = events.readEvents(tmpDir, 0);
+  const fullBaseline = events.aggregateSnapshot(allEvents);
+
+  // Caminho incremental: readEventsSince -> aggregateDelta -> mergeSnapshot
+  const readResult = events.readEventsSince(tmpDir, snap1.total._cache_files);
+  assert(readResult.hasNewData, 'should detect new data');
+  assertEqual(readResult.events.length, 5, 'should read 5 new events');
+
+  const delta = events.aggregateDelta(readResult.events, snap1.total._cache_state);
+  const merged = events.mergeSnapshot(snap1.total, delta);
+  merged._cache_files = readResult.cacheFiles;
+
+  // Equivalencia: merged deve ser IDENTICO ao full baseline
+  assertEqual(merged.tasks.total, fullBaseline.tasks.total, 'tasks.total');
+  assertEqual(merged.tasks.success, fullBaseline.tasks.success, 'tasks.success');
+  assertEqual(merged.tasks.failed, fullBaseline.tasks.failed, 'tasks.failed');
+  assertEqual(merged.tokens.total, fullBaseline.tokens.total, 'tokens.total');
+  assertEqual(merged.tokens.input, fullBaseline.tokens.input, 'tokens.input');
+  assertEqual(merged.tokens.output, fullBaseline.tokens.output, 'tokens.output');
+  assertEqual(merged.tokens.cache_write, fullBaseline.tokens.cache_write, 'tokens.cache_write');
+  assertEqual(merged.tokens.cache_read, fullBaseline.tokens.cache_read, 'tokens.cache_read');
+  assertEqual(merged.sessions, fullBaseline.sessions, 'sessions');
+  assertEqual(merged.time_spent_s, fullBaseline.time_spent_s, 'time_spent_s');
+  assertEqual(JSON.stringify(merged.skills), JSON.stringify(fullBaseline.skills), 'skills');
+  assertEqual(JSON.stringify(merged.agents), JSON.stringify(fullBaseline.agents), 'agents');
+  assertEqual(JSON.stringify(merged.models), JSON.stringify(fullBaseline.models), 'models');
+  assertEqual(JSON.stringify(merged.modes), JSON.stringify(fullBaseline.modes), 'modes');
+  assertEqual(JSON.stringify(merged.gates), JSON.stringify(fullBaseline.gates), 'gates');
+  assertEqual(merged.tokens_available, fullBaseline.tokens_available, 'tokens_available');
+  assertEqual(merged.cost.total_usd, fullBaseline.cost.total_usd, 'cost.total_usd');
+  assertEqual(merged.economy.available, fullBaseline.economy.available, 'economy.available');
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+
+test('fast path returns cached total when no new data', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'events-fast-'));
+  const filePath = path.join(tmpDir, 'events-2026-07.jsonl');
+  fs.writeFileSync(filePath, SAMPLE_EVENTS.map(e => JSON.stringify(e)).join('\n'));
+
+  // Primeira build: cria cache
+  const snap1 = events.buildSnapshots(tmpDir);
+  assert(snap1.total._cache_files, 'first build should have _cache_files');
+  assertEqual(snap1.total.tasks.total, 2);
+
+  // Segunda build: sem dados novos -> fast path
+  const snap2 = events.buildSnapshots(tmpDir);
+  assertEqual(snap2.total.tasks.total, snap1.total.tasks.total, 'fast path should match');
+  assert(snap2.total._cache_files, 'fast path should preserve _cache_files');
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+
+test('full rebuild on missing cache', () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'events-nocache-'));
+  const filePath = path.join(tmpDir, 'events-2026-07.jsonl');
+  fs.writeFileSync(filePath, SAMPLE_EVENTS.map(e => JSON.stringify(e)).join('\n'));
+
+  // Criar diretorio de snapshots com total.json corrompido (sem _cache_state)
+  const snapDir = path.join(tmpDir, 'snapshots');
+  fs.mkdirSync(snapDir, { recursive: true });
+  fs.writeFileSync(path.join(snapDir, 'total.json'), JSON.stringify({ tasks: { total: 0 } }));
+
+  // buildSnapshots deve detectar falta de _cache_state e fazer full rebuild
+  const snap = events.buildSnapshots(tmpDir);
+  assertEqual(snap.total.tasks.total, 2, 'full rebuild should have correct count');
+  assert(snap.total._cache_state, 'full rebuild should have _cache_state');
+  assert(snap.total._cache_files, 'full rebuild should have _cache_files');
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+
 // ─── Summary ────────────────────────────────────────────────────────────────
 
 console.log('');

@@ -114,25 +114,39 @@ function appendEvent(event) {
 
 // ─── History Log ───────────────────────────────────────────────────────────
 
+const HISTORY_ROTATE_EVERY = 50;  // checar rotação a cada N chamadas
+const HISTORY_MAX_LINES = 500;    // max linhas no log
+
 /**
- * Adiciona entrada no history log com rotação (últimas 500 linhas).
+ * Adiciona entrada no history log com rotação amortizada.
+ * Só lê+reescreve o arquivo a cada HISTORY_ROTATE_EVERY chamadas,
+ * usando contador em state.json — não em toda tool call.
  * @param {string} line - Linha formatada "HH:MM:SS:tool:result"
+ * @param {object|null} [state] - Objeto state opcional (evita re-leitura)
  */
-function appendHistory(line) {
+function appendHistory(line, state) {
   const logFile = path.join(getHooksDir(), 'state.history.log');
   const ts = new Date().toISOString().slice(11, 19);
   fs.appendFileSync(logFile, `${ts}:${line}\n`);
 
-  // Rotação: manter só últimas 500 linhas
-  try {
-    const content = fs.readFileSync(logFile, 'utf8');
-    const lines = content.split('\n');
-    if (lines.length > 500) {
-      fs.writeFileSync(logFile, lines.slice(-500).join('\n'));
-    }
-  } catch (_) {
-    // Ignorar erros de rotação
+  // Contador amortizado — só checa rotação a cada N chamadas
+  if (!state) state = readState();
+  if (!state) return;
+
+  state._history_count = (state._history_count || 0) + 1;
+
+  if (state._history_count >= HISTORY_ROTATE_EVERY) {
+    try {
+      const content = fs.readFileSync(logFile, 'utf8');
+      const lines = content.split('\n').filter(Boolean);
+      if (lines.length > HISTORY_MAX_LINES) {
+        fs.writeFileSync(logFile, lines.slice(-HISTORY_MAX_LINES).join('\n') + '\n');
+      }
+    } catch (_) { /* ignorar erros de rotação */ }
+    state._history_count = 0;
   }
+
+  writeState(state);
 }
 
 // ─── Session ───────────────────────────────────────────────────────────────

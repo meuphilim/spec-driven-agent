@@ -1,14 +1,16 @@
 # Spec-Driven Development Framework (SDD)
 
-> **Versão:** 5.1.7 | **Status:** Production Ready | **Última atualização:** 2026-07-05
+> 🌐 Read this documentation in [English](README_en.md).
+
+> **Versão:** 5.2.0 | **Status:** Production Ready | **Última atualização:** 2026-07-05
 >
 > **Orquestrador:** [Samantha Agent](../CLAUDE.md) — gerencia o ciclo SDD completo
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-5.1.7-blue.svg)](https://github.com/meuphilim/spec-driven-agent)
+[![Version](https://img.shields.io/badge/version-5.2.0-blue.svg)](https://github.com/meuphilim/spec-driven-agent)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Compatible-green.svg)](https://docs.anthropic.com/en/docs/claude-code)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-green.svg)](https://nodejs.org/)
-[![Tests](https://img.shields.io/badge/tests-53%2F53-brightgreen.svg)](https://github.com/meuphilim/spec-driven-agent)
+[![Tests](https://img.shields.io/badge/tests-50%2F50-brightgreen.svg)](https://github.com/meuphilim/spec-driven-agent)
 
 ---
 
@@ -25,6 +27,7 @@ O **Spec-Driven Development Framework (SDD)** implementa o ciclo completo de des
 - **Eficiência** — Modo Lite reduz 60% tokens em tarefas simples
 - **Reprodutível** — fluxo idêntico para qualquer tarefa
 - **Samantha Agent** — Orquestradora SDD, gerencia transições entre fases
+- **Architect Agent** — Subagente Sonnet para Design/Plan/Review (model escalation)
 - **15 Skills** — 14 skills + 1 agente orquestrador
 - **8 Reference Guides** — Boas práticas completas
 - **Ponytail** — Filosofia YAGNI integrada
@@ -112,7 +115,8 @@ node cli/bin/cli.js init /caminho/para/projeto
 | `sda init` | Inicializar framework |
 | `sda update` | Atualizar framework |
 | `sda status` | Ver status da instalação |
-| `sda metrics` | Dashboard de métricas |
+| `sda metrics` | Alias para `sda dashboard --summary` |
+| `sda dashboard` | Dashboard de métricas (live, summary, json, build) |
 | `sda --version` | Ver versão |
 
 ### Framework (Claude Code) — Ciclo SDD
@@ -164,12 +168,14 @@ Consulte `VALIDATION-PROTOCOL.md` para detalhes.
 ### Testes Automatizados
 
 ```bash
-node cli/test.js        # 19 testes de integração
-node cli/test-lite.js   # 8 testes do Modo LITE
-node cli/test-unit.js   # 26 testes unitários
+node cli/test.js                          # 24 testes de integração
+node cli/lib/__tests__/dashboard.test.js  # 11 testes do dashboard
+node cli/lib/__tests__/events.test.js     # 18 testes do módulo events
+node cli/test-unit.js                     # 26 testes unitários (sanitizePath)
+node cli/test-lite.js                     # 8 testes do Modo LITE
 ```
 
-**Total: 53 testes — todos passando ✅**
+**Total: 87 testes — todos passando ✅**
 
 ---
 
@@ -179,7 +185,7 @@ node cli/test-unit.js   # 26 testes unitários
 |---|---|
 | Shell injection fix | ✅ execFileSync |
 | Path sanitization | ✅ Blocklist + `path.resolve` + 26 tests |
-| JSON injection fix | ✅ jq -n --arg |
+| JSON injection (hooks) | ✅ `json_build()` com `jq --arg` — 12 chamadas, 7 hooks |
 | Cross-platform | ✅ `mktemp_safe` + `find_jq` + CRLF-safe |
 | SECURITY.md | ✅ Política definida |
 | CODE_OF_CONDUCT.md | ✅ Contributor Covenant |
@@ -198,7 +204,7 @@ node cli/test-unit.js   # 26 testes unitários
 
 ## Roadmap
 
-### v5.1 (Atual) ✅
+### v5.1 (Legado) ✅
 
 - [x] Modo Lite (-60% tokens)
 - [x] Few-shot examples
@@ -206,16 +212,23 @@ node cli/test-unit.js   # 26 testes unitários
 - [x] Observabilidade leve
 - [x] 8 reference guides
 - [x] Ponytail integration
-- [x] Dashboard de métricas
 - [x] npm publish automático
-- [x] 53 testes automatizados (19 int + 8 LITE + 26 unit)
 - [x] SECURITY.md + CODE_OF_CONDUCT.md
 - [x] Validation protocol
 - [x] Session templates
 
-### v5.2 (Planejado)
+### v5.2 (Atual) ✅
 
-- [ ] Dashboard visual de métricas
+- [x] Dashboard de métricas (JSONL, snapshots, TUI live)
+- [x] Token tracking real de subagentes
+- [x] JSON seguro nos hooks (`json_build()` com `jq --arg`)
+- [x] Economy LITE vs FULL por modo
+- [x] Compaction automático (90d + snapshot mensal)
+- [x] 84 testes automatizados (24 int + 15 events + 11 dash + 26 unit + 8 LITE)
+
+### v5.3 (Planejado)
+
+- [ ] Dashboard visual de métricas (web)
 - [ ] Suporte a múltiplos modelos LLM
 - [ ] Plugin system para skills customizadas
 

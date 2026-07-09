@@ -1,0 +1,88 @@
+---
+// EconomyCard.astro — Economia LITE vs FULL com barra de progresso
+// Dados do snapshot (/api/snapshot), fetch no cliente
+---
+
+<div class="metric-card card-enter" id="economy-card">
+  <div class="section-title">Economia de Tokens</div>
+
+  <div id="economy-content">
+    <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+      <span class="skeleton-text long"></span>
+      <span class="skeleton-text"></span>
+      <span class="skeleton-text short"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+(async function() {
+  const el = document.getElementById('economy-content');
+  if (!el) return;
+
+  try {
+    const res = await fetch('/api/snapshot');
+    const snap = await res.json();
+    const econ = snap.economy;
+
+    if (!econ || !econ.available) {
+      el.innerHTML = `
+        <div class="empty-state" style="padding: 1.5rem 0.5rem;">
+          <div class="empty-state-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--text-faint);">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+          </div>
+          <div class="empty-state-title">Economia indisponível</div>
+          <div class="empty-state-text">${econ ? econ.note : 'Execute tarefas em ambos os modos (LITE e FULL) para gerar baseline.'}</div>
+        </div>`;
+      return;
+    }
+
+    const savingsPct = Math.min(econ.savings_pct || 0, 100);
+
+    el.innerHTML = `
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.25rem;">
+        <div class="live-stat-item">
+          <div class="metric-label">Modo LITE</div>
+          <div class="metric-value" style="font-size: 1.3rem;">${econ.lite_tokens.toLocaleString('pt-BR')}</div>
+          <div class="metric-sub" style="margin-top: 0.25rem;">${econ.lite_tasks}t &middot; ${econ.lite_agent_calls} calls</div>
+        </div>
+        <div class="live-stat-item">
+          <div class="metric-label">Baseline FULL</div>
+          <div class="metric-value" style="font-size: 1.3rem;">${econ.full_baseline_per_agent.toLocaleString('pt-BR')}</div>
+          <div class="metric-sub" style="margin-top: 0.25rem;">${econ.full_tasks}t &middot; m&eacute;dia/agent</div>
+        </div>
+      </div>
+
+      <div class="economy-bar">
+        <div class="economy-row">
+          <span class="economy-label">Estimado se FULL</span>
+          <span class="economy-value">${econ.estimated_full_tokens.toLocaleString('pt-BR')} tk</span>
+        </div>
+        <div class="economy-row" style="margin-top: 0.625rem; align-items: center;">
+          <span class="economy-saved-label">Economizado</span>
+          <span class="economy-saved-value">${econ.saved_tokens.toLocaleString('pt-BR')}<span style="font-size: 0.75rem; font-weight: 400; color: var(--color-accent-600); margin-left: 0.3rem;">tokens</span></span>
+        </div>
+
+        <div class="economy-progress">
+          <div class="economy-progress-fill" style="width: ${savingsPct}%;"></div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; margin-top: 0.375rem; font-family: var(--font-mono); font-size: 0.58rem; color: var(--text-faint); letter-spacing: 0.06em;">
+          <span>0%</span>
+          <span style="color: var(--color-accent-600);">${econ.savings_pct}% saved</span>
+          <span>100%</span>
+        </div>
+      </div>
+    `;
+
+  } catch (e) {
+    el.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 0; color: #f87171; font-family: var(--font-mono); font-size: 0.78rem;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Erro ao carregar economia.
+      </div>`;
+  }
+})();
+</script>

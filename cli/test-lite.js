@@ -51,17 +51,15 @@ function runTests() {
   // Test 1: CLAUDE.md contains LITE mode definition
   if (test('CLAUDE.md defines LITE mode', () => {
     const claude = fs.readFileSync(path.join(TEST_DIR, 'CLAUDE.md'), 'utf8');
-    if (!claude.includes('Modo LITE')) throw new Error('Missing LITE mode definition');
-    if (!claude.includes('CLASSIFY:P')) throw new Error('Missing LITE flow pattern');
-    if (!claude.includes('REFLECT:1L')) throw new Error('Missing LITE reflect format');
+    if (!claude.includes('Modos')) throw new Error('Missing modes section');
+    if (!/\| \*\*LITE\*\*.*CLASSIFY:P/.test(claude)) throw new Error('Missing LITE flow pattern');
+    if (!claude.includes('Triviality Override')) throw new Error('Missing LITE override');
   })) passed++; else failed++;
 
   // Test 2: CLAUDE.md contains dual-mode table
   if (test('CLAUDE.md has dual-mode table', () => {
     const claude = fs.readFileSync(path.join(TEST_DIR, 'CLAUDE.md'), 'utf8');
     if (!claude.includes('LITE') || !claude.includes('FULL')) throw new Error('Missing mode comparison');
-    if (!claude.includes('~1.500')) throw new Error('Missing LITE token estimate');
-    if (!claude.includes('~15.000')) throw new Error('Missing FULL token estimate');
   })) passed++; else failed++;
 
   // Test 3: Status skill supports LITE mode

@@ -1,5 +1,7 @@
 # Security Policy
 
+> 🌐 Leia esta documentação em [Português](SECURITY_pt.md).
+
 ## Supported Versions
 
 | Version | Supported |

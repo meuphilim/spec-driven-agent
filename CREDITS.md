@@ -1,5 +1,7 @@
 # Credits & Referências
 
+> 🌐 Read this documentation in [English](CREDITS_en.md).
+
 Este framework é distribuído sob licença MIT por **Meuphilim**. Abaixo, os créditos e referências para conceitos, inspirações e ferramentas incorporadas.
 
 ---

@@ -155,8 +155,8 @@ function runTests() {
     
     // Verify skills copied
     const skills = fs.readdirSync(path.join(sdaDir, 'skills')).filter(f => f.endsWith('.md'));
-    if (skills.length !== 15) {
-      throw new Error(`Expected 15 skills, got ${skills.length}`);
+    if (skills.length !== 16) {
+      throw new Error(`Expected 16 skills, got ${skills.length}`);
     }
     
     // Verify references copied
@@ -315,6 +315,109 @@ function runTests() {
     if (!api.getFrameworkPath) throw new Error('getFrameworkPath not exported');
     if (!api.isInstalled) throw new Error('isInstalled not exported');
     if (!api.VERSION.match(/^\d+\.\d+\.\d+$/)) throw new Error('Invalid VERSION format');
+  })) passed++; else failed++;
+
+  // Test 16: events.js module loads correctly
+  if (test('events.js module exports all functions', () => {
+    const events = require('./lib/events');
+    if (typeof events.readJsonlFile !== 'function') throw new Error('readJsonlFile not exported');
+    if (typeof events.listJsonlFiles !== 'function') throw new Error('listJsonlFiles not exported');
+    if (typeof events.readEvents !== 'function') throw new Error('readEvents not exported');
+    if (typeof events.buildSnapshots !== 'function') throw new Error('buildSnapshots not exported');
+    if (typeof events.aggregateSnapshot !== 'function') throw new Error('aggregateSnapshot not exported');
+    if (typeof events.calculateEconomy !== 'function') throw new Error('calculateEconomy not exported');
+    if (typeof events.readSnapshot !== 'function') throw new Error('readSnapshot not exported');
+  })) passed++; else failed++;
+
+  // Test 17: dashboard.js module loads correctly
+  if (test('dashboard.js module exports all functions', () => {
+    const dash = require('./lib/dashboard');
+    if (typeof dash.dashboard !== 'function') throw new Error('dashboard not exported');
+    if (typeof dash.showSummary !== 'function') throw new Error('showSummary not exported');
+    if (typeof dash.showJson !== 'function') throw new Error('showJson not exported');
+    if (typeof dash.buildSnapshots !== 'function') throw new Error('buildSnapshots not exported');
+    if (typeof dash.formatDuration !== 'function') throw new Error('formatDuration not exported');
+  })) passed++; else failed++;
+
+  // Test 18: Dashboard --build creates snapshots from mock JSONL
+  if (test('dashboard --build creates snapshots', () => {
+    const fs = require('fs');
+    const path = require('path');
+    const os = require('os');
+    const events = require('./lib/events');
+
+    // Create temp metrics dir with sample events
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sda-test-'));
+    const metricsDir = path.join(tmpDir, '.claude', 'sda', 'metrics');
+    fs.mkdirSync(metricsDir, { recursive: true });
+
+    const sampleEvents = [
+      { ts: '2026-07-05T10:00:00Z', event: 'task', skill: 'test', success: true, dur_s: 30 },
+      { ts: '2026-07-05T11:00:00Z', event: 'session_end', session_id: 's1' },
+    ];
+    fs.writeFileSync(path.join(metricsDir, 'events-2026-07-05.jsonl'),
+      sampleEvents.map(e => JSON.stringify(e)).join('\n'));
+
+    // Build
+    const result = events.buildSnapshots(metricsDir);
+
+    // Verify snapshots created
+    if (!result.total) throw new Error('total snapshot missing');
+    if (result.total.tasks.total !== 1) throw new Error(`Expected 1 task, got ${result.total.tasks.total}`);
+    if (result.total.tasks.success !== 1) throw new Error(`Expected 1 success, got ${result.total.tasks.success}`);
+
+    // Verify files on disk
+    const snapDir = path.join(metricsDir, 'snapshots');
+    if (!fs.existsSync(path.join(snapDir, 'total.json'))) throw new Error('total.json not written');
+    if (!fs.existsSync(path.join(snapDir, 'daily-2026-07-05.jsonl'))) {
+      // Check for .json (not .jsonl) — daily files are .json
+      if (!fs.existsSync(path.join(snapDir, 'daily-2026-07-05.json'))) {
+        throw new Error('daily snapshot not written');
+      }
+    }
+
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  })) passed++; else failed++;
+
+  // Test 19: sda metrics command (alias for dashboard --summary) does not crash
+  if (test('sda metrics alias does not crash', () => {
+    // metrics() is called via CLI — test it doesn't throw
+    const cliPath = path.join(__dirname, 'bin', 'cli.js');
+    try {
+      const output = execSync(`node "${cliPath}" metrics`, {
+        encoding: 'utf8',
+        cwd: TEST_DIR,
+        timeout: 5000
+      });
+      // Should at least produce some output (even if "no data")
+      if (!output || output.trim().length === 0) throw new Error('No output from metrics');
+    } catch (e) {
+      if (e.stderr && e.stderr.includes('No metrics')) {
+        // Expected for new install — no data yet
+      } else if (e.message.includes('No metrics')) {
+        // Expected
+      } else {
+        throw e;
+      }
+    }
+  })) passed++; else failed++;
+
+  // Test 20: Dashboard JSON output is parseable
+  if (test('dashboard --json produces valid JSON output', () => {
+    const dash = require('./lib/dashboard');
+    // Capture stdout
+    const originalLog = console.log;
+    let output = '';
+    console.log = (msg) => { output += (msg || '') + '\n'; };
+
+    // Project root without metrics — should produce empty JSON
+    dash.dashboard('json', TEST_DIR);
+
+    console.log = originalLog;
+
+    // Should be valid JSON
+    const parsed = JSON.parse(output);
+    if (typeof parsed !== 'object') throw new Error('JSON output is not an object');
   })) passed++; else failed++;
 
   // Clean up

@@ -25,9 +25,12 @@
 
 const fs   = require('fs');
 const path = require('path');
+const { exec } = require('child_process');
 
 const VERSION = require('../package.json').version;
 const { sanitizePath } = require('../lib/sanitize');
+const { dashboard } = require('../lib/dashboard');
+const { createServer } = require('../lib/web-server');
 
 // Marca scripts .sh como executáveis usando fs.chmodSync (sem shell,
 // portanto sem risco de injeção de comando via path). No-op silencioso
@@ -223,7 +226,50 @@ function init(targetDir) {
     // Make scripts executable (Unix / WSL / Git Bash)
     makeScriptsExecutable(hooksDest);
 
-    logSuccess('.claude/sda/hooks/ (7 scripts)');
+    logSuccess('.claude/sda/hooks/ (Node.js + shell)');
+
+    // ── Helper: monta entrada de hook no formato Claude Code ──────────────
+    function makeHookEntry(command, options = {}) {
+      const handler = { type: 'command', command: command };
+      if (options.timeout) handler.timeout = options.timeout;
+      return {
+        matcher: options.matcher !== undefined ? options.matcher : '',
+        hooks: [ handler ]
+      };
+    }
+
+    // ── Auto-configurar hooks no Claude Code (settings.json) ──────────────
+    const claudeSettingsPath = path.join(destDir, '.claude', 'settings.json');
+    const hooksCfg = {
+      hooks: {
+        SessionStart: [ makeHookEntry('node .claude/sda/hooks/auto-init.js', { timeout: 15 }) ],
+        PreToolUse:   [ makeHookEntry('node .claude/sda/hooks/pre-tool.js', { timeout: 5 }) ],
+        PostToolUse:  [ makeHookEntry('node .claude/sda/hooks/post-tool.js', { timeout: 5 }) ],
+        SubagentStop: [ makeHookEntry('node .claude/sda/hooks/subagent-stop.js', { timeout: 5 }) ],
+        Stop:         [ makeHookEntry('node .claude/sda/hooks/stop.js', { timeout: 5 }) ]
+      }
+    };
+    // Só criar se não existir (nunca sobrescrever config do usuário)
+    if (!fs.existsSync(claudeSettingsPath)) {
+      fs.writeFileSync(claudeSettingsPath, JSON.stringify(hooksCfg, null, 2) + '\n');
+      logSuccess('.claude/settings.json (hooks registrados)');
+    } else {
+      logInfo('.claude/settings.json already exists — skipped');
+    }
+
+    // ── Auto-configurar hooks no OpenCode (opencode/hooks.json) ──────────
+    const opencodeHooksDir = path.join(destDir, '.opencode');
+    const opencodeHooksPath = path.join(opencodeHooksDir, 'hooks.json');
+    if (!fs.existsSync(opencodeHooksPath)) {
+      if (!fs.existsSync(opencodeHooksDir)) {
+        fs.mkdirSync(opencodeHooksDir, { recursive: true });
+      }
+      // OpenCode usa o mesmo formato (matcher + hooks) via opencode-claude-hooks
+      fs.writeFileSync(opencodeHooksPath, JSON.stringify(hooksCfg.hooks, null, 2) + '\n');
+      logSuccess('.opencode/hooks.json (hooks registrados)');
+    } else {
+      logInfo('.opencode/hooks.json already exists — skipped');
+    }
 
     // agents (backup existing, then install fresh)
     const agentsDest = path.join(sdaRoot, 'agents');
@@ -269,16 +315,15 @@ function init(targetDir) {
     log('  .claude/sda/knowledge/     ← patterns, heuristics, antipatterns', 'white');
     log('  .claude/sda/specs/         ← task specifications', 'white');
     log('  .claude/sda/sessions/      ← session history', 'white');
-    log('  .claude/sda/hooks/         ← 7 bash scripts', 'white');
+    log('  .claude/sda/hooks/         ← 6 scripts (Node.js)', 'white');
     log('  .claude/sda/agents/        ← Samantha agent', 'white');
+    log('  .claude/settings.json      ← hooks registrados (Claude Code)', 'white');
+    log('  .opencode/hooks.json       ← hooks registrados (OpenCode)', 'white');
     log('');
     logInfo('Next steps:');
-    log('  1. Register hooks in Claude Code settings.json:', 'white');
-    log('     PreToolUse  → bash .claude/sda/hooks/pre-tool.sh', 'white');
-    log('     PostToolUse → bash .claude/sda/hooks/post-tool.sh', 'white');
-    log('     Stop        → bash .claude/sda/hooks/stop.sh', 'white');
-    log('  2. Run `sda hooks init <project-name>` to start a session', 'white');
-    log('  3. Open project in Claude Code and use /context to begin', 'white');
+    log('  1. Open project in Claude Code/OpenCode — sessão inicia automaticamente!', 'white');
+    log('  2. Use /context para carregar constitution e começar', 'white');
+    log('  (ou rode manualmente: sda hooks init <project-name>)', 'white');
     log('');
     logInfo('Documentation: https://github.com/meuphilim/spec-driven-agent');
     log('');
@@ -434,12 +479,23 @@ function getSdaHooksDir() {
   return path.join(process.cwd(), '.claude', 'sda', 'hooks');
 }
 
-function hooksInit(project) {
-  const sanitized = sanitizePath(project);
-  if (!sanitized) {
-    logError('Usage: sda hooks init <project-name>');
+function getSdaMetricsDir() {
+  return path.join(process.cwd(), '.claude', 'sda', 'metrics');
+}
+
+function hooksInit(project, mode) {
+  // Valida nome do projeto sem resolver como path absoluto
+  if (!project || typeof project !== 'string' || project.trim().length === 0) {
+    logError('Usage: sda hooks init <project-name> [FULL|LITE]');
     process.exit(1);
   }
+  // Mesma validação de sanitizePath mas sem path.resolve
+  if (/[;&|`$(){}!<>#*?\[\]]/.test(project)) {
+    logError(`Invalid project name: "${project}"`);
+    process.exit(1);
+  }
+  const sanitized = project.trim();
+  const sessionMode = (mode || '').toUpperCase() === 'LITE' ? 'LITE' : 'FULL';
 
   const hooksDir = getSdaHooksDir();
   if (!fs.existsSync(hooksDir)) {
@@ -448,10 +504,47 @@ function hooksInit(project) {
     process.exit(1);
   }
 
+  const metricsDir = getSdaMetricsDir();
+
   log('\n🔧 Initializing session...', 'bright');
+
   try {
-    const { execFileSync } = require('child_process');
-    execFileSync('bash', [path.join(hooksDir, 'init-session.sh'), sanitized], { stdio: 'inherit' });
+    const sessionId = new Date().toISOString().slice(0, 10) + '-' + sanitized;
+    const stateFile = path.join(hooksDir, 'state.json');
+    const now = new Date().toISOString();
+
+    // state.json (antes usava bash + jq, agora é Node.js puro)
+    const state = {
+      session_id: sessionId,
+      project: sanitized,
+      started_at: now,
+      phase: 'init',
+      mode: sessionMode,
+      classify: {},
+      turns: { current: 0, max: 40, limit_80_warned: false },
+      gates: { spec: 'none', design: 'none', plan: 'none', validate: 'none', reflect: 'none' },
+      active_spec: null,
+      scope_keywords: [],
+      session_file: null,
+      intentional_stop: false
+    };
+    fs.writeFileSync(stateFile, JSON.stringify(state, null, 2) + '\n');
+
+    // Evento session_start no JSONL
+    const month = new Date().toISOString().slice(0, 7); // YYYY-MM
+    const jsonlFile = path.join(metricsDir, `events-${month}.jsonl`);
+    const event = {
+      ts: now,
+      event: 'session_start',
+      session_id: sessionId,
+      project: sanitized,
+      model: 'unknown',
+      mode: sessionMode
+    };
+    fs.mkdirSync(path.dirname(jsonlFile), { recursive: true });
+    fs.appendFileSync(jsonlFile, JSON.stringify(event) + '\n');
+
+    log(`✅ Sessão inicializada: ${sessionId}`, 'green');
   } catch (error) {
     logError(`Failed to initialize session: ${error.message}`);
     process.exit(1);
@@ -473,6 +566,7 @@ function hooksStatus() {
     log(`  Session  : ${s.session_id || '—'}`,                             'white');
     log(`  Project  : ${s.project || '—'}`,                                'white');
     log(`  Phase    : ${s.phase}`,                                         'white');
+    log(`  Mode     : ${s.mode || 'FULL'}`,                                'white');
     log(`  Turns    : ${s.turns?.current}/${s.turns?.max}`,                'white');
     log(`  GATEs    : spec=${s.gates?.spec}, design=${s.gates?.design}, plan=${s.gates?.plan}, validate=${s.gates?.validate}, reflect=${s.gates?.reflect}`, 'white');
     log(`  Spec     : ${s.active_spec || 'none'}`,                         'white');
@@ -524,75 +618,10 @@ function hooksValidate() {
   }
 }
 
-// ─── metrics ──────────────────────────────────────────────────────────────────
+// ─── metrics (alias for dashboard --summary) ─────────────────────────────────
 
 function metrics() {
-  const metricsFile = path.join(process.cwd(), '.claude', 'sda', 'metrics.json');
-
-  if (!fs.existsSync(metricsFile)) {
-    log('\n📊 No metrics data yet', 'yellow');
-    logInfo('Metrics are collected after each task via post-task hook');
-    logInfo('Run some tasks first, then come back');
-    log('');
-    return;
-  }
-
-  try {
-    const m = JSON.parse(fs.readFileSync(metricsFile, 'utf8'));
-
-    log('\n📊 Dashboard de Métricas', 'bright');
-    log('━'.repeat(50), 'cyan');
-    log('');
-
-    // Resumo geral
-    log('📋 Resumo:', 'cyan');
-    log(`  Total de tarefas  : ${m.total_tasks || 0}`, 'white');
-    log(`  Taxa de sucesso   : ${(m.success_rate || 0).toFixed(1)}%`, 'white');
-    log(`  Duração média     : ${(m.avg_duration || 0).toFixed(1)}s`, 'white');
-    log('');
-
-    // Skills mais usadas
-    if (m.skills_used && Object.keys(m.skills_used).length > 0) {
-      log('🛠️  Skills Mais Usadas:', 'cyan');
-      const sorted = Object.entries(m.skills_used)
-        .sort(([,a], [,b]) => b - a)
-        .slice(0, 5);
-      for (const [skill, count] of sorted) {
-        const bar = '█'.repeat(Math.min(count, 20));
-        log(`  ${skill.padEnd(20)} ${bar} (${count})`, 'white');
-      }
-      log('');
-    }
-
-    // Uso diário (últimos 7 dias)
-    if (m.daily_usage && Object.keys(m.daily_usage).length > 0) {
-      log('📅 Uso Diário (últimos 7 dias):', 'cyan');
-      const days = Object.entries(m.daily_usage)
-        .sort(([a], [b]) => b.localeCompare(a))
-        .slice(0, 7);
-      for (const [day, count] of days) {
-        const bar = '█'.repeat(Math.min(count, 20));
-        log(`  ${day} ${bar} (${count})`, 'white');
-      }
-      log('');
-    }
-
-    // GATE stats
-    if (m.gate_stats) {
-      log('🔒 GATEs:', 'cyan');
-      log(`  Spec   : ${m.gate_stats.spec || 0} aprovações`, 'white');
-      log(`  Plan   : ${m.gate_stats.plan || 0} aprovações`, 'white');
-      log(`  Reflect: ${m.gate_stats.reflect || 0} execuções`, 'white');
-      log('');
-    }
-
-    logInfo('Dados coletados via post-task hook');
-    log('');
-
-  } catch (error) {
-    logError(`Failed to read metrics: ${error.message}`);
-    process.exit(1);
-  }
+  dashboard('summary', process.cwd());
 }
 
 // ─── help ─────────────────────────────────────────────────────────────────────
@@ -608,7 +637,8 @@ function showHelp() {
     log('  update               Update CLAUDE.md, skills, knowledge, hooks, agents', 'white');
     log('  status               Show framework and session status', 'white');
     log('  metrics              Show usage metrics (tasks, turns, success rate)', 'white');
-    log('  hooks init <proj>    Initialize a new session', 'white');
+    log('  dashboard --web [p]  Start web dashboard on port (default 3333)', 'white');
+    log('  hooks init <proj> [mode]  Initialize a new session (mode: FULL|LITE)', 'white');
     log('  hooks status         Show current session state', 'white');
     log('  hooks validate       Validate gate consistency', 'white');
     log('  help                 Show this message', 'white');
@@ -631,6 +661,63 @@ function showHelp() {
   log('');
 }
 
+// ─── Browser helper ───────────────────────────────────────────────────────────
+
+/**
+ * Tenta abrir o navegador padrão com a URL fornecida.
+ * Cross-platform: Windows (start), macOS (open), Linux (xdg-open).
+ * Falha silenciosamente se não for possível (sem travar o servidor).
+ * @param {string} url
+ */
+function openBrowser(url) {
+  const cmd = process.platform === 'win32' ? 'start ""' :
+              process.platform === 'darwin' ? 'open' :
+              'xdg-open';
+
+  exec(`${cmd} ${url}`, (err) => {
+    if (err) {
+      // Silencia o erro — o servidor continua rodando
+      // O usuário já viu a URL no terminal
+    }
+  });
+}
+
+// ─── Web Dashboard ────────────────────────────────────────────────────────────
+
+/**
+ * Inicia o servidor HTTP do dashboard web.
+ * @param {number} port - Porta inicial (auto-incrementa se ocupada)
+ */
+async function startWebDashboard(port) {
+  const cwd = process.cwd();
+  const metricsDir = path.join(cwd, '.claude', 'sda', 'metrics');
+  const statePath = path.join(cwd, '.claude', 'sda', 'hooks', 'state.json');
+  const webDistDir = path.join(__dirname, '..', 'web-dist');
+
+  console.log('');
+  console.log('\x1b[1m📊 Dashboard Web\x1b[0m');
+  console.log('');
+
+  try {
+    const { url } = await createServer(metricsDir, statePath, webDistDir, port);
+    console.log(`  \x1b[36mServidor rodando em:\x1b[0m  \x1b[1m${url}\x1b[0m`);
+    console.log(`  \x1b[36mPressione Ctrl+C para encerrar\x1b[0m`);
+    console.log('');
+
+    // Tenta abrir o navegador automaticamente
+    openBrowser(url);
+
+    // Keep-alive (Ctrl+C encerra)
+    process.on('SIGINT', () => {
+      console.log('\n\x1b[32m✅ Dashboard web encerrado.\x1b[0m');
+      process.exit(0);
+    });
+  } catch (err) {
+    console.error(`\x1b[31m❌ ${err.message}\x1b[0m`);
+    process.exit(1);
+  }
+}
+
 // ─── main ─────────────────────────────────────────────────────────────────────
 
 function main() {
@@ -642,14 +729,36 @@ function main() {
   if (command === '--help'    || command === '-h') { showHelp(); return; }
 
   switch (command) {
-    case 'init':     init(args[1]);    break;
-    case 'update':   update();         break;
-    case 'status':   status();         break;
-    case 'metrics':  metrics();        break;
+    case 'init':      init(args[1]);    break;
+    case 'update':    update();         break;
+    case 'status':    status();         break;
+    case 'metrics':   metrics();        break;
+    case 'dashboard': {
+      const sub = args[1];  // live, summary, json, build
+      // --days N
+      const daysIdx = args.indexOf('--days');
+      const days = (daysIdx >= 0 && args[daysIdx + 1]) ? parseInt(args[daysIdx + 1], 10) : 0;
+      // --web [port] ou --web --port N
+      const webIdx = args.indexOf('--web');
+      if (webIdx >= 0) {
+        const portIdx = args.indexOf('--port');
+        const port = portIdx >= 0 && args[portIdx + 1]
+          ? parseInt(args[portIdx + 1], 10)
+          : (args[webIdx + 1] && !args[webIdx + 1].startsWith('--')
+            ? parseInt(args[webIdx + 1], 10)
+            : 3333);
+        startWebDashboard(port);
+        break;
+      }
+      // Extrair subcomando ignorando flags
+      const subcmd = sub && !sub.startsWith('--') ? sub : 'summary';
+      dashboard(subcmd, process.cwd(), days);
+      break;
+    }
     case 'help':     showHelp();       break;
     case 'hooks': {
       const sub = args[1];
-      if      (sub === 'init')     hooksInit(args[2]);
+      if      (sub === 'init')     hooksInit(args[2], args[3]);
       else if (sub === 'status')   hooksStatus();
       else if (sub === 'validate') hooksValidate();
       else {

@@ -1,5 +1,7 @@
 # Spec-Driven Development Framework (SDD)
 
+> 🌐 Read this documentation in [English](README_en.md).
+
 > **Versão:** 5.1.7 | **Status:** Production Ready | **Última atualização:** 2026-07-05
 >
 > **Orquestrador:** [Samantha Agent](CLAUDE.md) — gerencia o ciclo SDD completo

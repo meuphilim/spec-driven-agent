@@ -1,5 +1,7 @@
 # Template de Sessão — Validação LITE/KB
 
+> 🌐 Read this documentation in [English](SESSION-TEMPLATE_en.md).
+
 **Versão:** 5.0.0 | **Data:** YYYY-MM-DD
 
 ---

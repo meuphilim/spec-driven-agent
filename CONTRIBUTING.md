@@ -1,5 +1,7 @@
 # Contribuindo para o Spec-Driven Development (SDD)
 
+> 🌐 Read this documentation in [English](CONTRIBUTING_en.md).
+
 Obrigado por considerar contribuir! Este documento descreve como participar do desenvolvimento do framework.
 
 ---

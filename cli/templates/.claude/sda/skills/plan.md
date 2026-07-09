@@ -63,3 +63,29 @@ Após gerar o plano, produza exatamente este bloco e **pare**:
 - Passo com risco ALTO → discutir antes de executar
 - Em mudanças Médio+: não avance sem verificar resultado do passo anterior
 - Atualizar plano se escopo mudar
+
+---
+
+## EXECUÇÃO
+
+Delegar ao subagente `architect` com modelo explícito:
+
+```markdown
+Agent({
+  subagent_type: "architect",
+  model: "sonnet",
+  prompt: `Analise a spec em .claude/sda/specs/[nome].md e o design (se houver) e produza o PLANO seguindo o template da skill plan.md.
+
+Requisitos:
+- Preencher template completo: Passos, Arquivos Impactados, Ordem de Execução, Testes Necessários, Rollback
+- Passos devem ser granulares e seguros/reversíveis
+- Identificar risco mais alto e justificar
+- Basear-se APENAS na spec aprovada + design aprovado (ou justificativa de skip)
+- Se escopo mudar durante execução, o plano deve ser atualizado
+- Usar português para comentários, inglês para termos técnicos
+- Retornar o plano completo no formato do template`
+})
+```
+
+> **Atenção:** Use explicitamente `model: "sonnet"` no Agent call. O frontmatter `model:` do subagente é ignorado pelo Claude Code (bug #44385). A saída do architect é apresentada ao usuário por Samantha, que gerencia o PLAN GATE.
+

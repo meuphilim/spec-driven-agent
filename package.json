@@ -11,7 +11,8 @@
   "scripts": {
     "test": "node cli/test.js",
     "install:global": "npm install -g .",
-    "init": "node cli/bin/cli.js init"
+    "init": "node cli/bin/cli.js init",
+    "build:web": "cd dashboard-web && npm run build && cd .. && node scripts/copy-web-dist.js"
   },
   "keywords": [
     "claude",

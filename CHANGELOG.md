@@ -1,9 +1,52 @@
 # Changelog
 
+> 🌐 Read this documentation in [English](CHANGELOG_en.md).
+
 Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
+
+---
+
+## [5.2.0] - 2026-07-05
+
+### Added
+
+- **Dashboard de métricas em tempo real** — `sda dashboard` com 4 subcomandos:
+  - `live` — TUI com readline (zero deps), polling state.json + snapshots
+  - `summary` — Resumo texto agregado (LITE/FULL, tokens, skills, gates)
+  - `json` — JSON puro (pipe-friendly)
+  - `build` — Reconstrói snapshots do zero
+- **Event store append-only** — `events-YYYY-MM-DD.jsonl` substitui `metrics.json`
+- **6 hooks reescritos** — post-tool, post-task, pre-tool, init-session, stop, check-gate
+- **Token tracking real** — extrai `tool_response.usage` de subagentes via PostToolUse
+- **Compaction automático** — `events-compact.sh`: rotação 90d + snapshot mensal
+- **`json_build()` em `_utils.sh`** — função segura para construir JSON via `jq --arg`
+- **`tasksByMode`** — rastreamento de tarefas LITE vs FULL no snapshot
+
+### Fixed
+
+- **JSON escaping nos hooks** — `event_logger` agora usa `jq --arg` em vez de interpolação de strings. Comandos com aspas (`git commit -m "msg"`, `grep "pattern"`) não quebram mais o JSONL. Fim da perda silenciosa de eventos.
+- **Economy separado por modo** — `calculateEconomy()` rastreia modo ativo cronologicamente via `tagEventsWithMode()`. Tokens LITE e FULL em pools separados.
+- **Snapshot stale** — `isSnapshotFresh()` detecta JSONL mais novo que snapshot. Auto-rebuild na leitura.
+- **Locale fixo** — `toLocaleString('pt-BR')` em todos os displays (teste consistente em qualquer ambiente Node).
+- **TUI sem delay** — `renderLive()` chamada imediatamente, sem esperar 1s do `setInterval`.
+- **Silent parse error** — `readJsonlFile` descartava linhas mal formatadas sem contador. Agora rastreia em `parse_errors`.
+
+### Changed
+
+- **`event_logger` API** — nova sintaxe `event_logger key="string" num=42@ raw='{"a":1}@'`
+  - `@` suffix → valor RAW (números, booleans, null, objetos)
+  - sem `@` → string escapada automaticamente por `jq --arg`
+- **`sda metrics`** — vira alias para `sda dashboard --summary` (compatibilidade mantida)
+- **50 testes** — 24 integração + 15 events unit + 11 dashboard unit
+
+### Performance
+
+- **JSONL append-only** — elimina reescrita de arquivo a cada evento
+- **Snapshot cache** — leitura otimizada sem reprocessar JSONL a cada comando
+- **Token tracking híbrido** — subagentes via PostToolUse (preciso), ferramentas comuns = "indisponível" (nunca estimar)
 
 ---
 

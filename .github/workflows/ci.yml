@@ -51,7 +51,7 @@ jobs:
 
       - name: Check CLAUDE.md structure
         run: |
-          SECTIONS=("IDENTIDADE" "FLUXO OBRIGATÓRIO" "HOOKS" "SKILLS" "SUBAGENTS")
+          SECTIONS=("IDENTIDADE" "FLUXO SDD" "SKILLS SDD" "SUBAGENTS")
           for section in "${SECTIONS[@]}"; do
             if ! grep -q "$section" CLAUDE.md; then
               echo "❌ Missing section in CLAUDE.md: $section"

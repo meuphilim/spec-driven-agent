@@ -141,11 +141,11 @@ jobs:
       - name: Setup Node.js for npm
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Upgrade npm for OIDC support
-        run: npm install -g npm@latest
+        run: npm install -g npm@11.18.0
 
       - name: Build web dashboard assets
         run: |

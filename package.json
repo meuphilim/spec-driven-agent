@@ -1,6 +1,6 @@
 {
   "name": "spec-driven-agent-workspace",
-  "version": "5.1.7",
+  "version": "5.2.1",
   "description": "Spec-Driven Agent Framework - Desenvolvimento orientado por especificações para agentes LLM (workspace de desenvolvimento — o pacote publicado no npm é cli/)",
   "private": true,
   "main": "cli/index.js",
@@ -12,7 +12,9 @@
     "test": "node cli/test.js",
     "install:global": "npm install -g .",
     "init": "node cli/bin/cli.js init",
-    "build:web": "cd dashboard-web && npm run build && cd .. && node scripts/copy-web-dist.js"
+    "build:web": "cd dashboard-web && npm run build && cd .. && node scripts/copy-web-dist.js",
+    "bump": "node scripts/bump-version.js",
+    "bump:dry": "node scripts/bump-version.js --dry-run"
   },
   "keywords": [
     "claude",

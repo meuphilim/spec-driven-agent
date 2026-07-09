@@ -2,7 +2,7 @@
 
 > 🌐 Read this documentation in [English](SESSION-TEMPLATE_en.md).
 
-**Versão:** 5.0.0 | **Data:** YYYY-MM-DD
+**Versão:** 5.2.1 | **Data:** YYYY-MM-DD
 
 ---
 

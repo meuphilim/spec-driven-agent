@@ -2,15 +2,15 @@
 
 > 🌐 Read this documentation in [English](README_en.md).
 
-> **Versão:** 5.2.0 | **Status:** Production Ready | **Última atualização:** 2026-07-05
+> **Versão:** 5.2.1 | **Status:** Production Ready | **Última atualização:** 2026-07-05
 >
 > **Orquestrador:** [Samantha Agent](../CLAUDE.md) — gerencia o ciclo SDD completo
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-5.2.0-blue.svg)](https://github.com/meuphilim/spec-driven-agent)
+[![Version](https://img.shields.io/badge/version-5.2.1-blue.svg)](https://github.com/meuphilim/spec-driven-agent)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Compatible-green.svg)](https://docs.anthropic.com/en/docs/claude-code)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-green.svg)](https://nodejs.org/)
-[![Tests](https://img.shields.io/badge/tests-50%2F50-brightgreen.svg)](https://github.com/meuphilim/spec-driven-agent)
+[![Tests](https://img.shields.io/badge/tests-87%2F87-brightgreen.svg)](https://github.com/meuphilim/spec-driven-agent)
 
 ---
 

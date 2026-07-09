@@ -2,15 +2,15 @@
 
 > 🌐 Leia esta documentação em [Português](README.md).
 
-> **Version:** 5.1.7 | **Status:** Production Ready | **Last update:** 2026-07-05
+> **Version:** 5.2.1 | **Status:** Production Ready | **Last update:** 2026-07-09
 >
 > **Orchestrator:** [Samantha Agent](CLAUDE_en.md) — manages the full SDD cycle
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-5.1.7-blue.svg)](https://github.com/meuphilim/spec-driven-agent)
+[![Version](https://img.shields.io/badge/version-5.2.1-blue.svg)](https://github.com/meuphilim/spec-driven-agent)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Compatible-green.svg)](https://docs.anthropic.com/en/docs/claude-code)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-green.svg)](https://nodejs.org/)
-[![Tests](https://img.shields.io/badge/tests-53%2F53-brightgreen.svg)](https://github.com/meuphilim/spec-driven-agent)
+[![Tests](https://img.shields.io/badge/tests-87%2F87-brightgreen.svg)](https://github.com/meuphilim/spec-driven-agent)
 
 ---
 
@@ -27,9 +27,11 @@ The **Spec-Driven Development Framework (SDD)** implements the complete specific
 - **Efficiency** — Lite Mode reduces up to 60% of tokens in simple tasks
 - **Reproducible** — identical workflow for any task
 - **Samantha Agent** — SDD Orchestrator, manages transitions between phases
-- **8 Reference Guides** — complete best practices
+- **Architect Agent** — Sonnet subagent for Design/Plan/Review (model escalation)
+- **15 Skills** — 14 skills + 1 orchestrator agent
+- **6 ADRs** — Architecture Decision Records documented
 - **Ponytail** — integrated YAGNI philosophy
-- **53 Tests** — automated coverage (19 integration + 8 LITE + 26 unit tests)
+- **87 Tests** — automated coverage (24 integration + 15 events + 11 dashboard + 26 unit + 8 LITE)
 
 ---
 
@@ -113,7 +115,8 @@ node cli/bin/cli.js init /path/to/project
 | `sda init` | Initialize framework |
 | `sda update` | Update framework |
 | `sda status` | View installation status |
-| `sda metrics` | Metrics dashboard |
+| `sda dashboard` | Metrics dashboard (live, summary, json, build) |
+| `sda metrics` | Alias for `sda dashboard --summary` |
 | `sda --version` | View version |
 
 ### Framework (Claude Code) — SDD Cycle
@@ -153,7 +156,7 @@ node cli/bin/cli.js init /path/to/project
 
 ## Validation
 
-### Validation Protocol (v5.1)
+### Validation Protocol (v5.1+)
 
 The framework includes a complete protocol to validate:
 
@@ -165,12 +168,14 @@ See `VALIDATION-PROTOCOL_en.md` for details.
 ### Automated Tests
 
 ```bash
-node cli/test.js        # 19 integration tests
-node cli/test-lite.js   # 8 LITE mode tests
-node cli/test-unit.js   # 26 unit tests
+node cli/test.js                          # 24 integration tests
+node cli/lib/__tests__/dashboard.test.js  # 11 dashboard tests
+node cli/lib/__tests__/events.test.js     # 18 events module tests
+node cli/test-unit.js                     # 26 unit tests (sanitizePath)
+node cli/test-lite.js                     # 8 LITE mode tests
 ```
 
-**Total: 53 tests — all passing ✅**
+**Total: 87 tests — all passing ✅**
 
 ---
 
@@ -179,8 +184,8 @@ node cli/test-unit.js   # 26 unit tests
 | Measure | Status |
 |---|---|
 | Shell injection fix | ✅ execFileSync |
-| Path sanitization | ✅ Blocklist + `path.resolve` + 22 tests |
-| JSON injection fix | ✅ jq -n --arg |
+| Path sanitization | ✅ Blocklist + `path.resolve` + 26 tests |
+| JSON injection (hooks) | ✅ `json_build()` with `jq --arg` — 12 calls, 7 hooks |
 | Cross-platform | ✅ `mktemp_safe` + `find_jq` + CRLF-safe |
 | SECURITY.md | ✅ Policy defined |
 | CODE_OF_CONDUCT.md | ✅ Contributor Covenant |
@@ -199,7 +204,7 @@ node cli/test-unit.js   # 26 unit tests
 
 ## Roadmap
 
-### v5.1 (Current) ✅
+### v5.1 (Legacy) ✅
 
 - [x] Lite Mode (-60% tokens)
 - [x] Few-shot examples
@@ -207,17 +212,29 @@ node cli/test-unit.js   # 26 unit tests
 - [x] Lightweight observability
 - [x] 8 reference guides
 - [x] Ponytail integration
-- [x] Metrics dashboard
 - [x] Automatic npm publish
 - [x] 53 automated tests (19 int + 8 LITE + 26 unit)
 - [x] SECURITY.md + CODE_OF_CONDUCT.md
 - [x] Validation protocol
 - [x] Session templates
 
-### v5.2 (Planned)
+### v5.2 (Current) ✅
 
-- [ ] Visual metrics dashboard
-- [ ] Support for multiple LLM models
+- [x] Metrics dashboard (JSONL, snapshots, TUI live)
+- [x] Append-only event store (`events-YYYY-MM-DD.jsonl`)
+- [x] Real subagent token tracking via PostToolUse
+- [x] 6 hooks rewritten in Node.js (post-tool, post-task, pre-tool, init-session, stop, check-gate)
+- [x] Safe JSON in hooks (`json_build()` with `jq --arg`)
+- [x] Per-mode economy LITE vs FULL (tagEventsWithMode)
+- [x] Auto compaction (90d + monthly snapshot)
+- [x] Architect Agent (Sonnet model escalation)
+- [x] 6 documented ADRs
+- [x] 87 automated tests (24 int + 15 events + 11 dash + 26 unit + 8 LITE)
+
+### v5.3 (Planned)
+
+- [ ] Web-based visual metrics dashboard
+- [ ] Multi-model LLM support
 - [ ] Plugin system for custom skills
 
 ---

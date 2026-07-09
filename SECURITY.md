@@ -6,8 +6,9 @@
 
 | Version | Supported |
 |---------|-----------|
-| 4.3.x | ✅ |
-| 4.2.x | ✅ |
+| 5.x | ✅ |
+| 4.3.x | ✅ (EOL 2026-09) |
+| 4.2.x | ✅ (EOL 2026-09) |
 | < 4.2 | ❌ |
 
 ## Reporting a Vulnerability

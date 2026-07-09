@@ -9,6 +9,16 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [5.2.1] - 2026-07-09
+
+### Fixed
+
+- **Documentação desatualizada** — README.md e README_en.md com versão, badge de testes e roadmap corrigidos para v5.2
+- **SECURITY.md desatualizado** — Adicionada linha 5.x na tabela de versões suportadas
+- **Novo script bump-version.js** — Automação para garantir que toda documentação seja atualizada em bumps futuros
+
+---
+
 ## [5.2.0] - 2026-07-05
 
 ### Added

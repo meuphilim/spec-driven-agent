@@ -2,15 +2,15 @@
 
 > 🌐 Leia esta documentação em [Português](README.md).
 
-> **Version:** 5.2.0 | **Status:** Production Ready | **Last update:** 2026-07-05
+> **Version:** 5.2.1 | **Status:** Production Ready | **Last update:** 2026-07-05
 >
 > **Orchestrator:** [Samantha Agent](../CLAUDE_en.md) — manages the full SDD cycle
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-5.2.0-blue.svg)](https://github.com/meuphilim/spec-driven-agent)
+[![Version](https://img.shields.io/badge/version-5.2.1-blue.svg)](https://github.com/meuphilim/spec-driven-agent)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Compatible-green.svg)](https://docs.anthropic.com/en/docs/claude-code)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-green.svg)](https://nodejs.org/)
-[![Tests](https://img.shields.io/badge/tests-50%2F50-brightgreen.svg)](https://github.com/meuphilim/spec-driven-agent)
+[![Tests](https://img.shields.io/badge/tests-87%2F87-brightgreen.svg)](https://github.com/meuphilim/spec-driven-agent)
 
 ---
 
@@ -174,7 +174,7 @@ node cli/test-unit.js                     # 26 unit tests (sanitizePath)
 node cli/test-lite.js                     # 8 LITE mode tests
 ```
 
-**Total: 84 tests — all passing ✅**
+**Total: 87 tests — all passing ✅**
 
 ---
 

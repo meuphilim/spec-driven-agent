@@ -94,7 +94,7 @@ function handleSnapshot(res, metricsDir) {
   }
 
   res.writeHead(200, { 'Content-Type': 'application/json' });
-  res.end(JSON.stringify(snap));
+  res.end(JSON.stringify(events.toPublicSnapshot(snap)));
 }
 
 /**

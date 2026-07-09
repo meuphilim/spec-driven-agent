@@ -872,6 +872,20 @@ function hasData(snap) {
   );
 }
 
+/**
+ * Sanitiza snapshot para consumo externo: remove campos internos de cache
+ * que vazam implementação para o usuário final.
+ * @param {object} snap
+ * @returns {object}
+ */
+function toPublicSnapshot(snap) {
+  if (!snap) return snap;
+  const pub = { ...snap };
+  delete pub._cache_files;
+  delete pub._cache_state;
+  return pub;
+}
+
 module.exports = {
   readJsonlFile,
   listJsonlFiles,
@@ -888,4 +902,5 @@ module.exports = {
   readSnapshot,
   isSnapshotFresh,
   hasData,
+  toPublicSnapshot,
 };

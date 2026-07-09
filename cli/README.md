@@ -169,13 +169,13 @@ Consulte `VALIDATION-PROTOCOL.md` para detalhes.
 
 ```bash
 node cli/test.js                          # 24 testes de integração
-node cli/lib/__tests__/events.test.js     # 15 testes do módulo events
 node cli/lib/__tests__/dashboard.test.js  # 11 testes do dashboard
+node cli/lib/__tests__/events.test.js     # 18 testes do módulo events
 node cli/test-unit.js                     # 26 testes unitários (sanitizePath)
 node cli/test-lite.js                     # 8 testes do Modo LITE
 ```
 
-**Total: 84 testes — todos passando ✅**
+**Total: 87 testes — todos passando ✅**
 
 ---
 

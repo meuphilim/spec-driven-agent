@@ -159,7 +159,7 @@ function showJson(metricsDir, days = 0) {
     const built = events.buildSnapshots(metricsDir);
     snap = built.total;
   }
-  console.log(JSON.stringify(snap || { empty: true }, null, 2));
+  console.log(JSON.stringify(events.toPublicSnapshot(snap) || { empty: true }, null, 2));
 }
 
 /**
